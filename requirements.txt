@@ -1,0 +1,9 @@
+# Measured Python stacks and array payloads.
+o6==2.0.1
+asyncua==2.0.1
+numpy==2.4.6; python_version == "3.11"
+numpy==2.5.1; python_version >= "3.12"
+
+# Certificate generation and reports.
+cryptography>=45,<48
+plotly>=6.0,<7

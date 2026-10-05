@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../../deps/ua-dotnet/Libraries/Opc.Ua.Configuration/Opc.Ua.Configuration.csproj" />
+  </ItemGroup>
+</Project>

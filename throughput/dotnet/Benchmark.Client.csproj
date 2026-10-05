@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../common/dotnet/Benchmark.Common/Benchmark.Common.csproj" />
+    <ProjectReference Include="../../deps/ua-dotnet/Libraries/Opc.Ua.Client/Opc.Ua.Client.csproj" />
+  </ItemGroup>
+</Project>

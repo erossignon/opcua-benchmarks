@@ -1,0 +1,16 @@
+{
+  "sdk": "10.0.401",
+  "runtime": "10.0.12",
+  "source_commit": "511ef72a6148970fab15fa29bfc8b4978d6b6b74",
+  "source_version": "1.5.378.176",
+  "archives": {
+    "linux-arm64": {
+      "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.401/dotnet-sdk-10.0.401-linux-arm64.tar.gz",
+      "sha512": "58ace73ced6b4360754689a686bdfb8a317f4da6cb8bb416dbc7d0ba9f47e43e3c09f5eb1f1a1cfaacbd10df9558da4882bf2a5e195d6ab56a02c1f9f76102ed"
+    },
+    "linux-x64": {
+      "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.401/dotnet-sdk-10.0.401-linux-x64.tar.gz",
+      "sha512": "51c8b999af9e8dd9998c9edc5944e19a90788862068acd38694e098889054ce8c23d4f0c5cccfa16bf187d044562359e5ee69a9f8ad0bbe913ba90311fbce25b"
+    }
+  }
+}

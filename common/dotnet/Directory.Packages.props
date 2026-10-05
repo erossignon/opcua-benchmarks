@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="../../deps/ua-dotnet/Directory.Packages.props" />
+</Project>

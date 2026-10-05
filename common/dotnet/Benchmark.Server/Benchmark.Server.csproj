@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../subscription/DotnetWorker.cs" Link="CounterWorker.cs" />
+    <ProjectReference Include="../Benchmark.Common/Benchmark.Common.csproj" />
+    <ProjectReference Include="../../../deps/ua-dotnet/Libraries/Opc.Ua.Server/Opc.Ua.Server.csproj" />
+  </ItemGroup>
+</Project>

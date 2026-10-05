@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep locks for the source projects in the parent repository. -->
+    <NuGetLockFilePath>$(MSBuildThisFileDirectory)locks/$(MSBuildProjectName).json</NuGetLockFilePath>
+  </PropertyGroup>
+</Project>
