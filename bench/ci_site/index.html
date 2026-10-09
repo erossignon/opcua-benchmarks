@@ -154,7 +154,7 @@ function drawRuns() {
       .filter(([sdk, v]) => older && older.versions?.[sdk] !== v)
       .map(([sdk, v]) => `${escape(sdk)} ${escape(v)}`).join(", ");
     return `<tr><td>${escape(run.date.slice(0, 16).replace("T", " "))}</td><td><span class="tag">${escape(run.profile)}</span></td>
-      <td>${escape(run.trigger ?? "")}</td><td>${escape(run.runner?.cpu ?? "")}</td><td>${changed || "–"}</td>
+      <td>${escape(run.trigger ?? "")}</td><td>${escape([...new Set(Object.values(run.suites ?? {}).map((s) => s.runner?.cpu))].join(" · ") || run.runner?.cpu || "")}</td><td>${changed || "–"}</td>
       <td>${run.failures ? `<span class="down">${run.failures}</span>` : "0"}</td>
       <td><a href="${escape(run.report)}">report</a> · <a href="${escape(run.url ?? "#")}">log</a></td></tr>`;
   });

@@ -1,7 +1,10 @@
 name: benchmarks
 
 # Runs the suites and publishes the report, plus one entry in the history
-# that GitHub Pages shows as trends (bench/ci_site/index.html):
+# that GitHub Pages shows as trends (bench/ci_site/index.html). One job per
+# suite, in parallel: every SDK of a suite is measured on the same machine,
+# so servers compare within a suite; the wall time is the slowest suite.
+# Triggers:
 # - when a pinned SDK version changes on the default branch (quick profile),
 # - every week (standard profile),
 # - on demand, on any branch (sdk-watch dispatches its bump branches here).
@@ -44,22 +47,41 @@ permissions:
   contents: read
 
 concurrency:
-  # A runner executes one job at a time, so runs never measure each other;
-  # this only collapses repeated triggers of the same ref.
+  # Collapses repeated triggers of the same ref. A self-hosted runner executes
+  # one job at a time, so the suite jobs then run one after the other.
   group: benchmarks-${{ github.ref }}-${{ inputs.profile }}-${{ inputs.servers }}
   cancel-in-progress: false
 
+env:
+  PROFILE: ${{ inputs.profile || (github.event_name == 'schedule' && 'standard') || 'quick' }}
+  PUBLISH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish) || (github.event_name != 'workflow_dispatch' && github.ref_name == github.event.repository.default_branch) }}
+
 jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      suites: ${{ steps.plan.outputs.suites }}
+      run_id: ${{ steps.plan.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        run: |
+          echo "suites=$(python3 -m bench.ci plan --profile "$PROFILE")" >> "$GITHUB_OUTPUT"
+          echo "run_id=$(date -u +%F)-$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+
   bench:
+    needs: plan
+    name: ${{ matrix.suite }}
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJSON(needs.plan.outputs.suites) }}
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
-    timeout-minutes: 345
-    permissions:
-      contents: write  # gh-pages
+    timeout-minutes: 350
     env:
-      PROFILE: ${{ inputs.profile || (github.event_name == 'schedule' && 'standard') || 'quick' }}
       BENCH_SERVERS: ${{ inputs.servers }}
-      PUBLISH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish) || (github.event_name != 'workflow_dispatch' && github.ref_name == github.event.repository.default_branch) }}
       RUNNER_LABEL: ${{ inputs.runner || 'ubuntu-24.04' }}
+      OUT: results/${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,36 +102,58 @@ jobs:
       - name: Build workers
         run: .venv/bin/python -m bench.build --node --dotnet --sdks
 
-      - name: Run benchmarks
+      - name: Run ${{ matrix.suite }}
         run: |
           servers=${BENCH_SERVERS:-}
-          .venv/bin/python -m bench.ci run results/ci/bench.db --profile "$PROFILE" ${servers:+--servers "$servers"}
+          .venv/bin/python -m bench.ci run "$OUT/bench.db" --profile "$PROFILE" --suite "${{ matrix.suite }}" ${servers:+--servers "$servers"}
 
       - name: Build report and summary
-        if: always() && hashFiles('results/ci/bench.db') != ''
+        if: always() && hashFiles(format('{0}/bench.db', env.OUT)) != ''
         run: |
-          run_dir="runs/$(date -u +%F)-$GITHUB_RUN_ID"
-          echo "RUN_DIR=$run_dir" >> "$GITHUB_ENV"
-          # Exit code 2 means a suite rendered partially (an SDK failed): still publish it.
-          .venv/bin/python -m bench.show results/ci/bench.db --cdn --export results/ci/site || [ $? -eq 2 ]
-          .venv/bin/python -m bench.ci summary results/ci/bench.db --profile "$PROFILE" \
-            --report "$run_dir/index.html" --out results/ci/summary.json
-
-      - name: Compare with the published history
-        if: always() && hashFiles('results/ci/summary.json') != ''
-        run: |
-          git fetch -q --depth=1 origin gh-pages 2>/dev/null && git show FETCH_HEAD:data/history.json > "$RUNNER_TEMP/history.json" || true
-          .venv/bin/python -m bench.ci compare results/ci/summary.json "$RUNNER_TEMP/history.json" >> "$GITHUB_STEP_SUMMARY"
+          # Exit code 2 means the report rendered partially (an SDK failed): still publish it.
+          .venv/bin/python -m bench.show "$OUT/bench.db" --cdn --export "$OUT/site" || [ $? -eq 2 ]
+          .venv/bin/python -m bench.ci summary "$OUT/bench.db" --profile "$PROFILE" --out "$OUT/site/summary.json"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bench-${{ github.run_id }}
-          path: results/ci/
+          name: suite-${{ matrix.suite }}
+          path: ${{ env.OUT }}/
           if-no-files-found: warn
 
+  publish:
+    needs: [plan, bench]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write  # gh-pages
+    env:
+      RUN_ID: ${{ needs.plan.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: suite-*
+          path: artifacts
+
+      - name: Merge the suites
+        run: |
+          mkdir -p run
+          for dir in artifacts/suite-*; do
+            suite=${dir#artifacts/suite-}
+            [ -f "$dir/site/summary.json" ] && cp -r "$dir/site" "run/$suite"
+          done
+          ls run/*/summary.json > /dev/null 2>&1 || { echo "::error::no suite produced results"; exit 1; }
+          python3 -m bench.ci merge run/*/summary.json --id "$RUN_ID" --site run --out run/summary.json
+
+      - name: Compare with the published history
+        run: |
+          git fetch -q --depth=1 origin gh-pages 2>/dev/null && git show FETCH_HEAD:data/history.json > "$RUNNER_TEMP/history.json" || true
+          python3 -m bench.ci compare run/summary.json "$RUNNER_TEMP/history.json" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Publish to gh-pages
-        if: always() && env.PUBLISH == 'true' && hashFiles('results/ci/summary.json') != ''
+        if: env.PUBLISH == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -122,16 +166,15 @@ jobs:
           fi
           # Retried from the fresh remote tip if another run published meanwhile.
           for attempt in 1 2 3 4 5; do
-            mkdir -p "pages/$RUN_DIR" pages/data
-            cp -r results/ci/site/. "pages/$RUN_DIR/"
-            cp results/ci/summary.json "pages/$RUN_DIR/summary.json"
+            mkdir -p "pages/runs/$RUN_ID" pages/data
+            cp -r run/. "pages/runs/$RUN_ID/"
             cp bench/ci_site/index.html pages/index.html
             touch pages/.nojekyll
-            .venv/bin/python -m bench.ci append pages/data/history.json results/ci/summary.json
+            python3 -m bench.ci append pages/data/history.json run/summary.json
             git -C pages add -A
-            git -C pages commit -q -m "Benchmark run $RUN_DIR ($PROFILE)"
+            git -C pages commit -q -m "Benchmark run $RUN_ID ($PROFILE)"
             git -C pages push -q origin HEAD:gh-pages && break
             git -C pages fetch -q origin gh-pages
             git -C pages reset -q --hard FETCH_HEAD
           done
-          echo "Published: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/$RUN_DIR/" >> "$GITHUB_STEP_SUMMARY"
+          echo "Published: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/runs/$RUN_ID/" >> "$GITHUB_STEP_SUMMARY"

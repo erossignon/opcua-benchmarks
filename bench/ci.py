@@ -13,6 +13,7 @@ first suite creates it and the others join with ``--amend``.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import os
 import subprocess
@@ -86,12 +87,15 @@ def _call(arguments: list[str]) -> int:
     return subprocess.call([sys.executable, *arguments])
 
 
-def run(database: Path, profile: str, name: str, servers: list[str]) -> int:
+def run(database: Path, profile: str, name: str, servers: list[str], only: list[str] | None = None) -> int:
     if database.exists():
         print(f"{database} already exists; CI runs start from an empty database", file=sys.stderr)
         return 1
     database.parent.mkdir(parents=True, exist_ok=True)
-    suites = PROFILES[profile]
+    suites = {suite: plan for suite, plan in PROFILES[profile].items() if not only or suite in only}
+    if not suites:
+        print(f"profile {profile} has none of the suites {only}", file=sys.stderr)
+        return 2
     for suite, (settings, _) in suites.items():
         module = f"bench.{suite}"
         if _call(["-m", module, "new", str(database)]):
@@ -246,6 +250,59 @@ def compare(entry: dict, history: list[dict], threshold: float = 0.10) -> str:
     return "\n".join(lines) + "\n"
 
 
+def merge(parts: dict[str, dict], run_id: str, site: Path) -> dict:
+    """One history entry from the per-suite jobs of a run, plus ``site/index.html``.
+
+    Each suite ran on its own machine: ``suites`` records which, and ratios to
+    open62541 stay meaningful because they never cross suites.
+    """
+    if not parts:
+        raise ValueError("no suite summaries to merge")
+    first = min(parts.values(), key=lambda part: part["date"])
+    suites = {}
+    for suite, part in sorted(parts.items()):
+        reports = sorted(path.name for path in (site / suite).glob("*.html") if path.name != "index.html")
+        suites[suite] = dict(
+            runner=part["runner"],
+            failures=part["failures"],
+            report=f"{suite}/{reports[0]}" if reports else None,
+        )
+    entry = dict(
+        first,
+        id=run_id,
+        report=f"runs/{run_id}/index.html",
+        runner=first["runner"],
+        suites=suites,
+        failures=sum(part["failures"] for part in parts.values()),
+        metrics=sorted(
+            (metric for part in parts.values() for metric in part["metrics"]),
+            key=lambda m: (m["suite"], m["case"], m["server"]),
+        ),
+    )
+    rows = "".join(
+        f"<tr><td>{html.escape(suite)}</td><td>"
+        + (f'<a href="{html.escape(info["report"])}">report</a>' if info["report"] else "no report")
+        + f"</td><td>{html.escape(str(info['runner'].get('cpu')))}</td><td>{info['failures']}</td></tr>"
+        for suite, info in suites.items()
+    )
+    site.mkdir(parents=True, exist_ok=True)
+    (site / "index.html").write_text(
+        f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Benchmark run {html.escape(run_id)}</title>
+<style>body{{font:15px/1.5 system-ui,sans-serif;max-width:900px;margin:auto;padding:24px 16px;background:#fff;color:#1d1d1b}}
+table{{border-collapse:collapse;width:100%}}td,th{{text-align:left;padding:6px 10px;border-bottom:1px solid #ddd}}
+@media (prefers-color-scheme: dark){{body{{background:#161615;color:#ecebe6}}a{{color:#7aa2f7}}td,th{{border-color:#333}}}}</style>
+</head><body><h1>Benchmark run {html.escape(run_id)}</h1>
+<p>{html.escape(entry['profile'])} profile, {html.escape(entry['trigger'])} on {html.escape(entry['ref'])}
+(<a href="{html.escape(entry.get('url') or '#')}">log</a>, <a href="../../index.html">history</a>).
+Each suite ran on its own machine: compare servers within a suite, not across suites.</p>
+<table><tr><th>Suite</th><th>Report</th><th>Machine</th><th>Failures</th></tr>{rows}</table></body></html>
+""",
+        encoding="utf-8",
+    )
+    return entry
+
+
 def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -258,6 +315,14 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         default=os.environ.get("BENCH_SERVERS") or ",".join(ALL_SERVERS),
         help="comma-separated server SDKs to measure (default: all)",
     )
+    run_parser.add_argument("--suite", action="append", help="run only this suite of the profile (repeatable)")
+    plan_parser = commands.add_parser("plan", help="Print the profile's suites as a JSON list (the CI matrix)")
+    plan_parser.add_argument("--profile", choices=sorted(PROFILES), default="quick")
+    merge_parser = commands.add_parser("merge", help="Combine per-suite summaries into one history entry")
+    merge_parser.add_argument("summaries", type=Path, nargs="+")
+    merge_parser.add_argument("--id", required=True, help="the run's id, as its folder under runs/")
+    merge_parser.add_argument("--site", type=Path, required=True, help="the run's folder: gets an index of the suite reports")
+    merge_parser.add_argument("--out", type=Path, required=True)
     summary_parser = commands.add_parser("summary", help="Write one run's history entry as JSON")
     summary_parser.add_argument("db", type=Path)
     summary_parser.add_argument("--profile", choices=sorted(PROFILES), default="quick")
@@ -275,6 +340,17 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_arguments(argv)
+    if args.command == "plan":
+        print(json.dumps(list(PROFILES[args.profile])))
+        return 0
+    if args.command == "merge":
+        # Each summary sits in its suite's folder: <site>/<suite>/summary.json.
+        parts = {path.parent.name: json.loads(path.read_text()) for path in args.summaries}
+        entry = merge(parts, args.id, args.site)
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(entry, indent=1) + "\n", encoding="utf-8")
+        print(f"{len(entry['metrics'])} metrics from {len(args.summaries)} suite job(s) -> {args.out}")
+        return 0
     if args.command == "append":
         entry = json.loads(args.summary.read_text())
         history = json.loads(args.history.read_text()) if args.history.exists() else []
@@ -298,7 +374,7 @@ def main(argv: list[str] | None = None) -> int:
     if not servers or unknown:
         print(f"unknown or no servers: {', '.join(unknown)}", file=sys.stderr)
         return 2
-    return run(args.db, args.profile, args.name, servers)
+    return run(args.db, args.profile, args.name, servers, args.suite)
 
 
 if __name__ == "__main__":
