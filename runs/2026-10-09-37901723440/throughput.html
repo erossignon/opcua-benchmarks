@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPC UA client/server benchmark — runnervmmprz5</title>
+<style>
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--plane);
+  color: var(--primary);
+  -webkit-font-smoothing: antialiased;
+}
+.viz-root {
+  min-height: 100vh;
+  background: var(--plane);
+  color: var(--primary);
+  color-scheme: light;
+  --surface: #fcfcfb; --plane: #f9f9f7; --primary: #0b0b0b; --secondary: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --ghost: rgba(11,11,11,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .viz-root {
+    color-scheme: dark;
+    --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+  }
+}
+:root[data-theme="dark"] .viz-root {
+  color-scheme: dark;
+  --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; }
+header.page { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+header.page h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.page p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.55; max-width: 68ch; }
+.spacer { flex: 1 1 auto; }
+button, select { font: inherit; color: inherit; }
+
+/* ---- control row -------------------------------------------------------- */
+.controls {
+  position: sticky; top: 0; z-index: 20;
+  margin: 22px 0 26px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center;
+  backdrop-filter: saturate(1.2) blur(6px);
+}
+.group { display: flex; align-items: center; gap: 8px; }
+.group > .glabel {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+}
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; padding: 5px 10px; font-size: 12.5px;
+  color: var(--secondary); cursor: pointer; line-height: 1.4;
+}
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button:hover:not(:disabled) { background: var(--ghost); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.seg button:disabled { opacity: 0.38; cursor: not-allowed; }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ---- series legend ------------------------------------------------------ */
+.legendbar {
+  display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+  margin: -12px 0 26px; padding: 12px 14px;
+  border: 1px solid var(--border); border-top: 0; border-radius: 0 0 10px 10px;
+  background: var(--surface);
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); border-radius: 999px; background: transparent;
+  padding: 4px 11px 4px 8px; font-size: 12.5px; color: var(--primary); cursor: pointer;
+  min-height: 26px;
+}
+.chip:hover { background: var(--ghost); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip .sw { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.chip[aria-pressed="false"] { color: var(--muted); }
+.chip[aria-pressed="false"] .sw { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--axis); }
+.presets { display: flex; gap: 6px; margin-left: auto; }
+.presets button {
+  border: 1px solid var(--border); background: transparent; border-radius: 7px;
+  padding: 4px 9px; font-size: 12px; color: var(--secondary); cursor: pointer;
+}
+.presets button:hover { background: var(--ghost); }
+
+/* ---- chart cards -------------------------------------------------------- */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 18px 14px; margin-bottom: 22px;
+}
+.card > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+.card h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.card .q { font-size: 12.5px; color: var(--muted); }
+.card .scope { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+.card .scope .ign { text-decoration: line-through; opacity: 0.75; }
+.card .scope b { font-weight: 600; color: var(--secondary); }
+.card .caption {
+  font-size: 13px; color: var(--secondary); line-height: 1.55; margin: 12px 2px 0;
+  border-top: 1px solid var(--border); padding-top: 11px;
+}
+.card .tools { margin-left: auto; display: flex; gap: 6px; }
+.card .tools button {
+  border: 1px solid var(--border); background: transparent; border-radius: 7px;
+  padding: 3px 9px; font-size: 12px; color: var(--secondary); cursor: pointer;
+}
+.card .tools button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
+.plot { width: 100%; }
+.tablewrap { overflow-x: auto; margin-top: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+td { font-variant-numeric: tabular-nums; color: var(--secondary); }
+td.key { color: var(--primary); }
+td .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
+.hidden { display: none !important; }
+footer.page { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 34px; }
+footer.page code { font-size: 11.5px; }
+.warnnote { color: var(--secondary); }
+.warnnote .hatch {
+  display: inline-block; width: 11px; height: 11px; vertical-align: -1px; margin-right: 4px;
+  border: 1px solid var(--axis); border-radius: 2px;
+  background: repeating-linear-gradient(45deg, var(--axis) 0 1.5px, transparent 1.5px 4px);
+}
+.empty { color: var(--muted); font-size: 13px; padding: 26px 2px; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+<header class="page">
+  <div>
+    <h1>OPC UA client/server throughput</h1>
+    <p>64 measured configurations across
+    8 client/server pairings, read and write, sync and async,
+    plaintext and SignAndEncrypt, 1 to 1 concurrent clients.
+    Every chart below reads from the same control row.</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="presets"><button type="button" data-themetoggle>Dark theme</button></div>
+</header>
+
+<div class="controls"><div class="group"><span class="glabel">Operation</span><div class="seg" role="group" aria-label="Operation"><button type="button" data-set="op:read" title="Benchmark the read service">Read</button><button type="button" data-set="op:write" title="Benchmark the write service">Write</button></div></div><div class="group"><span class="glabel">Mode</span><div class="seg" role="group" aria-label="Mode"><button type="button" data-set="mode:sync" title="One request at a time">sync</button><button type="button" data-set="mode:async" title="Up to 32 requests in flight">async</button></div></div><div class="group"><span class="glabel">Payload</span><div class="seg" role="group" aria-label="Payload"><button type="button" data-set="payload:s" title="1 value(s) per service call">single value</button><button type="button" data-set="payload:b100" title="100 value(s) per service call">batch 100</button></div></div><div class="group"><span class="glabel">Metric</span><div class="seg" role="group" aria-label="Metric"><button type="button" data-set="metric:ops" title="Read/Write service calls per second">calls/s</button><button type="button" data-set="metric:data" title="Int32 payload moved per second, 4 bytes a value">MB/s</button><button type="button" data-set="metric:lat" title="Microseconds per service call">µs/call</button></div></div><div class="group"><span class="glabel">Scale</span><div class="seg" role="group" aria-label="Scale"><button type="button" data-set="scale:abs" title="Measured values">Absolute</button><button type="button" data-set="scale:rel" title="Normalised to the open62541 C client and server">× C</button></div></div><div class="group"><span class="glabel">Axis</span><div class="seg" role="group" aria-label="Axis"><button type="button" data-set="axis:linear" title="Bar length stays proportional to the value">Linear</button><button type="button" data-set="axis:log" title="Fits the full 190x range, at the cost of proportional bars">Log</button></div></div><div class="group"><div class="seg"><button type="button" data-toggle="whiskers" title="Show the min-max range across samples">Whiskers</button></div></div><div class="group"><span class="glabel">Ratio</span><div class="seg" role="group" aria-label="Ratio"><button type="button" data-set="ratio:security" title="Basic256Sha256 divided by SecurityPolicy None">Encryption</button><button type="button" data-set="ratio:pipeline" title="async divided by sync">Pipelining</button><button type="button" data-set="ratio:baseline" title="This pairing divided by the C client and server">vs C</button></div></div></div>
+<div class="legendbar">
+  <button type="button" class="chip" data-pair="open62541/open62541"><span class="sw" style="background:#2a78d6"></span>open62541 (C) &rarr; open62541 (C)</button><button type="button" class="chip" data-pair="open62541/o6-python"><span class="sw" style="background:#1baf7a"></span>open62541 (C) &rarr; o6\Python</button><button type="button" class="chip" data-pair="open62541/asyncua"><span class="sw" style="background:#008300"></span>open62541 (C) &rarr; asyncua</button><button type="button" class="chip" data-pair="open62541/ua-dotnet"><span class="sw" style="background:#007f86"></span>open62541 (C) &rarr; OPC Foundation (.NET)</button><button type="button" class="chip" data-pair="open62541/node-opcua"><span class="sw" style="background:#206060"></span>open62541 (C) &rarr; node-opcua (Node.js)</button><button type="button" class="chip" data-pair="open62541/gopcua"><span class="sw" style="background:#008300"></span>open62541 (C) &rarr; gopcua (Go)</button><button type="button" class="chip" data-pair="open62541/milo"><span class="sw" style="background:#4a3aa7"></span>open62541 (C) &rarr; Eclipse Milo (Java)</button><button type="button" class="chip" data-pair="open62541/s2opc"><span class="sw" style="background:#007f86"></span>open62541 (C) &rarr; S2OPC (C)</button>
+  <div class="presets">
+    <button type="button" data-preset="all">All</button>
+    <button type="button" data-preset="self">Same impl</button>
+    <button type="button" data-preset="client">Isolate client</button>
+    <button type="button" data-preset="server">Isolate server</button>
+  </div>
+</div>
+
+
+<section class="card" id="card-ranking">
+  <header>
+    <h2>1. Who is fastest?</h2>
+    <span class="q">one bar per pairing, in the selected slice</span>
+    <div class="tools">
+      <button type="button" data-table="ranking" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-ranking"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-heatmap">
+  <header>
+    <h2>2. Is that the client or the server?</h2>
+    <span class="q">the pairing matrix, one cell per combination</span>
+    <div class="tools">
+      <button type="button" data-table="heatmap" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-heatmap"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-scaling">
+  <header>
+    <h2>3. Does it hold under load?</h2>
+    <span class="q">throughput against concurrent clients</span>
+    <div class="tools">
+      <button type="button" data-table="scaling" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-scaling"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-ratio">
+  <header>
+    <h2>4. What does the feature cost?</h2>
+    <span class="q">ratios against 1.0</span>
+    <div class="tools">
+      <button type="button" data-table="ratio" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-ratio"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-payload">
+  <header>
+    <h2>5. What do batching and arrays buy?</h2>
+    <span class="q">megabytes per second against payload size, with a power-law fit</span>
+    <div class="tools">
+      <button type="button" data-table="payload" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-payload"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-operation">
+  <header>
+    <h2>†. Does read vs. write matter?</h2>
+    <span class="q">the check behind parking the operation axis</span>
+    <div class="tools">
+      <button type="button" data-table="operation" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-operation"></div>
+  <p class="caption"></p>
+</section>
+
+
+<footer class="page">
+  <p>Node.js sync mode uses sequential asynchronous I/O with one outstanding service.</p>
+  <p class="warnnote"><span class="hatch"></span>A hatched bar or a
+  &#9888; in a table marks a provisional median: either the fastest sample was more
+  than twice the slowest, or the configuration holds fewer samples than the run
+  asked for. The Samples column gives the count behind each row.</p>
+  <p>AMD EPYC 7763 64-Core Processor · 4 logical cores ·
+  Linux-6.17.0-1022-azure-x86_64-with-glibc2.39 · Python 3.12.15
+  · runnervmmprz5 · 2026-10-09T07:59:58.904985+00:00</p>
+  <p>5000 timed operations per client, 3000 warm-up, median of 1 sample(s), async pipeline depth 32. Generated from <code>run.py sample</code> by
+  <code>throughput/show.py</code>. Every chart has a table view; the current
+  selection lives in the page URL.</p>
+</footer>
+</div>
+</div>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script>
+'use strict';
+
+const DATA = {"rows":[{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":697.275,"lo":697.275,"hi":697.275,"mbmed":0.27891,"mblo":0.27891,"mbhi":0.27891},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":7193.737,"lo":7193.737,"hi":7193.737,"mbmed":0.028775,"mblo":0.028775,"mbhi":0.028775},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3007.076,"lo":3007.076,"hi":3007.076,"mbmed":1.20283,"mblo":1.20283,"mbhi":1.20283},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":16531.23,"lo":16531.23,"hi":16531.23,"mbmed":0.066125,"mblo":0.066125,"mbhi":0.066125},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2616.461,"lo":2616.461,"hi":2616.461,"mbmed":1.046584,"mblo":1.046584,"mbhi":1.046584},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13041.131,"lo":13041.131,"hi":13041.131,"mbmed":0.052165,"mblo":0.052165,"mbhi":0.052165},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1222.568,"lo":1222.568,"hi":1222.568,"mbmed":0.489027,"mblo":0.489027,"mbhi":0.489027},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":9703.119,"lo":9703.119,"hi":9703.119,"mbmed":0.038812,"mblo":0.038812,"mbhi":0.038812},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":7216.884,"lo":7216.884,"hi":7216.884,"mbmed":2.886754,"mblo":2.886754,"mbhi":2.886754},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":55615.671,"lo":55615.671,"hi":55615.671,"mbmed":0.222463,"mblo":0.222463,"mbhi":0.222463},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":32312.988,"lo":32312.988,"hi":32312.988,"mbmed":12.925195,"mblo":12.925195,"mbhi":12.925195},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":126531.535,"lo":126531.535,"hi":126531.535,"mbmed":0.506126,"mblo":0.506126,"mbhi":0.506126},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":11801.38,"lo":11801.38,"hi":11801.38,"mbmed":4.720552,"mblo":4.720552,"mbhi":4.720552},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":26321.424,"lo":26321.424,"hi":26321.424,"mbmed":0.105286,"mblo":0.105286,"mbhi":0.105286},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":5189.82,"lo":5189.82,"hi":5189.82,"mbmed":2.075928,"mblo":2.075928,"mbhi":2.075928},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":15822.598,"lo":15822.598,"hi":15822.598,"mbmed":0.06329,"mblo":0.06329,"mbhi":0.06329},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":588.016,"lo":588.016,"hi":588.016,"mbmed":0.235206,"mblo":0.235206,"mbhi":0.235206},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":6813.397,"lo":6813.397,"hi":6813.397,"mbmed":0.027254,"mblo":0.027254,"mbhi":0.027254},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3023.728,"lo":3023.728,"hi":3023.728,"mbmed":1.209491,"mblo":1.209491,"mbhi":1.209491},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":16278.943,"lo":16278.943,"hi":16278.943,"mbmed":0.065116,"mblo":0.065116,"mbhi":0.065116},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2365.537,"lo":2365.537,"hi":2365.537,"mbmed":0.946215,"mblo":0.946215,"mbhi":0.946215},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":24796.478,"lo":24796.478,"hi":24796.478,"mbmed":0.099186,"mblo":0.099186,"mbhi":0.099186},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":747.728,"lo":747.728,"hi":747.728,"mbmed":0.299091,"mblo":0.299091,"mbhi":0.299091},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10905.782,"lo":10905.782,"hi":10905.782,"mbmed":0.043623,"mblo":0.043623,"mbhi":0.043623},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4957.238,"lo":4957.238,"hi":4957.238,"mbmed":1.982895,"mblo":1.982895,"mbhi":1.982895},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":51790.944,"lo":51790.944,"hi":51790.944,"mbmed":0.207164,"mblo":0.207164,"mbhi":0.207164},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":27156.407,"lo":27156.407,"hi":27156.407,"mbmed":10.862563,"mblo":10.862563,"mbhi":10.862563},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":125530.416,"lo":125530.416,"hi":125530.416,"mbmed":0.502122,"mblo":0.502122,"mbhi":0.502122},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3965.173,"lo":3965.173,"hi":3965.173,"mbmed":1.586069,"mblo":1.586069,"mbhi":1.586069},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":22223.053,"lo":22223.053,"hi":22223.053,"mbmed":0.088892,"mblo":0.088892,"mbhi":0.088892},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":5268.654,"lo":5268.654,"hi":5268.654,"mbmed":2.107461,"mblo":2.107461,"mbhi":2.107461},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":18392.977,"lo":18392.977,"hi":18392.977,"mbmed":0.073572,"mblo":0.073572,"mbhi":0.073572},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":667.233,"lo":667.233,"hi":667.233,"mbmed":0.266893,"mblo":0.266893,"mbhi":0.266893},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":4948.61,"lo":4948.61,"hi":4948.61,"mbmed":0.019794,"mblo":0.019794,"mbhi":0.019794},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2513.126,"lo":2513.126,"hi":2513.126,"mbmed":1.00525,"mblo":1.00525,"mbhi":1.00525},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":7566.916,"lo":7566.916,"hi":7566.916,"mbmed":0.030268,"mblo":0.030268,"mbhi":0.030268},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1459.441,"lo":1459.441,"hi":1459.441,"mbmed":0.583776,"mblo":0.583776,"mbhi":0.583776},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":4088.957,"lo":4088.957,"hi":4088.957,"mbmed":0.016356,"mblo":0.016356,"mbhi":0.016356},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1061.014,"lo":1061.014,"hi":1061.014,"mbmed":0.424405,"mblo":0.424405,"mbhi":0.424405},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5015.846,"lo":5015.846,"hi":5015.846,"mbmed":0.020063,"mblo":0.020063,"mbhi":0.020063},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4996.506,"lo":4996.506,"hi":4996.506,"mbmed":1.998602,"mblo":1.998602,"mbhi":1.998602},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13831.749,"lo":13831.749,"hi":13831.749,"mbmed":0.055327,"mblo":0.055327,"mbhi":0.055327},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":12652.312,"lo":12652.312,"hi":12652.312,"mbmed":5.060925,"mblo":5.060925,"mbhi":5.060925},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20674.668,"lo":20674.668,"hi":20674.668,"mbmed":0.082699,"mblo":0.082699,"mbhi":0.082699},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4916.612,"lo":4916.612,"hi":4916.612,"mbmed":1.966645,"mblo":1.966645,"mbhi":1.966645},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":6602.94,"lo":6602.94,"hi":6602.94,"mbmed":0.026412,"mblo":0.026412,"mbhi":0.026412},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3248.428,"lo":3248.428,"hi":3248.428,"mbmed":1.299371,"mblo":1.299371,"mbhi":1.299371},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5195.578,"lo":5195.578,"hi":5195.578,"mbmed":0.020782,"mblo":0.020782,"mbhi":0.020782},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":573.678,"lo":573.678,"hi":573.678,"mbmed":0.229471,"mblo":0.229471,"mbhi":0.229471},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":4717.843,"lo":4717.843,"hi":4717.843,"mbmed":0.018871,"mblo":0.018871,"mbhi":0.018871},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2709.871,"lo":2709.871,"hi":2709.871,"mbmed":1.083948,"mblo":1.083948,"mbhi":1.083948},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":7626.345,"lo":7626.345,"hi":7626.345,"mbmed":0.030505,"mblo":0.030505,"mbhi":0.030505},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1761.334,"lo":1761.334,"hi":1761.334,"mbmed":0.704534,"mblo":0.704534,"mbhi":0.704534},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":6165.96,"lo":6165.96,"hi":6165.96,"mbmed":0.024664,"mblo":0.024664,"mbhi":0.024664},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":620.366,"lo":620.366,"hi":620.366,"mbmed":0.248146,"mblo":0.248146,"mbhi":0.248146},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5112.407,"lo":5112.407,"hi":5112.407,"mbmed":0.02045,"mblo":0.02045,"mbhi":0.02045},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3822.591,"lo":3822.591,"hi":3822.591,"mbmed":1.529036,"mblo":1.529036,"mbhi":1.529036},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13580.753,"lo":13580.753,"hi":13580.753,"mbmed":0.054323,"mblo":0.054323,"mbhi":0.054323},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":12112.682,"lo":12112.682,"hi":12112.682,"mbmed":4.845073,"mblo":4.845073,"mbhi":4.845073},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20395.932,"lo":20395.932,"hi":20395.932,"mbmed":0.081584,"mblo":0.081584,"mbhi":0.081584},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2561.164,"lo":2561.164,"hi":2561.164,"mbmed":1.024466,"mblo":1.024466,"mbhi":1.024466},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":6184.847,"lo":6184.847,"hi":6184.847,"mbmed":0.024739,"mblo":0.024739,"mbhi":0.024739},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3360.826,"lo":3360.826,"hi":3360.826,"mbmed":1.34433,"mblo":1.34433,"mbhi":1.34433},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":12223.879,"lo":12223.879,"hi":12223.879,"mbmed":0.048896,"mblo":0.048896,"mbhi":0.048896}],"failures":[],"series":[{"pair":"open62541/open62541","client":"open62541","server":"open62541","light":"#2a78d6","dark":"#3987e5"},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","light":"#1baf7a","dark":"#199e70"},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","light":"#008300","dark":"#008300"},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","light":"#007f86","dark":"#44bbbb"},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","light":"#206060","dark":"#60bbbb"},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","light":"#008300","dark":"#008300"},{"pair":"open62541/milo","client":"open62541","server":"milo","light":"#4a3aa7","dark":"#9085e9"},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","light":"#007f86","dark":"#44bbbb"}],"options":{"op":["read","write"],"mode":["sync","async"],"sec":["none"],"n":[1],"payloads":[{"key":"s","batch":1,"array":1,"per_call":1,"label":"single value","kind":"batch"},{"key":"b100","batch":100,"array":1,"per_call":100,"label":"batch 100","kind":"batch"}],"impl":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua"]},"baseline":"open62541/open62541","metadata":{"timestamp_utc":"2026-10-09T07:59:58.904985+00:00","hostname":"runnervmmprz5","platform":"Linux-6.17.0-1022-azure-x86_64-with-glibc2.39","system":"Linux","release":"6.17.0-1022-azure","machine":"x86_64","cpu_model":"AMD EPYC 7763 64-Core Processor","cpu_count_logical":4,"total_memory_bytes":16766414848,"python_version":"3.12.15","node_opcua":{"dependencies_sha256":"d6100737dc0eadd5d0b7a199c68ae083b2f2b9bdcc80ec02a97ef5bc3611bfdd","inputs":"f029cca0bb9ca681d03585cc030c79f6ed94c37f53cc51c5be5cea6d4d0074be","lifecycle_policy":"ignore-scripts","lock_sha256":"9f3324b1e7b5b1c45755db30699ca70f57c3dcebaa2b5128368e4da6b04c5034","npm_sha256":"bffaf0d018e43e4a65c6d64230cc3ca66054b250772f1ef3b854aa86c1331d20","runtime":{"arch":"x64","npm":"11.19.0","platform":"linux","versions":{"acorn":"8.18.0","ada":"4.0.0","amaro":"1.1.11","ares":"1.34.8","brotli":"1.2.0","cldr":"48.0","icu":"78.3","llhttp":"9.4.3","merve":"1.2.2","modules":"137","napi":"10","nbytes":"0.1.4","ncrypto":"0.0.1","nghttp2":"1.70.0","nghttp3":"","ngtcp2":"","node":"24.21.0","openssl":"3.5.8","simdjson":"4.6.7","simdutf":"6.4.0","sqlite":"3.53.4","tz":"2026c","undici":"7.29.1","unicode":"17.0","uv":"1.52.1","uvwasi":"0.0.23","v8":"13.6.233.17-node.53","zlib":"1.3.2.1-motley-8002e91","zstd":"1.5.7"}},"runtime_info":{"defaults":{"byteStringBytes":16777216,"capabilities":{"conformanceUnits":[],"localeIdArray":[],"maxArrayLength":1048576,"maxBrowseContinuationPoints":0,"maxByteStringLength":16777216,"maxHistoryContinuationPoints":0,"maxMonitoredItems":1000000,"maxMonitoredItemsPerSubscription":100000,"maxMonitoredItemsQueueSize":60000,"maxQueryContinuationPoints":0,"maxSelectClauseParameters":1000,"maxSessions":10,"maxStringLength":16777216,"maxSubscriptions":100,"maxSubscriptionsPerSession":10,"maxWhereClauseParameters":1000,"minSupportedSampleRate":100,"operationLimits":{"maxMonitoredItemsPerCall":10000,"maxNodesPerBrowse":10000,"maxNodesPerHistoryReadData":1000,"maxNodesPerHistoryReadEvents":1000,"maxNodesPerHistoryUpdateData":0,"maxNodesPerHistoryUpdateEvents":0,"maxNodesPerMethodCall":1000,"maxNodesPerNodeManagement":0,"maxNodesPerRead":10000,"maxNodesPerRegisterNodes":10000,"maxNodesPerTranslateBrowsePathsToNodeIds":10000,"maxNodesPerWrite":10000},"serverProfileArray":[],"softwareCertificates":[]},"generalArrayElements":1048576,"maxConnectionsPerEndpoint":10,"typedArrayElements":16777216},"nodeset":{"name":"Opc.Ua.NodeSet2.xml","sha256":"a749678b5c4f2381fffdfc0e9514ec3315f36b1bdb31af402d3741a2db54f889"},"package":"2.186.0","packages":{"node_modules/@leichtgewicht/ip-codec":{"integrity":"sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==","version":"2.0.5"},"node_modules/@peculiar/asn1-asym-key":{"integrity":"sha512-U3Q2bUWYNVpfk+oOhPl/+OSHxXaBTQBwMf93jJ7oPi/sbmcY5CnARdjGMwLoXT/ggWSryo5t7A7o3/Gfz0U2WA==","version":"2.9.5"},"node_modules/@peculiar/asn1-cms":{"integrity":"sha512-4Ivz0fsyFofe0bslNsYcGN9+iETdHX4v+BFwIPr+K/BAt61sHXECP63ff9FntU9zcfVQELJFdUG9so44OjUlBQ==","version":"2.9.5"},"node_modules/@peculiar/asn1-csr":{"integrity":"sha512-9dO6PcoJeI+1xJ4rG7eINMa6f9Ix/QdRs5UGZ0D7v/R3TzmsbVr5cqAgfYw4xgS9U54ouHYqEz0bIZBbM/UY1g==","version":"2.9.5"},"node_modules/@peculiar/asn1-ecc":{"integrity":"sha512-OD+HLlcV7wCL64w0rheX/C0J31DbJce0nf8ulv3UNftQ617JEZE3sQ4cMN6PotXWlJ1M5GQx90G3bywtdKOstw==","version":"2.9.5"},"node_modules/@peculiar/asn1-pfx":{"integrity":"sha512-btcH7lbcD4410qnjHvv7F0kEuMNKbX8CFAZSs9CDPWHKzT1byLPHYeR40AnUw9z4CzsijMY0daBFYUvVx75sdA==","version":"2.9.5"},"node_modules/@peculiar/asn1-pkcs8":{"integrity":"sha512-c7UghAGQdBfAHL9JdwcJkAc/lDJKNXfCdYXPXlf8BZdD/fVJjJnXKHxX4gyLhkFTvnGhME7caieSgc2ROtqYTQ==","version":"2.9.5"},"node_modules/@peculiar/asn1-pkcs9":{"integrity":"sha512-4R/zMgLSHbQIZRBwP1KzX6iuNHmW3xFWwu9TS9A00N60fmQqp9DkkqnQFyd0mAYMQTrQefuzQ/yP4U8sOLGUgQ==","version":"2.9.5"},"node_modules/@peculiar/asn1-rsa":{"integrity":"sha512-kHwBLVMkm9ljlM521ovS7y4z4mr8xuHTdNyyoPlDvckBwFKSgs9HqKBryLBeqHqL2YpIgl+Vspl7kzNGG2phzA==","version":"2.9.5"},"node_modules/@peculiar/asn1-schema":{"integrity":"sha512-Ez3wLKVjaxdsLcgeWN4OE31QkM7oBOgKuuBJxldRYAkfYw2C+8zJPcSd/SThnbhszsEOlAmoaS5kIIkN29fGKQ==","version":"2.9.5"},"node_modules/@peculiar/asn1-x509":{"integrity":"sha512-NP3ecvN6zTDlwCvogIWL7MJN9AZNuskkIbnlhrlkB97Mn2EqirBUQ8GKzsOmdAL3pRvjGu1Uk/a4DNfiZrWxhw==","version":"2.9.5"},"node_modules/@peculiar/asn1-x509-attr":{"integrity":"sha512-PlbL1a74RZiry7puPCZ5hdk/puvivxYJPbjadr2i7DBjHCJFEKCfTRPKL3DILeZFtzJjn95J5EBtSc4/TB9/6Q==","version":"2.9.5"},"node_modules/@peculiar/asn1-x509-post-quantum":{"integrity":"sha512-CTznDkboSgwRpXSFhta+Pe5cQ12JtojdMrmOZTWYkBSvbW/1R5pflPIHkpSlaILIfGcAaxIVpXq880xCfJYzow==","version":"2.9.5"},"node_modules/@peculiar/json-schema":{"integrity":"sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==","version":"1.1.12"},"node_modules/@peculiar/utils":{"integrity":"sha512-+oL3HPFRIZ1St2K50lWCXiioIgSoxzz7R1J3uF6neO2yl1sgmpgY6XXJH4BdpoDkMWznQTeYF6oWNDZLCdQ4eQ==","version":"2.0.3"},"node_modules/@peculiar/webcrypto":{"integrity":"sha512-ODOov0sGMJMf3jPonOkgGqPknTsu+DdQ7kD++gz8aI+aFMOMHFbWAA2taqXXVTdP+OTOQR/znGvSpmkeI0WTYQ==","version":"1.7.1"},"node_modules/@peculiar/x509":{"integrity":"sha512-IYbg1R03CSQGWwl24kGyqrdVtixNSbRaDvBg1r5wyYjTP+VwPQkka1BzTgU5+vxiuwqg04OxdvdJ1xYYFIdUSA==","version":"2.1.0"},"node_modules/@ster5/global-mutex":{"integrity":"sha512-uiGJTiE0ZiQ6z9VMOHVT3RNrErCi3pZh1bGbfb27GAXCAsvCyLz61pLfBYq8uzsf6Y2qdybhoTwHy7UGtK6MYw==","version":"3.3.0"},"node_modules/@types/dns-packet":{"integrity":"sha512-qXOC7XLOEe43ehtWJCMnQXvgcIpv6rPmQ1jXT98Ad8A3TB1Ue50jsCbSSSyuazScEuZ/Q026vHbrOTVkmwA+7Q==","version":"5.6.5"},"node_modules/@types/multicast-dns":{"integrity":"sha512-ib5K4cIDR4Ro5SR3Sx/LROkMDa0BHz0OPaCBL/OSPDsAXEGZ3/KQeS6poBKYVN7BfjXDL9lWNwzyHVgt/wkyCw==","version":"7.2.4"},"node_modules/@types/node":{"integrity":"sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g==","version":"26.6.2"},"node_modules/@types/semver":{"integrity":"sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==","version":"7.8.0"},"node_modules/ansi-styles":{"integrity":"sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==","version":"4.3.0"},"node_modules/array-back":{"integrity":"sha512-SGDvmg6QTYiTxCBkYVmThcoa67uLl35pyzRHdpCGBOcqFy6BtwnphoFPk7LhJshD+Yk1Kt35WGWeZPTgwR4Fhw==","version":"6.2.3"},"node_modules/array-flatten":{"integrity":"sha512-hNfzcOV8W4NdualtqBFPyVO+54DSJuZGY9qT4pRroB6S9e3iiido2ISIC5h9R2sPJ8H3FHCIiEnsv1lPXO3KtQ==","version":"2.1.2"},"node_modules/asn1":{"integrity":"sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==","version":"0.2.6"},"node_modules/asn1js":{"integrity":"sha512-S2s3aOytiKdFRdulw2qPE51MzjzVOisppcVv7jVFR+Kw0kxwvFrDcYA0h7Ndqbmj0HkMIXYWaoj7fli8kgx1eg==","version":"3.0.10"},"node_modules/assert-plus":{"integrity":"sha512-NfJ4UzBCcQGLDlQq7nHxH+tv3kyZ0hHQqF5BO6J7tNJeP5do1llPr8dZ8zHonfhAu0PHAdMkSo+8o0wxg9lZWw==","version":"1.0.0"},"node_modules/backoff":{"integrity":"sha512-wC5ihrnUXmR2douXmXLCe5O3zg3GKIyvRi/hi58a/XyRxVI+3/yM0PYueQOZXPXQ9pxBislYkw+sF9b7C/RuMA==","version":"2.5.0"},"node_modules/bcrypt-pbkdf":{"integrity":"sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==","version":"1.0.2"},"node_modules/byline":{"integrity":"sha512-s6webAy+R4SR8XVuJWt2V2rGvhnrhxN+9S15GNuTK3wKPOXFF6RNc+8ug2XhH+2s4f+uudG4kUVYmYOQWL2g0Q==","version":"5.0.0"},"node_modules/chalk":{"integrity":"sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==","version":"4.1.2"},"node_modules/chalk-template":{"integrity":"sha512-/ghrgmhfY8RaSdeo43hNXxpoHAtxdbskUHjPpfqUWGttFgycUhYPGx3YZBCnUCvOa7Doivn1IZec3DEGFoMgLg==","version":"0.4.0"},"node_modules/chokidar":{"integrity":"sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==","version":"4.0.3"},"node_modules/color-convert":{"integrity":"sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==","version":"2.0.1"},"node_modules/color-name":{"integrity":"sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==","version":"1.1.4"},"node_modules/command-line-args":{"integrity":"sha512-AIjYVxrV9X752LmPDLbVYv8aMCuHPSLZJXEo2qo/xJfv+NYhaZ4sMSF01rM+gHPaMgvPM0l5D/F+Qx+i2WfSmQ==","version":"6.0.2"},"node_modules/command-line-usage":{"integrity":"sha512-85UdvzTNx/+s5CkSgBm/0hzP80RFHAa7PsfeADE5ezZF3uHz3/Tqj9gIKGT9PTtpycc3Ua64T0oVulGfKxzfqg==","version":"7.0.4"},"node_modules/dashdash":{"integrity":"sha512-jRFi8UDGo6j+odZiEpjazZaWqEal3w/basFjQHQEwVtZJGDpxbH1MeYluwCS8Xq5wmLJooDlMgvVarmWfGM44g==","version":"1.14.1"},"node_modules/dequeue":{"integrity":"sha512-2FIVJZTaWhUj0Y2uKmDAasTP6ZwFWRjkRc01MYN5jFm96iIzkYyNzGADfJ13C5W7CTN7XO9mBYDcVB68eNybBA==","version":"1.0.5"},"node_modules/dns-equal":{"integrity":"sha512-z+paD6YUQsk+AbGCEM4PrOXSss5gd66QfcVBFTKR/HpFL9jCqikS94HYwKww6fQyO7IxrIIyUu+g0Ka9tUS2Cg==","version":"1.0.0"},"node_modules/dns-packet":{"integrity":"sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==","version":"5.6.1"},"node_modules/ecc-jsbn":{"integrity":"sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==","version":"0.1.2"},"node_modules/env-paths":{"integrity":"sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==","version":"2.2.1"},"node_modules/fast-deep-equal":{"integrity":"sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==","version":"3.1.3"},"node_modules/find-replace":{"integrity":"sha512-Y45BAiE3mz2QsrN2fb5QEtO4qb44NcS7en/0y9PEVsg351HsLeVclP8QPMH79Le9sH3rs5RSwJu99W0WPZO43Q==","version":"5.0.2"},"node_modules/getpass":{"integrity":"sha512-0fzj9JxOLfJ+XGLhR8ze3unN0KZCgZwiSSDz168VERjK8Wl8kVSdcu2kspd4s4wtAa1y/qrVRiAA0WclVsu0ng==","version":"0.1.7"},"node_modules/has-flag":{"integrity":"sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==","version":"4.0.0"},"node_modules/hexy":{"integrity":"sha512-HxJ6HCV/zrSBeAVRNEhr3CE6yTlCYklMHfCVfJkp7kC+HJqSP1SQ+howWPiHK37t++ELUtgoAoGJut5HyRhIvg==","version":"0.4.0"},"node_modules/humanize":{"integrity":"sha512-bvZZ7vXpr1RKoImjuQ45hJb5OvE2oJafHysiD/AL3nkqTZH2hFCjQ3YZfCd63FefDitbJze/ispUPP0gfDsT2Q==","version":"0.0.9"},"node_modules/jsbn":{"integrity":"sha512-UVU9dibq2JcFWxQPA6KCqj5O42VOmAY3zQUfEKxU0KpTGXwNoCjkX1e13eHNvw/xPynt6pU0rZ1htjWTNTSXsg==","version":"0.1.1"},"node_modules/lodash.camelcase":{"integrity":"sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==","version":"4.3.0"},"node_modules/lodash.partition":{"integrity":"sha512-35L3dSF3Q6V1w5j6V3NhNlQjzsRDC/pYKCTdYTmwqSib+Q8ponkAmt/PwEOq3EmI38DSCl+SkIVwLd+uSlVdrg==","version":"4.6.0"},"node_modules/lodash.sortby":{"integrity":"sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==","version":"4.7.0"},"node_modules/long":{"integrity":"sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==","version":"5.3.2"},"node_modules/multicast-dns":{"integrity":"sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==","version":"7.2.5"},"node_modules/node-opcua":{"integrity":"sha512-eyyvkIWTqnf9YmqPZYcA6TWVIAwbvq9/SulkH3rkJX+ziPG8RlyaE5x4EKUjkjiQsggyrFce9w5rljrYgxLlIw==","version":"2.186.0"},"node_modules/node-opcua-address-space":{"integrity":"sha512-ngPq0qY1jh5T7YOPA+r/6cSfWKCjRi0EKdev1zUOtkySInK4pqK4LDf9r6p/2bK6ur05o4knoRndt6BNyObczw==","version":"2.186.0"},"node_modules/node-opcua-address-space-base":{"integrity":"sha512-IMlE1m0tTIL31Q8Z38vYxnPqfvCWMPQWxkG9dfNEnwfSxkvFWm1eFcRnKbnuBoI4sAbBI77JvEjDsQffIFp3Og==","version":"2.186.0"},"node_modules/node-opcua-address-space-for-conformance-testing":{"integrity":"sha512-5UmJzNmpcLdzVPY+Ojc442lnNNaePhpK/fFxZuwzCLE9JjS8cpj9c8Lk+BTNIcc9dU0GVN9hIm14cbO69KIdUg==","version":"2.186.0"},"node_modules/node-opcua-aggregates":{"integrity":"sha512-jVbWKnv0Zi4h2w1B0xU/Mn/GhsH+DQB/FZxoWjBNqREHNVXr4YKX8nGnLzDxeYu5Gnsjin8gVMG/LVoJfrkqAQ==","version":"2.186.0"},"node_modules/node-opcua-alarm-condition":{"integrity":"sha512-vpBkVvKAv8c2j1E2vb6Y+Ktv/GrfuveZdu7yvNvuB+avptd6WrP/edtjATsv2yztikLjbWObjwXYc13c+86MLw==","version":"2.186.0"},"node_modules/node-opcua-assert":{"integrity":"sha512-gUwowAURNL/HTxTRizYy6a7+uoPsAXLaWCqXrj2B+LuHCBDTWuPvkw9lzokXEFx28pBdFHI9iQ3Mk29TRaX9Yw==","version":"2.184.0"},"node_modules/node-opcua-basic-types":{"integrity":"sha512-7vRfsg0oA6xr/FADQ2EIMsiBDrW2UOpvuDKRkixnJi6zYPZajIF9U2N3cNCQ4qC8rmQWF2MUJM/LQe8XzIKrGw==","version":"2.185.0"},"node_modules/node-opcua-binary-stream":{"integrity":"sha512-3jiVsUNwZNWnE2x8N0ol0SZ6z/GkYEbAIVzZiFSJhEU+vBxg+ta7CxLUbD9cvc6qa0Obt24yNbMqx2wfA/f3kw==","version":"2.184.1"},"node_modules/node-opcua-buffer-utils":{"integrity":"sha512-aGg3aD7BV34/ScfaHKJnYzgFxUt8Zoz0qGbvY7u9cA0Hw4zE/PMmjoJwexENIoMt/CVndU9HQzUcNPACYySTyQ==","version":"2.184.1"},"node_modules/node-opcua-certificate-manager":{"integrity":"sha512-chr2mruS90PWgAFShCjnMThvJAnmEIJbI+H/BWZFj5+lLx31Nw+sXLksFdZi//oTs+CRATgNarq1COfDnHByyQ==","version":"2.185.0"},"node_modules/node-opcua-chunkmanager":{"integrity":"sha512-rlMncC7ovZXAls0G7pxLmctj5FLvcyZzh78jqErcV+1U7uhA8ER8iszIGcTPVQ7ug0M65CzETRYyboLIjeSmWQ==","version":"2.185.0"},"node_modules/node-opcua-client":{"integrity":"sha512-KVOvDtTF+YBSBetWs6qB1HTVKjQmX9M0QH/shzV/4Y0fAuofyFjozU6orjLkeCghs5IrmN6mLE0z7vOvhQ+chA==","version":"2.186.0"},"node_modules/node-opcua-client-dynamic-extension-object":{"integrity":"sha512-aYax/H43XOJYZCZdqToHDjLCAqIFF4hDdBDAm3UQesnOb4fZ+j5K/SLhKhO+y9KywqY8srcPFZuO8hlqDnJK1Q==","version":"2.185.0"},"node_modules/node-opcua-client-proxy":{"integrity":"sha512-twgZTNTEPB6cj58MwqFGLJ142EZGdL28u7B7FrtAEB0pNG81JS4OSrAaEAOzG3ax5M++Op9Ia0vYw8WnZ3cyoQ==","version":"2.185.0"},"node_modules/node-opcua-common":{"integrity":"sha512-vEFxiPLSa7k+bb9JKjJ670iAJi+0RnOAjcbcsvOgj78dR4zSxzmrELqrFPzypTwFgASFULVSTW5/ToQHMsO90A==","version":"2.185.0"},"node_modules/node-opcua-constants":{"integrity":"sha512-0H/It463ZKlgzQnrsGGcskI933vGGPmf4zCyM5Hb2jmlrImqpnM38xZMBi7ZDHzK2abUbewA73GftStlubRveA==","version":"2.185.0"},"node_modules/node-opcua-crypto":{"integrity":"sha512-hVQBLj7W1vZf8kBM+c1T6Cev4bSoYEvW87SuqB6yUyFKqZeUu7jQfnaz2q3Edq29WuWU/HnIPOHBf8pBO9zLBQ==","version":"6.0.0"},"node_modules/node-opcua-data-access":{"integrity":"sha512-Oh4thGhGw1qnNMdZZxIU8Qd60FIiAnBKeHZCbZLZjuNP4jN8fw27hlnzdxCWjpKsyuQoykXr+N+bCF236sC/aw==","version":"2.185.0"},"node_modules/node-opcua-data-model":{"integrity":"sha512-ZhJmyUa5YOmnspN0SvJD10jZQgKlYS50GYABb2r+nsIQ94lF7Ero04WdxscxpvhH2jtNPUgEVsqbga+xYr80sg==","version":"2.185.0"},"node_modules/node-opcua-data-value":{"integrity":"sha512-l8XxTQce2xiTVXVAppkJukfEdUbvNGyITUn1dat/iOMkAZip/llJn80H9H+ThLbo3XMH5qeTqZeqVMEcjcAukw==","version":"2.185.0"},"node_modules/node-opcua-date-time":{"integrity":"sha512-ISu7jSXhDhb6luyaIQSy7MYGW7yxjWxtLtVfUpdoO3VGFcQ8HBnJ1UTBmN3tTNqgvdRSqwOdo4jkKG1Wc9g84Q==","version":"2.184.1"},"node_modules/node-opcua-debug":{"integrity":"sha512-a0Z9ciB253aHVfTw+9F3WRAb5ClA0mleuNH3AoPqOlTuoTSQmy0ZM/Gp8XFXBspz0bCnh49fPM63lZCbPTONUg==","version":"2.184.0"},"node_modules/node-opcua-enum":{"integrity":"sha512-Z4tABu25RVBnDn7ndDH8HQPjReBoV7TaUnuoWajnB8Uc/e7NH7x+QliwkhHALcwDBEZW0H4Y8s3FE7nNCh/qvA==","version":"2.184.1"},"node_modules/node-opcua-extension-object":{"integrity":"sha512-YNmw1CZSmpnxi57c6el7xCVGrpnwgYjTwW0vbX8A1RSGrBaVgdUq2gTR7G1OFYX/v1Ew6HeNQQ98Zo+OSY+A+g==","version":"2.185.0"},"node_modules/node-opcua-factory":{"integrity":"sha512-XXaFyAyBAOdDXe0AssUrvQ7uPFnsggkDCjEqHtkQXz0dWgks4n8PAMPCCdDctxN5iR374fdI5UbDZv4W5z8nXA==","version":"2.185.0"},"node_modules/node-opcua-guid":{"integrity":"sha512-g5umlVt7MALZdvBNE0dK6uPlXsjhdLRrJRpT8hqMw847nuMfBIkdLKpccoz8fH61s3KOF8UOmHZTpTVHXSmNgw==","version":"2.184.0"},"node_modules/node-opcua-hostname":{"integrity":"sha512-PZr7a1ZbUtZlj8ywVIjjhT5MDlcVL1RONWHZh6CdChUBAVdJdLip6lnuDktu5EyLNH+f/6RE4pOf3Fw0L499mA==","version":"2.184.0"},"node_modules/node-opcua-json":{"integrity":"sha512-P67x53U87aYfmcbX6YOfYYYIjbbfoirA59DhXQcKkoh8M8wBpnge+rIEmCUHeMCtU00zd5FA8HYZVjOUEkRsUg==","version":"2.186.0"},"node_modules/node-opcua-nodeid":{"integrity":"sha512-teXIM2/Rbad50QV9H5JjDY87nyt+P2e6mme5s6ZiUPkVfNUa7iZ9J49fALocOKwOtbdHF14DSjnm3VpfCySncg==","version":"2.185.0"},"node_modules/node-opcua-nodeset-ua":{"integrity":"sha512-QQ68nJxRmnEpbXZw6UmpAEIo6jY5eYsaTuEwb7Wi3ENK1VvbHz57aAuFjO3rkJBw5KqaX7uy3D5AIiUSpYJR0w==","version":"2.186.0"},"node_modules/node-opcua-nodesets":{"integrity":"sha512-7qDwdkYRKIGRBk0gKhY5C3olQ0wRHTCoZj4FbzD1GmXF5xGaZcv/OatvFa73H7yyq3LxWxTKVteELlbbyziyLg==","version":"2.185.0"},"node_modules/node-opcua-numeric-range":{"integrity":"sha512-ZX/FfXR23vzVHNAKNeZmq27ffVImA027Kv+UTtUYBgzD7USLNap3OmI+SB3Ak0T+W2KNigW4D6oXgLKdlo66ug==","version":"2.185.0"},"node_modules/node-opcua-object-registry":{"integrity":"sha512-Ag1mQqCNKPN2vvmzWRL5d32g7Qz2BjQotIz3r9nw3n+NSh14iiBdeANA4ngHbm0HOk1yidT22s4KlDTLy53u4A==","version":"2.184.0"},"node_modules/node-opcua-packet-analyzer":{"integrity":"sha512-biPKVBenF4SI9C38GShi4oHqkQPGjsV0xwL78AdnI7NwqyOrfTI67VwKHqnbMYcpyOVED4ebtI3z/GYAJ2z/0A==","version":"2.185.0"},"node_modules/node-opcua-packet-assembler":{"integrity":"sha512-NngTNo8709PRV89o1PTTbqssmGywDIY8p2qLg1NED/PGhrUdNoKOKMnlLM1Oz/0PsAxIAxCxOcmjOqn5oTZhcQ==","version":"2.185.0"},"node_modules/node-opcua-pki":{"integrity":"sha512-JZPa9Y50sbeU/myOhWHib2n0tImnf3MxV45yvizhygBJvmwjPwwkZQk4Uw1C+iZmkgc2YYbzUfBm8zGLde/tMw==","version":"7.0.0"},"node_modules/node-opcua-pseudo-session":{"integrity":"sha512-Yuhop7OjyLSouMZFNE67U4+QssI5jVmP2mDS0ELFyBzll49ukXoqfdIY+S3ST9plZkccVDwo3Of4LQVB+QDb5Q==","version":"2.185.0"},"node_modules/node-opcua-schemas":{"integrity":"sha512-lMlkQ3dahFcxedFKUQNJ1aBcKbccME4vCHdfELejFOajv6fjspyGbH3ZtysIm9VpIPmoYT5a6epCecGfNta54Q==","version":"2.185.0"},"node_modules/node-opcua-secure-channel":{"integrity":"sha512-uETPumj8Y7aKTYM6jEcUNYdPuR0vnGp+eydjqQyLMRn1IIod3uufEydfW67l3faBA98ZE2uiyCCQE7amj0Ce/A==","version":"2.185.0"},"node_modules/node-opcua-server":{"integrity":"sha512-mwq6HEBULyi2LYLSrx7YVhGDmt6ylAQVHTvxaYeMXITxgY+jy/xWGy46N/+8jOJ9fquzhIBm9WAHCAXrJi7C+g==","version":"2.186.0"},"node_modules/node-opcua-server-discovery":{"integrity":"sha512-ZJE5vrXFlidUqvcMmcF9HenSeikllW7ZH7axVE4k5fM4fscMJa20QOxdS2iXkVkDMsl+qG03JwbuxPMT/7odbw==","version":"2.186.0"},"node_modules/node-opcua-service-browse":{"integrity":"sha512-e6uyHc1hrnZXUQKI0bh/Pb9nubOCpftsZAHZcATe2f0zXk3wtlYNATgOHGt3B5ImLgg2x7VohjoNhfm5ubwdTg==","version":"2.185.0"},"node_modules/node-opcua-service-call":{"integrity":"sha512-y1FSTPi77I0PlXo/zEVKUPMThC7fcZrzXsvPc+vumars8J6R4FG35IimCtywy3GyL/Curr1yxUkKm5e5NSklaA==","version":"2.185.0"},"node_modules/node-opcua-service-discovery":{"integrity":"sha512-5Q4Kf1jCsuBhaBO+JAr3B7VDOOMzRo2w+EiwneFO+eg3Kmq2ZX3GpBTFCpg9LFvQGEr6fHHdDLDxgdwEXI+mlw==","version":"2.185.0"},"node_modules/node-opcua-service-endpoints":{"integrity":"sha512-m9q6H8ZYEKSoUpiOonmTTbN83PB0eSaJN9bBTU/PL442vxzPvxLbwJGdYPsSH0wdI7/B+Uf42I7MoBZV2oDsPw==","version":"2.185.0"},"node_modules/node-opcua-service-filter":{"integrity":"sha512-liAq4SdQ1hiP4PYfoB0cPvkrUEH+pVLOpVfaNyrw5JNEBsvEqguZ04AvSkYE225YvX7Xa5utDGilD+OoIp/0ZA==","version":"2.186.0"},"node_modules/node-opcua-service-history":{"integrity":"sha512-L742HiAxB3OesZ5OgGCkbEKItBFvffkp4MY09s2EE2Sls0/keO7VkCq0hv22okEyq6vSfQcwpjFkc0fIoIC3lQ==","version":"2.185.0"},"node_modules/node-opcua-service-node-management":{"integrity":"sha512-QfVuQgArotCphFN4MfwCZsgNPL7Ly8rSrrv+lmlmW5D/uiJOhNcHN+fsHRUYHE5khWAf4Ds6ALAEWn6aj+LhXg==","version":"2.185.0"},"node_modules/node-opcua-service-query":{"integrity":"sha512-jMKCSHcoQnjXLxx+yI6FOyhsTDFiSs4azjjlvWqyB588IdPs0biYwbupZIY9b9T0pRZwVcUU4nRGFEPizld4Kg==","version":"2.185.0"},"node_modules/node-opcua-service-read":{"integrity":"sha512-TM0W63kCSU5o2f514v7gIWFWDxD0ku7WGtVop/VR+qxC78ghrpao7XjSjWEvSI7bRkwiFksKTzmEWiZl0T1jyw==","version":"2.185.0"},"node_modules/node-opcua-service-register-node":{"integrity":"sha512-LbFj127L45lLGyAXGN14nsV31x+1KO7DbLoEU1L+fiDxSPDebT+pbk9bXXA+U4S3AZpowXVLfoFQIrPIcP95pg==","version":"2.185.0"},"node_modules/node-opcua-service-secure-channel":{"integrity":"sha512-P+ctzCVA4uBjkglE9HWJyDp6lWSapdiecwdYCl7PywUlnL7q16Afj67IooLgftOyGnVPwDFcFjouIL+3Wj+2sg==","version":"2.185.0"},"node_modules/node-opcua-service-session":{"integrity":"sha512-K4UIqy4D5vpsAzQ0YqLpMlOMs1fqfdVEoN77iqeGZsv+8skxvP/nj4NEyvDSKja6qB4fZHLN+cFb+Ompl/WkFw==","version":"2.185.0"},"node_modules/node-opcua-service-subscription":{"integrity":"sha512-3dnT/s9i3A9xBp2ZLnCr6n9IV5cIJFz8vMUQDsas6/D3fF9q9XNnEWPERZ77HVqr1smEE91WkykwOA6QxMhf/A==","version":"2.185.0"},"node_modules/node-opcua-service-translate-browse-path":{"integrity":"sha512-sVhna4yrDhliAdAAqT/UHqfzBYzSybdBHAuxFEEzDsrW9SxMfvT+zbrBKE6AG1aB8YDoQVa8eW49eUlLQmHUSw==","version":"2.185.0"},"node_modules/node-opcua-service-write":{"integrity":"sha512-TR7dJeWRWgTPIylXZEggcZ0RoVHrBNjrWNsOssBLBUl5BY9mVFYKkXCaqhJebkd+yNpOPH/QC2WhxRQzrIEYYg==","version":"2.185.0"},"node_modules/node-opcua-status-code":{"integrity":"sha512-x7Dhr4oo/vDRoyh1u5xM00wziXaP+rHj30aN9xLcKTLgqkqZ1CifenA2D94YLCgS0H1m3NDVNjBpyufFz7yTsQ==","version":"2.184.1"},"node_modules/node-opcua-transport":{"integrity":"sha512-SYqp65H55fHsq9ZfaO9D5EBbK7sZ5/tQNDZRJfcbEd595G6UUgMMfdJ5lLgsYKGbK0SVjrlWPym31dRl670W0A==","version":"2.185.0"},"node_modules/node-opcua-types":{"integrity":"sha512-iuZiJrKnEqfQw/LfADxxF1r635b02pIoe4oOpspM1JXlR1CwnJ+vXIgzUhz9YSBPUI7tAsOY2/q0ZawmQt319w==","version":"2.185.0"},"node_modules/node-opcua-uanodeset-json":{"integrity":"sha512-0fBOcVTkGaR2IkDkAF9apceBZE1AFQVDDPgB2GsXTL2B7rkFKR2f9oSFiB9TylkAodaYB51fu9X47Tsvxnf3Sg==","version":"2.186.0"},"node_modules/node-opcua-utils":{"integrity":"sha512-UnVAOVuiXk1Vv82mTJHyt0LbNBn8/wYIwqFizwIc/nXH+pBW5q9Nu2mw+iUoq1Sl0tWs7C4RF5qlZ1Hsukxb7g==","version":"2.184.1"},"node_modules/node-opcua-variant":{"integrity":"sha512-JuEAs9+tXSju5juK6hhl36FPrIj0MPg7DBGc9LwrYvD1GOb4ZlEC/wLLMd9GEvCR6q3xprYL4KgtCXpoFltkBQ==","version":"2.185.0"},"node_modules/node-opcua-vendor-diagnostic":{"integrity":"sha512-NB7VzEVaGHTNdrpQoVyAg6uOJBy3yTHyuU0laH0vr986X6ujgljxgj+rii6arMgL51r4Xot3QfyCXEuIm1M8Sg==","version":"2.186.0"},"node_modules/node-opcua-xml2json":{"integrity":"sha512-qqDEo5hcrSPbGiA6tztvCwcbVPjj1jgwbnvNI2KeB7Mr0AU295ej1cxEwHVrI1u8+fMVP0UX2fJSciwlnVRh5Q==","version":"2.184.1"},"node_modules/pend":{"integrity":"sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==","version":"1.2.0"},"node_modules/precond":{"integrity":"sha512-QCYG84SgGyGzqJ/vlMsxeXd/pgL/I94ixdNFyh1PusWmTCyVfPJjZ1K1jvHtsbfnXQs2TSkEP2fR7QiMZAnKFQ==","version":"0.2.3"},"node_modules/pvtsutils":{"integrity":"sha512-PLgQXQ6H2FWCaeRak8vvk1GW462lMxB5s3Jm673N82zI4vqtVUPuZdffdZbPDFRoU8kAhItWFtPCWiPpp4/EDg==","version":"1.3.6"},"node_modules/pvutils":{"integrity":"sha512-BbubeCEyTuQjVMakvJQ/Sxbc93F2pwmbsxONT/ZRrwU7Ua38d8unYTwXpTVLAKJ4BDuH9IGztCjQcd/N/39Dvg==","version":"1.2.0"},"node_modules/readdirp":{"integrity":"sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==","version":"4.1.2"},"node_modules/reflect-metadata":{"integrity":"sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==","version":"0.2.2"},"node_modules/safer-buffer":{"integrity":"sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==","version":"2.1.2"},"node_modules/semver":{"integrity":"sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==","version":"7.8.5"},"node_modules/sshpk":{"integrity":"sha512-2p2KJZTSqQ/I3+HX42EpYOa2l3f8Erv8MWKsy2I9uf4wA7yFIkXRffYdsx86y6z4vHtV8u7g+pPlr8/4ouAxsQ==","version":"1.18.0"},"node_modules/sterfive-bonjour-service":{"integrity":"sha512-QqDpnBb3KLD6ytdY2KSxsynw1jJAvzfOloQt83GQNXO6CGf84ZY+37tpOEZo1FzgUkFiVsL7pYyg71olDppI/w==","version":"1.1.4"},"node_modules/supports-color":{"integrity":"sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==","version":"7.2.0"},"node_modules/table-layout":{"integrity":"sha512-iK5/YhZxq5GO5z8wb0bY1317uDF3Zjpha0QFFLA8/trAoiLbQD0HUbMesEaxyzUgDxi2QlcbM8IvqOlEjgoXBA==","version":"4.1.1"},"node_modules/thenify-ex":{"integrity":"sha512-YHA/2DlY1vWpqGLCc7BzdT9aTrqyHCbsX5J3zbW68LLeD4RPwd+2tMEWshMP+27ikuTnaeKbFDmjqc7fKWmDew==","version":"4.4.0"},"node_modules/thunky":{"integrity":"sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==","version":"1.1.0"},"node_modules/tslib":{"integrity":"sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==","version":"2.8.1"},"node_modules/tsyringe":{"integrity":"sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==","version":"4.10.0"},"node_modules/tsyringe/node_modules/tslib":{"integrity":"sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==","version":"1.14.1"},"node_modules/tweetnacl":{"integrity":"sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==","version":"0.14.5"},"node_modules/typical":{"integrity":"sha512-ya4mg/30vm+DOWfBg4YK3j2WD6TWtRkCbasOJr40CseYENzCUby/7rIvXA99JGsQHeNxLbnXdyLLxKSv3tauFw==","version":"7.3.0"},"node_modules/undici-types":{"integrity":"sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==","version":"8.9.0"},"node_modules/webcrypto-core":{"integrity":"sha512-gsXecm82UQNlTBURJGuqOWy1Ww08S3kZUcr3aOJS02Pk0xLtkfeUAVC0u0xhgdonFme80edSJUIJyuvL/7250Q==","version":"1.9.2"},"node_modules/wordwrapjs":{"integrity":"sha512-0yweIbkINJodk27gX9LBGMzyQdBDan3s/dEAiwBOj+Mf0PPyWL6/rikalkv8EeD0E8jm4o5RXEOrFTP3NXbhJg==","version":"5.1.1"},"node_modules/xml-writer":{"integrity":"sha512-elFVMRiV5jb59fbc87zzVa0C01QLBEWP909mRuWqFqrYC5wNTH5QW4AaKMNv7d6zAsuOulkD7wnztZNLQW0Nfg==","version":"1.7.0"},"node_modules/yauzl":{"integrity":"sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==","version":"3.4.0"}},"throughput":{"arrayElements":8294400,"connections":"max-clients + 16","messageBytes":67108864,"readWriteOperations":"max(10000,max-batch)","sessions":"max-clients + 16","transport":{"maxChunkCount":8192,"maxMessageSize":67108864,"receiveBufferSize":65536,"sendBufferSize":65536}}},"runtime_sha256":"7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c","source_commit":"f39357ba4864bc83f210b40c7257e92afb0fa0ea","profile":"throughput","mode_semantics":"sync: sequential; async: continuously refilled window","memory_policy":"old-space=min(4096MiB,50%-share); RSS-watchdog-20ms; no-RLIMIT_AS; estimate-v1","throughput_capacity":{"max_sessions":17,"max_connections":17,"max_read_write_operations":10000}},"ua_dotnet":{"architecture":"x86_64","artifacts":{"client":{"Benchmark.Client":"807ba84cf56c0bcb3ef77c078d68d0d3c9af907a44ec87d8e785d9bbc194b87e","Benchmark.Client.deps.json":"5028e6f202768b9d2336103e5499cadd70ece5bd707bf96e158d02ecc43e5f78","Benchmark.Client.dll":"95e6669427d59c35006eb685516df4c356ad917b8ea3c4f276a8f8394a6d4f04","Benchmark.Client.pdb":"3c41b24d23ce97110678b503c7891da927410b43eeb95b1931f7aef4af9b5a1c","Benchmark.Client.runtimeconfig.json":"c6e74389d43492c705ff551b5d5c976dd27cf59bd9277d4d392b27f0a3f3f54b","Benchmark.Common.dll":"989457c617e404ea9ecc89e998b17a0fc5f8a099b80925ed97389f6edfca0169","Benchmark.Common.pdb":"12cf5c7831df94158c73852e11147fc07fb90d848f1185d1df6e23f55265a74c","BitFaster.Caching.dll":"7af73841cafd0c8b05ad166c45ad0886bcf80926d4c4a65e0fa7578ea1e04d03","Microsoft.Extensions.DependencyInjection.Abstractions.dll":"ca708422782fb25819941a16a057ea96d6d18b037e7e5cbfdf340b7a04362b57","Microsoft.Extensions.DependencyInjection.dll":"47f8175d34e9087d3858644803c558cb9cf52b29bffda796f65c1c527d1b6a22","Microsoft.Extensions.Logging.Abstractions.dll":"ec244a2db19dffe90cd299fa4b0691456ced342a078b4a93cf3726a9b431e9ac","Microsoft.Extensions.Logging.dll":"74d8fd2d7997fc638474e2bd79916458a30481e6a6925b50e7e96b4b852031c3","Microsoft.Extensions.Options.dll":"644350f8c2404d4479b97a250edb29585e5fafec1b6ce8486ae600c5015fd7fb","Microsoft.Extensions.Primitives.dll":"a0794c3bab2d7e0c848f0dffb3b9aa4b43ce07dc0abd122ebb7bf6dc79452ec4","Newtonsoft.Json.dll":"a28c251dfe36d881e9e2462e171441b8b0ec156fe3f452602c9149b1b9efe05b","Opc.Ua.Client.dll":"43498aa1da7feb053580302092546d5a3d59033dec099cd9e977e77d86cbc9df","Opc.Ua.Client.pdb":"9f94057fc4e972b067365a2cf09d43189da03a80ae9975825df3b121958ec85b","Opc.Ua.Client.xml":"eb5782c1ba5f250dab1258894348e418e60c67c9a0e42188d55aa6708691ee46","Opc.Ua.Configuration.dll":"000fc8d4713f03953b199bf34010727185dfbaf903971e88baa532260278fd29","Opc.Ua.Configuration.pdb":"200597629278f62d54b1d1811a2bf32e7506d4757e8b91cdab2491461c29d045","Opc.Ua.Configuration.xml":"06c7df490b51182f78a52791482e8694c669930223eb61f80ac3eb004e42cf04","Opc.Ua.Core.dll":"16a8fe562d3113585b1cf86a17635e7c3ff2693cf4f80945cafcc9d51f7e58e5","Opc.Ua.Core.pdb":"43c9936531a96016d577c4adddcd43f38e6c988c5cdc40d7dead03a1ccaa1d8b","Opc.Ua.Core.xml":"1285099fb8344460b5303463c9ddd7d222083fc3b6f90a230b2451c67fff9f9e","Opc.Ua.Security.Certificates.dll":"e99956c9d3c0e31c85f6dd2601474a56172817e85fae4bafa1a5d57b080dd97e","Opc.Ua.Security.Certificates.pdb":"2a3f94caba18eb33a99d61ae4bbde91868a3583d6719d690ddfd3db6246037f9","Opc.Ua.Security.Certificates.xml":"e033fba79ca30c9db25a31bc9f36565fa12c37c9c6fbe30eaff559138f30e5ea","Opc.Ua.Types.dll":"6b4f995d5edde391ea406f4c838a0e2edb33a925d01f8ad59f707986becf28ea","Opc.Ua.Types.pdb":"7ff11406d912a585fc6beae1b6d75fd1cf12c2dd3c56fb5c6b42617ff06285ad","Opc.Ua.Types.xml":"b3bcf3dad4bfcddc719c44d7001d91298965e95ed51ea46b7d84d26c125c725b"},"server":{"Benchmark.Common.dll":"989457c617e404ea9ecc89e998b17a0fc5f8a099b80925ed97389f6edfca0169","Benchmark.Common.pdb":"12cf5c7831df94158c73852e11147fc07fb90d848f1185d1df6e23f55265a74c","Benchmark.Server":"1b0ab0607958bf1cf8773b82a8c9fe4bb59b8b502bbb681b40b4f133683fdc6b","Benchmark.Server.deps.json":"eee82feabe1517f6d5d4185703b73d20a2f5b9dfb4993763d3c32e99ca82be34","Benchmark.Server.dll":"b6fa1e2263c96e24833be6141f58a8efcccdcad412b8c8ef63c15606f85dade9","Benchmark.Server.pdb":"397f34e5bf13415b0c683fd107d1ffc3c30cddf5ecf6b7961e8521a7d069d616","Benchmark.Server.runtimeconfig.json":"c6e74389d43492c705ff551b5d5c976dd27cf59bd9277d4d392b27f0a3f3f54b","Microsoft.Extensions.DependencyInjection.Abstractions.dll":"ca708422782fb25819941a16a057ea96d6d18b037e7e5cbfdf340b7a04362b57","Microsoft.Extensions.DependencyInjection.dll":"47f8175d34e9087d3858644803c558cb9cf52b29bffda796f65c1c527d1b6a22","Microsoft.Extensions.Logging.Abstractions.dll":"ec244a2db19dffe90cd299fa4b0691456ced342a078b4a93cf3726a9b431e9ac","Microsoft.Extensions.Logging.dll":"74d8fd2d7997fc638474e2bd79916458a30481e6a6925b50e7e96b4b852031c3","Microsoft.Extensions.Options.dll":"644350f8c2404d4479b97a250edb29585e5fafec1b6ce8486ae600c5015fd7fb","Microsoft.Extensions.Primitives.dll":"a0794c3bab2d7e0c848f0dffb3b9aa4b43ce07dc0abd122ebb7bf6dc79452ec4","Newtonsoft.Json.dll":"a28c251dfe36d881e9e2462e171441b8b0ec156fe3f452602c9149b1b9efe05b","Opc.Ua.Configuration.dll":"000fc8d4713f03953b199bf34010727185dfbaf903971e88baa532260278fd29","Opc.Ua.Configuration.pdb":"200597629278f62d54b1d1811a2bf32e7506d4757e8b91cdab2491461c29d045","Opc.Ua.Configuration.xml":"06c7df490b51182f78a52791482e8694c669930223eb61f80ac3eb004e42cf04","Opc.Ua.Core.dll":"16a8fe562d3113585b1cf86a17635e7c3ff2693cf4f80945cafcc9d51f7e58e5","Opc.Ua.Core.pdb":"43c9936531a96016d577c4adddcd43f38e6c988c5cdc40d7dead03a1ccaa1d8b","Opc.Ua.Core.xml":"1285099fb8344460b5303463c9ddd7d222083fc3b6f90a230b2451c67fff9f9e","Opc.Ua.Security.Certificates.dll":"e99956c9d3c0e31c85f6dd2601474a56172817e85fae4bafa1a5d57b080dd97e","Opc.Ua.Security.Certificates.pdb":"2a3f94caba18eb33a99d61ae4bbde91868a3583d6719d690ddfd3db6246037f9","Opc.Ua.Security.Certificates.xml":"e033fba79ca30c9db25a31bc9f36565fa12c37c9c6fbe30eaff559138f30e5ea","Opc.Ua.Server.dll":"a01fa6aaaed22bfa9473b8f0709cac14e340cbb9d959edb17b08d41d8ea230fc","Opc.Ua.Server.pdb":"e2aa877669a613de00c23526c4a908bf764a5a9d5cbf38a17bbb91cb25ebdef4","Opc.Ua.Server.xml":"843313966610f7a286ac8eab2be111e9df6a02b479d0302b5a5ca5c94d125f7c","Opc.Ua.Types.dll":"6b4f995d5edde391ea406f4c838a0e2edb33a925d01f8ad59f707986becf28ea","Opc.Ua.Types.pdb":"7ff11406d912a585fc6beae1b6d75fd1cf12c2dd3c56fb5c6b42617ff06285ad","Opc.Ua.Types.xml":"b3bcf3dad4bfcddc719c44d7001d91298965e95ed51ea46b7d84d26c125c725b"}},"configuration":"Release","inputs":"0185b9224e2daff05c175decaeacd56d0fc2d4c304d6fc6e6ec993d9c7e9312e","packages":{"BitFaster.Caching":"2.6.0","Microsoft.Extensions.DependencyInjection":"10.0.8","Microsoft.Extensions.DependencyInjection.Abstractions":"10.0.8","Microsoft.Extensions.Logging":"10.0.8","Microsoft.Extensions.Logging.Abstractions":"10.0.8","Microsoft.Extensions.Options":"10.0.8","Microsoft.Extensions.Primitives":"10.0.8","Newtonsoft.Json":"13.0.4","PolySharp":"1.15.0","Roslynator.Analyzers":"4.15.0","Roslynator.Formatting.Analyzers":"4.15.0","System.Collections.Immutable":"10.0.8","System.Diagnostics.DiagnosticSource":"10.0.8","System.Formats.Asn1":"10.0.8","System.Text.Json":"10.0.8"},"sdk":"10.0.401","source":{"changes_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","commit":"511ef72a6148970fab15fa29bfc8b4978d6b6b74","dirty":false},"source_version":"1.5.378.176","runtime_info":{"runtime":"10.0.12","architecture":"X64","gc_server":false,"gc_latency":"Interactive","jit":"runtime defaults; tiered compilation","clock":"Stopwatch.GetTimestamp/CLOCK_MONOTONIC; Int128 nanosecond conversion","profile":"throughput","limits_source":"library constructors: ApplicationConfiguration.cs; throughput transport and request-queue overrides","limits":{"MaxSessionCount":100,"MaxChannelCount":1000,"MinRequestThreadCount":10,"MaxRequestThreadCount":100,"MaxQueuedRequestCount":200,"MaxRequestAge":600000,"MaxMessageQueueSize":10,"MaxPublishRequestCount":20,"OperationLimits":{"MaxNodesPerRead":0,"MaxNodesPerHistoryReadData":0,"MaxNodesPerHistoryReadEvents":0,"MaxNodesPerWrite":0,"MaxNodesPerHistoryUpdateData":0,"MaxNodesPerHistoryUpdateEvents":0,"MaxNodesPerMethodCall":0,"MaxNodesPerBrowse":0,"MaxNodesPerRegisterNodes":0,"MaxNodesPerTranslateBrowsePathsToNodeIds":0,"MaxNodesPerNodeManagement":0,"MaxMonitoredItemsPerCall":0},"TransportQuotas":{"OperationTimeout":60000,"MaxStringLength":65535,"MaxByteStringLength":67108864,"MaxArrayLength":8294400,"MaxMessageSize":67108864,"MaxBufferSize":65535,"MaxEncodingNestingLevels":200,"MaxDecoderRecoveries":0,"ChannelLifetime":30000,"SecurityTokenLifetime":3600000}}},"profile":"throughput","memory_policy":"gc-heap-75%-of-resident-share; no-RLIMIT_AS"},"sdk_milo":{"artifacts":{"lib/bcpkix-jdk18on-1.86.jar":"8d8b41a4b149bdae8d331f059a578870954d1e3ff29f8269a9eb3ee19a7e4ef7","lib/bcprov-jdk18on-1.86.jar":"2af190b300cbb0b35e248ccf5f4a06b6072030aeb3da7a98ec73abe5b4cb371f","lib/bcutil-jdk18on-1.86.jar":"1c268e15f785aafb1e4670d8d6e5f856f69475e96c162dadcd1ff9b350e9139f","lib/jspecify-1.0.1.jar":"070d75f261fe4c5b8202508366715f7f2d4660f88c8ef7e6d3575e48c9683b66","lib/milo-sdk-core-1.1.8.jar":"e593105881c15b1f196d167e82e37dae52b9c5686a7d8db0a01007d8dd29a278","lib/milo-sdk-server-1.1.8.jar":"7e9990a2d33866ca4bb3eeab8d444db32b1667880611e4dfb387eda24593d12c","lib/milo-stack-core-1.1.8.jar":"a3a2e2bf3c89c2bb55550e1114a2e5b98766ef2374bf0ab6f5de080d583659a7","lib/milo-transport-1.1.8.jar":"409f807b046b77b695d53a18df71fb4422db1bc9540f66429f2a4b5b58ffe3bf","lib/netty-buffer-4.1.138.Final.jar":"5bef3ea2b9e80c5e8d03151ca1609bd75fd1e264863bf3e2f8d538392c0f2c38","lib/netty-channel-fsm-1.0.2.jar":"ad581f5242f00096bb9f6221259aeb8c9010caa5decdea948b529ee6d1a63b28","lib/netty-codec-4.1.138.Final.jar":"21b9b7717da9ed7034c7a9ef4fcea4a08825e8f52d775da4d898364edf99327f","lib/netty-common-4.1.138.Final.jar":"b4ebb8fa44cd5790731928a83fd0f25a530e41c407c093bef4a0196db30b693f","lib/netty-handler-4.1.138.Final.jar":"a79fb814e029db17da82baea25a0340172af2c59f107fd20b394c1fa28680f21","lib/netty-resolver-4.1.138.Final.jar":"50c338a0e5c9997513e738f0fcb47d579a9e8852d317ba367f5d141e210187c0","lib/netty-transport-4.1.138.Final.jar":"6c064c1cae4d410b920abfc07959a49db1b4778a9547614373e97d31cab0cad6","lib/netty-transport-native-unix-common-4.1.138.Final.jar":"8d1ada8f185d6f6da4cd79f9daeef39f1db49908cfec8bc2a1fb602458aa2341","lib/slf4j-api-2.0.17.jar":"7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832","lib/slf4j-simple-2.0.17.jar":"ddfea59ac074c6d3e24ac2c38622d2d963895e17f70b38ed4bdae4d780be6964","lib/strict-machine-1.0.0.jar":"2dc264721f301ffc0aebe5f7dbf09d7d483b0578bf0dfdcc19ec4a3dbce61018","server.jar":"6e508d8ac0e3bcd25f2e9175772a3eda3547d1d17c7eb558caf7f378149eba03"},"inputs":"6d2eba7b7561f2d96f22539a395e6b2ffb8f1768f7925dc8fca1459a86f534e1","runtime":"21.0.12.1+1","runtime_info":{"java":"21.0.12.1+1-LTS","sdk":"1.1.8","vm":"OpenJDK 64-Bit Server VM"},"sdk":"org.eclipse.milo:milo-sdk-server 1.1.8","profile":"throughput"},"sdk_s2opc":{"artifacts":{"base_nodeset.xml":"e3b0427911cf72f7c25d782b9f3eb6fa56ea0a11fe17c30d2a34e1ef36f4a9fa","server":"6ccea4f331aa39aae04279690e006e202151e39be73d115bc65e78967dc5e6b6"},"compile_limits":{"SOPC_DEFAULT_MAX_ARRAY_LENGTH":16777216,"SOPC_DEFAULT_RECEIVE_MAX_NB_CHUNKS":1024,"SOPC_DEFAULT_SEND_MAX_NB_CHUNKS":1024,"SOPC_MAX_OPERATIONS_PER_MSG":100000,"SOPC_MAX_SECURE_CONNECTIONS":129,"SOPC_MAX_SESSIONS":128,"SOPC_MAX_SOCKETS":300,"SOPC_MAX_SOCKETS_CONNECTIONS":150},"inputs":"77cbc00b2ac5d9f6635005e0b3c4e90dead9f2d579933fde7de066dd1bb79f78","runtime":"mbedtls 3.6.7, expat 2.9.0","runtime_info":{},"sdk":"S2OPC Toolkit 1.7.3","profile":"throughput"},"sdk_gopcua":{"artifacts":{"server":"62a55b0e3be6d8754e16d2a9e641674e6d19c10048bc2d412389300a9d85e7aa"},"inputs":"15a084f52ef6c87b5f29f7b8a169efe354305d7168d21695fc11b51c6b3b6e85","runtime":"go1.27.1","runtime_info":{"go":"go1.27.1","sdk":"v0.9.1"},"sdk":"github.com/gopcua/opcua v0.9.1","profile":"throughput"},"o6_version":"2.0.1","partial":false,"node_opcua_diagnostics":{"process_budget_bytes":5220307353,"available_memory_bytes":14716669952,"old_space_limit_mib":2105,"server_rss_peaks":{"('open62541:node-opcua', 'None')":365096960},"effective_limits":{"capabilities":{"maxBrowseContinuationPoints":0,"maxHistoryContinuationPoints":0,"maxStringLength":16777216,"maxArrayLength":8294400,"maxByteStringLength":67108864,"maxQueryContinuationPoints":0,"minSupportedSampleRate":50,"operationLimits":{"maxNodesPerRead":10000,"maxNodesPerBrowse":10000,"maxNodesPerWrite":10000,"maxNodesPerMethodCall":1000,"maxNodesPerRegisterNodes":10000,"maxNodesPerNodeManagement":0,"maxMonitoredItemsPerCall":10000,"maxNodesPerHistoryReadData":1000,"maxNodesPerHistoryReadEvents":1000,"maxNodesPerHistoryUpdateData":0,"maxNodesPerHistoryUpdateEvents":0,"maxNodesPerTranslateBrowsePathsToNodeIds":10000},"serverProfileArray":["http://opcfoundation.org/UA-Profile/Server/Standard","http://opcfoundation.org/UA-Profile/Server/DataAccess","http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017","http://opcfoundation.org/UA-Profile/Server/Events","http://opcfoundation.org/UA-Profile/Client/HistoricalAccess","http://opcfoundation.org/UA-Profile/Server/Methods","http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription","http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary","http://opcfoundation.org/UA-Profile/Server/FileAccess","http://opcfoundation.org/UA-Profile/Server/StateMachine"],"localeIdArray":["en-EN","fr-FR"],"softwareCertificates":[],"maxSessions":17,"maxSubscriptions":100,"maxMonitoredItems":1000000,"maxSubscriptionsPerSession":10,"maxMonitoredItemsPerSubscription":100000,"maxSelectClauseParameters":1000,"maxWhereClauseParameters":1000,"maxMonitoredItemsQueueSize":60000,"conformanceUnits":[]},"maxConnectionsPerEndpoint":17,"typedArrayElements":16777216,"generalArrayElements":8294400,"byteStringBytes":67108864}},"ua_dotnet_diagnostics":{"process_budget_bytes":5220307353,"available_memory_bytes":14716669952,"max_queued_request_count":200,"managed_heap_limit_bytes":3311250738}}};
+const THEME = {"light":{"tokens":{"surface":"#fcfcfb","plane":"#f9f9f7","primary":"#0b0b0b","secondary":"#52514e","muted":"#898781","grid":"#e1e0d9","axis":"#c3c2b7","border":"rgba(11,11,11,0.10)","hover":"#ffffff"},"layout":{"bargap":0.45,"font":{"color":"#52514e","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12},"hoverlabel":{"align":"left","bgcolor":"#ffffff","bordercolor":"#c3c2b7","font":{"color":"#0b0b0b","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12}},"margin":{"b":8,"l":8,"r":24,"t":8},"paper_bgcolor":"#fcfcfb","plot_bgcolor":"#fcfcfb","showlegend":false,"transition":{"duration":0},"xaxis":{"automargin":true,"gridcolor":"#e1e0d9","griddash":"solid","gridwidth":1,"linecolor":"#c3c2b7","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#52514e","size":11}},"zerolinecolor":"#c3c2b7","zerolinewidth":1},"yaxis":{"automargin":true,"gridcolor":"#e1e0d9","griddash":"solid","gridwidth":1,"linecolor":"#c3c2b7","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#52514e","size":11}},"zerolinecolor":"#c3c2b7","zerolinewidth":1}},"sequential":[[0.0,"#cde2fb"],[0.16666666666666666,"#9ec5f4"],[0.3333333333333333,"#6da7ec"],[0.5,"#3987e5"],[0.6666666666666666,"#256abf"],[0.8333333333333334,"#184f95"],[1.0,"#0d366b"]],"onFillFlip":0.55,"onFillDark":"#0b0b0b","onFillLight":"#ffffff"},"dark":{"tokens":{"surface":"#1a1a19","plane":"#0d0d0d","primary":"#ffffff","secondary":"#c3c2b7","muted":"#898781","grid":"#2c2c2a","axis":"#383835","border":"rgba(255,255,255,0.10)","hover":"#242422"},"layout":{"bargap":0.45,"font":{"color":"#c3c2b7","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12},"hoverlabel":{"align":"left","bgcolor":"#242422","bordercolor":"#383835","font":{"color":"#ffffff","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12}},"margin":{"b":8,"l":8,"r":24,"t":8},"paper_bgcolor":"#1a1a19","plot_bgcolor":"#1a1a19","showlegend":false,"transition":{"duration":0},"xaxis":{"automargin":true,"gridcolor":"#2c2c2a","griddash":"solid","gridwidth":1,"linecolor":"#383835","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#c3c2b7","size":11}},"zerolinecolor":"#383835","zerolinewidth":1},"yaxis":{"automargin":true,"gridcolor":"#2c2c2a","griddash":"solid","gridwidth":1,"linecolor":"#383835","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#c3c2b7","size":11}},"zerolinecolor":"#383835","zerolinewidth":1}},"sequential":[[0.0,"#0d366b"],[0.16666666666666666,"#184f95"],[0.3333333333333333,"#256abf"],[0.5,"#3987e5"],[0.6666666666666666,"#6da7ec"],[0.8333333333333334,"#9ec5f4"],[1.0,"#cde2fb"]],"onFillFlip":0.45,"onFillDark":"#0b0b0b","onFillLight":"#ffffff"}};
+const ROWS = DATA.rows;
+const SERIES = DATA.series;
+const OPTIONS = DATA.options;
+const BASELINE = DATA.baseline;
+
+const PLOT_CONFIG = {
+  responsive: true,
+  displaylogo: false,
+  modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines'],
+};
+
+const IMPL_LABEL = {"open62541":"open62541 (C)","o6-python":"o6\\Python","asyncua":"asyncua","ua-dotnet":"OPC Foundation (.NET)","node-opcua":"node-opcua (Node.js)","milo":"Eclipse Milo (Java)","s2opc":"S2OPC (C)","gopcua":"gopcua (Go)"};
+const POLICY_LABEL = { none: 'SecurityPolicy None', enc: 'Basic256Sha256' };
+const colorOf = new Map(SERIES.map((s) => [s.pair, s]));
+const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+// Slots 1 and 2 -- the read/write scatter is an all-pairs form, so it is capped
+// at the three leading slots that validate pairwise; it uses two.
+const SERIES_LIGHT_0 = '#2a78d6', SERIES_LIGHT_1 = '#eb6834';
+const SERIES_DARK_0 = '#3987e5', SERIES_DARK_1 = '#d95926';
+
+/* ------------------------------------------------------------------ state */
+
+const DEFAULTS = {
+  op: OPTIONS.op.includes('read') ? 'read' : OPTIONS.op[0],
+  mode: OPTIONS.mode.includes('async') ? 'async' : OPTIONS.mode[0],
+  sec: OPTIONS.sec.includes('none') ? 'none' : OPTIONS.sec[0],
+  n: OPTIONS.n[OPTIONS.n.length - 1],
+  payload: OPTIONS.payloads.some((p) => p.key === 's') ? 's' : OPTIONS.payloads[0].key,
+  metric: 'ops',
+  scale: 'abs',
+  axis: 'linear',
+  whiskers: true,
+  ratio: OPTIONS.sec.length > 1 ? 'security' : (OPTIONS.mode.length > 1 ? 'pipeline' : 'baseline'),
+  hidden: [],
+};
+const state = Object.assign({}, DEFAULTS);
+const tableOpen = new Set();
+
+function readHash() {
+  const raw = location.hash.replace(/^#/, '');
+  if (!raw) return;
+  for (const part of raw.split('&')) {
+    const [key, value] = part.split('=');
+    if (value === undefined) continue;
+    const decoded = decodeURIComponent(value);
+    if (key === 'n') { const v = parseInt(decoded, 10); if (OPTIONS.n.includes(v)) state.n = v; }
+    else if (key === 'hide') state.hidden = decoded ? decoded.split(',') : [];
+    else if (key === 'whiskers') state.whiskers = decoded === '1';
+    else if (key in state) state[key] = decoded;
+  }
+  if (!OPTIONS.op.includes(state.op)) state.op = DEFAULTS.op;
+  if (!OPTIONS.mode.includes(state.mode)) state.mode = DEFAULTS.mode;
+  if (!OPTIONS.sec.includes(state.sec)) state.sec = DEFAULTS.sec;
+  if (!OPTIONS.payloads.some((p) => p.key === state.payload)) {
+    state.payload = OPTIONS.payloads[0].key;
+  }
+}
+
+function writeHash() {
+  const parts = [
+    'op=' + state.op, 'mode=' + state.mode, 'sec=' + state.sec, 'n=' + state.n,
+    'payload=' + state.payload,
+    'metric=' + state.metric, 'scale=' + state.scale, 'axis=' + state.axis,
+    'whiskers=' + (state.whiskers ? '1' : '0'), 'ratio=' + state.ratio,
+  ];
+  if (state.hidden.length) parts.push('hide=' + encodeURIComponent(state.hidden.join(',')));
+  history.replaceState(null, '', '#' + parts.join('&'));
+}
+
+/* ------------------------------------------------------- data + formatting */
+
+const index = new Map();
+for (const row of ROWS) {
+  index.set([row.pair, row.op, row.mode, row.sec, row.n, row.shape].join('|'), row);
+}
+// The configurations that were measured and failed, keyed the same way. Kept
+// apart from `index` so no chart can plot one by accident: they carry a reason,
+// not a number.
+const failedIndex = new Map();
+for (const entry of (DATA.failures || [])) {
+  failedIndex.set([entry.pair, entry.op, entry.mode, entry.sec, entry.n, entry.shape].join('|'), entry);
+}
+const failedAt = (pair, op, mode, sec, n, shape) =>
+  failedIndex.get([pair, op, mode, sec, n, shape === undefined ? state.payload : shape].join('|'));
+const at = (pair, op, mode, sec, n, shape) =>
+  index.get([pair, op, mode, sec, n, shape === undefined ? state.payload : shape].join('|'));
+
+const visiblePairs = () => SERIES.filter((s) => !state.hidden.includes(s.pair)).map((s) => s.pair);
+const isLatency = () => state.metric === 'lat' && state.mode === 'sync';
+const isData = () => state.metric === 'data';
+/** A median is provisional for either reason: too few samples, or too wide a set. */
+const wideSpread = (row) => row.hi > 2 * row.lo;
+const shortSamples = (row) => row.ns < row.want;
+const unstable = (row) => wideSpread(row) || shortSamples(row);
+const shapeOf = (key) => OPTIONS.payloads.find((p) => p.key === key) || OPTIONS.payloads[0];
+
+/** Median in the selected metric space: calls/s, MB/s, or µs per call. */
+function metricOf(row) {
+  if (isLatency()) return 1e6 / row.med;
+  return isData() ? row.mbmed : row.med;
+}
+
+/** [low, median, high] in metric space, ordered ascending. */
+function bandOf(row) {
+  const lo = isData() ? row.mblo : row.lo;
+  const hi = isData() ? row.mbhi : row.hi;
+  const a = isLatency() ? 1e6 / row.hi : lo;
+  const b = isLatency() ? 1e6 / row.lo : hi;
+  return [Math.min(a, b), metricOf(row), Math.max(a, b)];
+}
+
+/** The plotted value: absolute metric, or the same metric over the C baseline. */
+function plotted(row) {
+  if (state.scale !== 'rel') return metricOf(row);
+  const base = at(BASELINE, row.op, row.mode, row.sec, row.n, row.shape);
+  return base ? metricOf(row) / metricOf(base) : NaN;
+}
+
+function plottedBand(row) {
+  const band = bandOf(row);
+  if (state.scale !== 'rel') return band;
+  const base = at(BASELINE, row.op, row.mode, row.sec, row.n, row.shape);
+  if (!base) return [NaN, NaN, NaN];
+  const divisor = metricOf(base);
+  return band.map((v) => v / divisor);
+}
+
+function unitLabel() {
+  if (state.scale === 'rel') return isLatency() ? '× baseline latency' : '× C baseline';
+  if (isLatency()) return 'µs per service call';
+  return isData() ? 'megabytes per second' : 'service calls per second';
+}
+
+/** A MB/s figure. The scale spans thousandths of a megabyte per second (one
+    Int32 per call) to thousands (a 4k array), so a fixed number of decimals is
+    either noise at the top or a bare 0 at the bottom; pick it by magnitude. */
+function fmtMb(v) {
+  if (!isFinite(v)) return '—';
+  if (v >= 100) return nf0.format(Math.round(v));
+  if (v >= 1) return v.toFixed(1);
+  if (v >= 0.01) return v.toFixed(3);
+  return v.toPrecision(2);
+}
+
+function fmtValue(v) {
+  if (!isFinite(v)) return '—';
+  if (state.scale === 'rel') return (v < 0.1 ? v.toFixed(3) : v.toFixed(2)) + '×';
+  if (isLatency()) return (v >= 100 ? nf0.format(Math.round(v)) : v.toFixed(1)) + ' µs';
+  if (isData()) return fmtMb(v);
+  return nf0.format(Math.round(v));
+}
+
+function fmtRatio(v) {
+  if (!isFinite(v)) return '—';
+  return (v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toFixed(2)) + '×';
+}
+
+const pairLabel = (pair) => {
+  const s = colorOf.get(pair);
+  return s ? IMPL_LABEL[s.client] + ' → ' + IMPL_LABEL[s.server] : pair;
+};
+
+/* --------------------------------------------------------------- theming */
+
+function activeTheme() {
+  const stamped = document.documentElement.getAttribute('data-theme');
+  if (stamped === 'dark' || stamped === 'light') return stamped;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+const tokens = () => THEME[activeTheme()].tokens;
+const hue = (pair) => {
+  const s = colorOf.get(pair);
+  return s ? s[activeTheme()] : tokens().muted;
+};
+
+/** Deep-merge chart-specific layout bits onto the themed chrome. */
+function layoutFor(overrides) {
+  const merge = (target, source) => {
+    for (const key of Object.keys(source)) {
+      const value = source[key];
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        target[key] = merge(Object.assign({}, target[key] || {}), value);
+      } else {
+        target[key] = value;
+      }
+    }
+    return target;
+  };
+  const base = JSON.parse(JSON.stringify(THEME[activeTheme()].layout));
+  // The chrome carries one axis spec; charts that use both need it on each.
+  base.yaxis = merge(JSON.parse(JSON.stringify(base.xaxis)), base.yaxis || {});
+  return merge(base, overrides || {});
+}
+
+/** A hatched fill marks a measurement whose max exceeded twice its min. */
+function patternFor(rows) {
+  return {
+    shape: rows.map((row) => (unstable(row) ? '/' : '')),
+    fgcolor: tokens().surface,
+    size: 5,
+    solidity: 0.28,
+  };
+}
+
+/* ---------------------------------------------------------------- charts */
+
+/** 1. Ranking bar -- who is fastest in the selected slice. */
+function chartRanking() {
+  const rows = visiblePairs()
+    .map((pair) => at(pair, state.op, state.mode, state.sec, state.n))
+    .filter(Boolean);
+  if (!rows.length) return null;
+  rows.sort((a, b) => (isLatency() ? plotted(a) - plotted(b) : plotted(b) - plotted(a)));
+  // Best on top: plotly stacks the first category at the bottom of a bar chart.
+  rows.reverse();
+
+  const values = rows.map(plotted);
+  const bands = rows.map(plottedBand);
+  const log = state.axis === 'log';
+  const labels = rows.map((row) => pairLabel(row.pair));
+
+  const trace = {
+    type: 'bar',
+    orientation: 'h',
+    x: values,
+    y: labels,
+    marker: {
+      color: rows.map((row) => hue(row.pair)),
+      pattern: patternFor(rows),
+      line: { width: 0 },
+
+    },
+    width: rows.map(() => 0.5),
+    text: values.map(fmtValue),
+    textposition: 'outside',
+    cliponaxis: false,
+    textfont: { color: tokens().secondary, size: 11.5 },
+    // An unstable measurement always shows its range, whatever the toggle says.
+    error_x: {
+      type: 'data',
+      symmetric: false,
+      array: bands.map((band, i) => (state.whiskers || unstable(rows[i]) ? band[2] - values[i] : 0)),
+      arrayminus: bands.map((band, i) => (state.whiskers || unstable(rows[i]) ? values[i] - band[0] : 0)),
+      color: tokens().muted,
+      thickness: 1,
+      width: 4,
+      visible: true,
+    },
+    customdata: rows.map((row, i) => [fmtValue(bands[i][0]), fmtValue(bands[i][2]), row.pair]),
+    hovertemplate:
+      '<b>%{text}</b><br>%{y}<br><span style="color:' + tokens().muted +
+      '">range %{customdata[0]} – %{customdata[1]}</span><extra></extra>',
+  };
+
+  const top = Math.max(...bands.map((b) => b[2]));
+  const layout = layoutFor({
+    height: rows.length * 46 + 74,
+    margin: { l: 8, r: 96, t: 10, b: 42 },
+    xaxis: {
+      type: log ? 'log' : 'linear',
+      title: { text: unitLabel() + (log ? ' (log scale — bar length is not proportional)' : '') },
+      tickformat: state.scale === 'rel' ? '' : '~s',
+      rangemode: 'tozero',
+      range: log ? undefined : [0, top * 1.16],
+    },
+    yaxis: { showgrid: false, ticksuffix: '  ', automargin: true },
+  });
+
+  return {
+    data: [trace],
+    layout,
+    caption: captionRanking(rows.slice().reverse()),
+    table: {
+      columns: ['Pairing', 'Median', 'Min', 'Max', 'Spread', 'Samples'],
+      rows: rows.slice().reverse().map((row) => {
+        const band = plottedBand(row);
+        return {
+          key: row.pair,
+          cells: [
+            pairLabel(row.pair), fmtValue(plotted(row)), fmtValue(band[0]), fmtValue(band[2]),
+            (row.hi / row.lo).toFixed(2) + '×' + (wideSpread(row) ? ' ⚠' : ''),
+            row.ns + '/' + row.want + (shortSamples(row) ? ' ⚠' : ''),
+          ],
+        };
+      }),
+    },
+  };
+}
+
+function captionRanking(rows) {
+  if (!rows.length) return '';
+  const best = rows[0];
+  const parts = [sliceWords() + ': ' + pairLabel(best.pair) + ' leads at ' + fmtValue(plotted(best)) + '.'];
+  if (rows.length > 1) {
+    const next = rows[1];
+    const factor = isLatency() ? plotted(next) / plotted(best) : plotted(best) / plotted(next);
+    parts.push(pairLabel(next.pair) + ' follows at ' + fmtValue(plotted(next)) +
+      ' (' + factor.toFixed(2) + '× ' + (isLatency() ? 'the latency' : 'off the lead') + ').');
+  }
+  const wide = rows.filter(wideSpread).length;
+  if (wide) parts.push(wide === 1
+    ? 'One hatched bar had a fastest sample above twice its slowest — read that median with its whiskers.'
+    : wide + ' hatched bars had a fastest sample above twice their slowest — read those medians with their whiskers.');
+  const short = rows.filter(shortSamples).length;
+  if (short) parts.push(short === 1
+    ? 'One bar holds fewer samples than the run asked for; its median is provisional.'
+    : short + ' bars hold fewer samples than the run asked for; those medians are provisional.');
+  const hiddenCount = SERIES.length - rows.length;
+  if (hiddenCount > 0) parts.push(hiddenCount + ' pairing' + (hiddenCount > 1 ? 's' : '') + ' hidden; the axis is rescaled to what is shown.');
+  return parts.join(' ');
+}
+
+/** 2. Heatmap -- is the cost on the client side or the server side? */
+function chartHeatmap() {
+  const impls = OPTIONS.impl;
+  const z = [], text = [], hoverText = [];
+  for (const client of impls) {
+    const zrow = [], trow = [], hrow = [];
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      const row = at(pair, state.op, state.mode, state.sec, state.n);
+      const failed = row ? null : failedAt(pair, state.op, state.mode, state.sec, state.n);
+      const value = row ? plotted(row) : NaN;
+      zrow.push(row && isFinite(value) ? Math.log10(value) : null);
+      // '✕' is a configuration that ran and fell over, '—' one that was never
+      // in the matrix. Both are empty cells; only one of them is a result.
+      trow.push(row ? fmtValue(value) : (failed ? '✕' : '—'));
+      hrow.push(row
+        ? fmtValue(value) + '<br>' + IMPL_LABEL[client] + ' client → ' + IMPL_LABEL[server] + ' server'
+        : IMPL_LABEL[client] + ' → ' + IMPL_LABEL[server] + '<br>' +
+          (failed ? 'measured, but it failed: ' + failed.why : 'not in the benchmark matrix'));
+    }
+    z.push(zrow); text.push(trow); hoverText.push(hrow);
+  }
+  const flat = z.flat().filter((v) => v !== null);
+  if (!flat.length) return null;
+  const zmin = Math.min(...flat), zmax = Math.max(...flat);
+  const span = zmax - zmin || 1;
+  const conf = THEME[activeTheme()];
+
+  const annotations = [];
+  for (let r = 0; r < impls.length; r++) {
+    for (let c = 0; c < impls.length; c++) {
+      const raw = z[r][c];
+      const fraction = raw === null ? 0 : (raw - zmin) / span;
+      annotations.push({
+        x: IMPL_LABEL[impls[c]], y: IMPL_LABEL[impls[r]], text: text[r][c],
+        showarrow: false,
+        font: {
+          size: raw === null ? 12 : 13,
+          color: raw === null ? tokens().muted
+            : (fraction > conf.onFillFlip ? conf.onFillLight : conf.onFillDark),
+          family: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+        },
+      });
+    }
+  }
+
+  const ticks = niceLogTicks(zmin, zmax);
+  const trace = {
+    type: 'heatmap',
+    z, x: impls.map((i) => IMPL_LABEL[i]), y: impls.map((i) => IMPL_LABEL[i]),
+    colorscale: conf.sequential,
+    zmin, zmax,
+    xgap: 2, ygap: 2,
+    hoverongaps: false,
+    text: hoverText,
+    hovertemplate: '<b>%{text}</b><extra></extra>',
+    colorbar: {
+      thickness: 10, len: 0.82, outlinewidth: 0, ticklen: 3,
+      tickvals: ticks.values, ticktext: ticks.labels,
+      tickfont: { color: tokens().muted, size: 11 },
+      title: { text: unitLabel(), font: { color: tokens().secondary, size: 11 }, side: 'right' },
+    },
+  };
+
+  const layout = layoutFor({
+    height: 316,
+    margin: { l: 8, r: 8, t: 52, b: 14 },
+    annotations,
+    xaxis: { title: { text: 'Server implementation' }, side: 'top', showgrid: false, zeroline: false, ticks: '' },
+    yaxis: { title: { text: 'Client implementation' }, showgrid: false, zeroline: false, ticks: '', autorange: 'reversed' },
+  });
+
+  return { data: [trace], layout, caption: captionHeatmap(impls), table: tableHeatmap(impls) };
+}
+
+function niceLogTicks(zmin, zmax) {
+  const values = [], labels = [];
+  for (let exp = Math.floor(zmin); exp <= Math.ceil(zmax); exp++) {
+    for (const mult of [1, 2, 5]) {
+      const value = Math.log10(mult * Math.pow(10, exp));
+      if (value < zmin - 0.02 || value > zmax + 0.02) continue;
+      values.push(value);
+      labels.push(fmtValue(mult * Math.pow(10, exp)));
+    }
+  }
+  return { values, labels };
+}
+
+function captionHeatmap(impls) {
+  const cells = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const row = at(client + '/' + server, state.op, state.mode, state.sec, state.n);
+      if (row) cells.push({ client, server, v: plotted(row) });
+    }
+  }
+  if (!cells.length) return '';
+  const better = (a, b) => (isLatency() ? a.v < b.v : a.v > b.v);
+  const best = cells.reduce((a, b) => (better(a, b) ? a : b));
+  const parts = ['Read across a row to price the client, down a column to price the server. ' +
+    'Fastest cell: ' + IMPL_LABEL[best.client] + ' → ' + IMPL_LABEL[best.server] +
+    ' at ' + fmtValue(best.v) + '.'];
+  // Same server, swapped client -- the cleanest available client-cost read.
+  const anchor = 'open62541';
+  const sameServer = cells.filter((c) => c.server === anchor && c.client !== anchor);
+  if (sameServer.length) {
+    const self = cells.find((c) => c.client === anchor && c.server === anchor);
+    if (self) {
+      const worded = sameServer.map((c) => IMPL_LABEL[c.client] + ' ' +
+        (isLatency() ? (c.v / self.v).toFixed(1) + '× slower' : (self.v / c.v).toFixed(1) + '× slower'));
+      parts.push('Against the same C server, swapping only the client costs: ' + worded.join(', ') + '.');
+    }
+  }
+  const failed = failedHere(impls);
+  if (failed.length) {
+    parts.push(failed.length + ' pairing' + (failed.length > 1 ? 's' : '') +
+      ' could not be measured at this setting (✕): ' + failedWorded(failed) + '.');
+  }
+  return parts.join(' ');
+}
+
+/** The failures at the current setting, over the pairings the heatmap draws. */
+function failedHere(impls) {
+  const out = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      if (at(pair, state.op, state.mode, state.sec, state.n)) continue;
+      const failed = failedAt(pair, state.op, state.mode, state.sec, state.n);
+      if (failed) out.push(failed);
+    }
+  }
+  return out;
+}
+
+/** "o6\\Python → C and one other, the client ran out of memory" -- grouped by reason. */
+function failedWorded(failed) {
+  const byReason = new Map();
+  for (const entry of failed) {
+    if (!byReason.has(entry.why)) byReason.set(entry.why, []);
+    byReason.get(entry.why).push(pairLabel(entry.pair));
+  }
+  return [...byReason].map(([why, pairs]) => pairs.join(', ') + ' — ' + why).join('; ');
+}
+
+function tableHeatmap(impls) {
+  const rows = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      const row = at(pair, state.op, state.mode, state.sec, state.n);
+      if (row) {
+        const band = plottedBand(row);
+        rows.push({
+          key: row.pair,
+          cells: [IMPL_LABEL[client], IMPL_LABEL[server], fmtValue(plotted(row)), fmtValue(band[0]), fmtValue(band[2])],
+        });
+        continue;
+      }
+      // A pairing that was measured and failed belongs in the table too, with
+      // the reason where its median would be. Left out, the table reads as a
+      // matrix that never included it.
+      const failed = failedAt(pair, state.op, state.mode, state.sec, state.n);
+      if (failed) {
+        rows.push({ key: failed.pair, cells: [IMPL_LABEL[client], IMPL_LABEL[server], '✕ ' + failed.why, '—', '—'] });
+      }
+    }
+  }
+  return { columns: ['Client', 'Server', 'Median', 'Min', 'Max'], rows };
+}
+
+/** 3. Scaling -- throughput against the number of concurrent client processes. */
+function chartScaling() {
+  const pairs = visiblePairs();
+  const counts = OPTIONS.n;
+  if (counts.length < 2) {
+    return { empty: 'This dataset was measured at a single client count (' + counts[0] +
+      '), so there is no load curve to draw. Re-run with --clients 1,3,10.' };
+  }
+  const traces = [], annotations = [];
+  const endpoints = [];
+
+  for (const pair of pairs) {
+    const xs = [], ys = [], custom = [];
+    for (const n of counts) {
+      const row = at(pair, state.op, state.mode, state.sec, n);
+      if (!row) continue;
+      const band = plottedBand(row);
+      xs.push(n); ys.push(plotted(row));
+      custom.push([fmtValue(band[0]), fmtValue(band[2]), unstable(row) ? ' ⚠' : '']);
+    }
+    if (!xs.length) continue;
+    traces.push({
+      type: 'scatter', mode: 'lines+markers', name: pairLabel(pair),
+      x: xs, y: ys, customdata: custom,
+      line: { color: hue(pair), width: 2, shape: 'linear', dash: pair.includes('node-opcua') ? 'dashdot' : pair.includes('ua-dotnet') ? 'dash' : 'solid' },
+      marker: { size: 9, color: hue(pair), symbol: pair.includes('node-opcua') ? 'square' : 'circle', line: { color: tokens().surface, width: 2 } },
+      hovertemplate: '<b>%{y:,.0f}</b> — ' + pairLabel(pair) +
+        '<br><span style="color:' + tokens().muted + '">range %{customdata[0]} – %{customdata[1]}%{customdata[2]}</span><extra></extra>',
+    });
+    endpoints.push({ pair, x: xs[xs.length - 1], y: ys[ys.length - 1], first: ys[0] });
+  }
+  if (!traces.length) return null;
+
+  // Direct labels only where they can be read: everything when few series are
+  // shown, otherwise just the extremes. Converging labels are worse than none.
+  let labelled = endpoints;
+  if (endpoints.length > 4) {
+    const sorted = endpoints.slice().sort((a, b) => a.y - b.y);
+    labelled = [sorted[0], sorted[sorted.length - 1]];
+  }
+  for (const point of labelled) {
+    annotations.push({
+      x: Math.log10(point.x), y: Math.log10(point.y),
+      text: '  ' + pairLabel(point.pair), showarrow: false, xanchor: 'left',
+      font: { color: tokens().secondary, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  // Isolating one pairing earns its ideal-scaling reference. Only throughput
+  // has an "N clients should be N times as much" ideal -- latency does not.
+  const shapes = [];
+  if (endpoints.length === 1 && !isLatency() && state.scale === 'abs') {
+    const only = endpoints[0];
+    const x0 = counts[0], x1 = counts[counts.length - 1];
+    shapes.push({
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(x0), y0: Math.log10(only.first),
+      x1: Math.log10(x1), y1: Math.log10(only.first * (x1 / x0)),
+      line: { color: tokens().muted, width: 1.5, dash: 'dot' },
+    });
+    annotations.push({
+      x: Math.log10(x1), y: Math.log10(only.first * (x1 / x0)),
+      text: 'linear scaling  ', showarrow: false, xanchor: 'right', yanchor: 'bottom',
+      font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  const layout = layoutFor({
+    height: 380,
+    margin: { l: 8, r: 190, t: 12, b: 46 },
+    hovermode: 'x unified',
+    shapes,
+    annotations,
+    xaxis: {
+      type: 'log', title: { text: 'concurrent client processes' },
+      tickvals: counts, ticktext: counts.map(String), showgrid: true,
+    },
+    yaxis: { type: 'log', title: { text: unitLabel() }, tickformat: '~s' },
+  });
+
+  return {
+    data: traces, layout,
+    caption: captionScaling(endpoints, counts),
+    table: {
+      columns: ['Pairing'].concat(counts.map((n) => n + ' client' + (n > 1 ? 's' : ''))).concat(['Scaling']),
+      rows: pairs.map((pair) => {
+        const cells = [pairLabel(pair)];
+        const values = counts.map((n) => {
+          const row = at(pair, state.op, state.mode, state.sec, n);
+          return row ? plotted(row) : NaN;
+        });
+        values.forEach((v) => cells.push(fmtValue(v)));
+        cells.push(isFinite(values[0]) && isFinite(values[values.length - 1])
+          ? (values[values.length - 1] / values[0]).toFixed(2) + '×' : '—');
+        return { key: pair, cells };
+      }),
+    },
+  };
+}
+
+function captionScaling(endpoints, counts) {
+  if (!endpoints.length) return '';
+  const first = counts[0], last = counts[counts.length - 1];
+  if (isLatency()) {
+    const worst = endpoints.reduce((a, b) => (b.y / b.first > a.y / a.first ? b : a));
+    return 'Per-operation latency from ' + first + ' to ' + last + ' clients. ' +
+      pairLabel(worst.pair) + ' degrades most, ×' + (worst.y / worst.first).toFixed(2) +
+      ' — sync latency under contention, not a throughput ceiling.';
+  }
+  const factors = endpoints.map((p) => ({ pair: p.pair, factor: p.y / p.first }));
+  factors.sort((a, b) => b.factor - a.factor);
+  const best = factors[0], worst = factors[factors.length - 1];
+  const parts = ['From ' + first + ' to ' + last +
+    ' clients (perfect scaling would be ' + (last / first).toFixed(0) + '×): ' +
+    pairLabel(best.pair) + ' gains ' + best.factor.toFixed(2) + '×'];
+  if (factors.length > 1) {
+    parts[0] += ', ' + pairLabel(worst.pair) + ' ' +
+      (worst.factor < 1 ? 'loses throughput and ends at ' + (worst.factor * 100).toFixed(0) + '% of its 1-client rate'
+        : 'gains only ' + worst.factor.toFixed(2) + '×');
+  }
+  parts[0] += '.';
+  const saturated = factors.filter((f) => f.factor >= 1 && f.factor < 1.15).length;
+  const regressed = factors.filter((f) => f.factor < 1).length;
+  if (saturated) parts.push(saturated + ' pairing' + (saturated > 1 ? 's are' : ' is') +
+    ' already saturated at ' + first + ' client' + (first > 1 ? 's' : '') + ' — more clients buy nothing.');
+  if (regressed) parts.push(regressed + ' pairing' + (regressed > 1 ? 's go' : ' goes') +
+    ' backwards under load.');
+  if (endpoints.length > 1 && state.scale === 'abs') {
+    parts.push('Isolate a single pairing to see its linear-scaling reference.');
+  }
+  return parts.join(' ');
+}
+
+/** 4. Ratio bars -- what one feature costs, as a multiple of throughput. */
+const RATIO_SPECS = {
+  security: {
+    label: 'Encryption cost',
+    need: () => OPTIONS.sec.length > 1,
+    axis: 'Basic256Sha256 ÷ SecurityPolicy None',
+    overrides: 'both security policies',
+    of: (pair) => {
+      const a = at(pair, state.op, state.mode, 'enc', state.n);
+      const b = at(pair, state.op, state.mode, 'none', state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+  pipeline: {
+    label: 'Pipelining gain',
+    need: () => OPTIONS.mode.length > 1,
+    axis: 'async (32 outstanding) ÷ sync (1 outstanding)',
+    overrides: 'both request modes',
+    of: (pair) => {
+      const a = at(pair, state.op, 'async', state.sec, state.n);
+      const b = at(pair, state.op, 'sync', state.sec, state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+  baseline: {
+    label: 'Against C',
+    need: () => true,
+    axis: 'pairing ÷ open62541 C client and server',
+    overrides: null,
+    of: (pair) => {
+      const a = at(pair, state.op, state.mode, state.sec, state.n);
+      const b = at(BASELINE, state.op, state.mode, state.sec, state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+};
+
+function chartRatio() {
+  const spec = RATIO_SPECS[state.ratio] || RATIO_SPECS.baseline;
+  if (!spec.need()) return { empty: 'This dataset holds only one ' +
+    (state.ratio === 'security' ? 'security policy' : 'request mode') + ', so the ratio has nothing to divide.' };
+  const entries = visiblePairs()
+    .map((pair) => ({ pair, ratio: spec.of(pair) }))
+    .filter((e) => isFinite(e.ratio) && e.ratio > 0);
+  if (!entries.length) return null;
+  entries.sort((a, b) => a.ratio - b.ratio);
+
+  // Bars grow from 1.0 in log2 space, so halving and doubling read symmetric
+  // and the sign of the bar is the sign of the effect.
+  const xs = entries.map((e) => Math.log2(e.ratio));
+  const reach = Math.max(0.6, ...xs.map((v) => Math.abs(v) * 1.35));
+  const ticks = [];
+  for (let exp = Math.ceil(-reach); exp <= Math.floor(reach); exp++) ticks.push(exp);
+
+  const trace = {
+    type: 'bar', orientation: 'h',
+    x: xs, y: entries.map((e) => pairLabel(e.pair)),
+    marker: { color: entries.map((e) => hue(e.pair)), line: { width: 0 } },
+    width: entries.map(() => 0.55),
+    text: entries.map((e) => fmtRatio(e.ratio)),
+    textposition: 'outside',
+    cliponaxis: false,
+    textfont: { color: tokens().secondary, size: 11.5 },
+    customdata: entries.map((e) => [fmtRatio(e.ratio), pairLabel(e.pair)]),
+    hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>' +
+      '<span style="color:' + tokens().muted + '">' + spec.axis + '</span><extra></extra>',
+  };
+
+  const layout = layoutFor({
+    height: entries.length * 46 + 82,
+    margin: { l: 8, r: 90, t: 26, b: 46 },
+    xaxis: {
+      title: { text: spec.axis },
+      range: [-reach, reach],
+      tickvals: ticks,
+      ticktext: ticks.map((t) => fmtRatio(Math.pow(2, t))),
+      zeroline: true, zerolinecolor: tokens().secondary, zerolinewidth: 1.5,
+    },
+    yaxis: { showgrid: false, ticksuffix: '  ' },
+    annotations: [
+      { x: -reach, y: 1.06, xref: 'x', yref: 'paper', text: '← worse', showarrow: false,
+        xanchor: 'left', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' } },
+      { x: reach, y: 1.06, xref: 'x', yref: 'paper', text: 'better →', showarrow: false,
+        xanchor: 'right', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' } },
+    ],
+  });
+
+  return {
+    data: [trace], layout,
+    caption: captionRatio(spec, entries),
+    table: {
+      columns: ['Pairing', spec.label, 'Change'],
+      rows: entries.slice().reverse().map((e) => ({
+        key: e.pair,
+        cells: [pairLabel(e.pair), fmtRatio(e.ratio),
+          (e.ratio >= 1 ? '+' : '') + ((e.ratio - 1) * 100).toFixed(0) + '%'],
+      })),
+    },
+  };
+}
+
+function captionRatio(spec, entries) {
+  const best = entries[entries.length - 1], worst = entries[0];
+  const median = entries[Math.floor(entries.length / 2)].ratio;
+  const parts = [spec.label + ' at ' + sliceWords(RATIO_DIMENSION[state.ratio]) + '. ' +
+    'Median across the shown pairings ' + fmtRatio(median) + '; best ' +
+    pairLabel(best.pair) + ' at ' + fmtRatio(best.ratio) + ', worst ' +
+    pairLabel(worst.pair) + ' at ' + fmtRatio(worst.ratio) + '.'];
+  if (state.ratio === 'security') {
+    const lost = entries.filter((e) => e.ratio < 0.9).length;
+    parts.push(lost ? lost + ' of ' + entries.length + ' pairings lose more than 10% to SignAndEncrypt.'
+      : 'No shown pairing loses more than 10% to SignAndEncrypt.');
+  }
+  if (state.ratio === 'pipeline') {
+    const flat = entries.filter((e) => e.ratio < 1.2).length;
+    if (flat) parts.push(flat + ' pairing' + (flat > 1 ? 's gain' : ' gains') +
+      ' almost nothing from 32 outstanding requests — the server side is serialising them.');
+  }
+  return parts.join(' ');
+}
+
+/** Least-squares fit of log(y) against log(x): y = a * x^b.
+ *
+ * The exponent b is the whole point of the fit. Values moved per second grows
+ * as payload^b, so b = 1 means a bigger payload is free (the per-call cost
+ * vanishes) and b = 0 means it buys nothing at all. */
+function powerFit(xs, ys) {
+  const points = xs.map((x, i) => [Math.log(x), Math.log(ys[i])])
+    .filter(([lx, ly]) => isFinite(lx) && isFinite(ly));
+  if (points.length < 2) return null;
+  const n = points.length;
+  const mx = points.reduce((s, p) => s + p[0], 0) / n;
+  const my = points.reduce((s, p) => s + p[1], 0) / n;
+  let num = 0, den = 0;
+  for (const [lx, ly] of points) { num += (lx - mx) * (ly - my); den += (lx - mx) ** 2; }
+  if (den === 0) return null;
+  const b = num / den;
+  const a = Math.exp(my - b * mx);
+  // Coefficient of determination, so a fit that does not describe the data
+  // can be recognised as such rather than read as a law.
+  let ssRes = 0, ssTot = 0;
+  for (const [lx, ly] of points) {
+    ssRes += (ly - (Math.log(a) + b * lx)) ** 2;
+    ssTot += (ly - my) ** 2;
+  }
+  return { a, b, r2: ssTot === 0 ? 1 : 1 - ssRes / ssTot };
+}
+
+/** 5. Payload scaling -- what batching and arrays actually buy. */
+function chartPayload() {
+  const shapes = OPTIONS.payloads;
+  if (shapes.length < 2) {
+    return { empty: 'This dataset holds a single payload shape. Re-run with ' +
+      '--batchsize 1,10,100,1000 and --arraysize 1000,hd to draw the curve.' };
+  }
+  const palette = tokens();
+  const traces = [], annotations = [], notes = [];
+
+  // Batch and array sweeps share one x axis -- values carried by a single
+  // service call -- so the two ways of moving more per call are directly
+  // comparable. Line style, not colour, separates them: colour stays identity.
+  const KINDS = [
+    { kind: 'batch', dash: 'solid', label: 'nodes per call' },
+    { kind: 'array', dash: 'dash', label: 'elements per node' },
+  ];
+
+  for (const pair of visiblePairs()) {
+    for (const { kind, dash } of KINDS) {
+      const picked = shapes.filter((s) => s.kind === kind || s.key === 's');
+      const xs = [], ys = [], custom = [];
+      for (const shape of picked) {
+        const row = at(pair, state.op, state.mode, state.sec, state.n, shape.key);
+        if (!row || !(row.mbmed > 0)) continue;
+        xs.push(shape.per_call);
+        ys.push(row.mbmed);
+        custom.push([shape.label, nf0.format(Math.round(row.med)), fmtMb(row.mbmed)]);
+      }
+      if (xs.length < 2) continue;
+      traces.push({
+        type: 'scatter', mode: 'lines+markers', name: pairLabel(pair) + ' · ' + kind,
+        x: xs, y: ys, customdata: custom,
+        line: { color: hue(pair), width: 2, dash },
+        marker: { size: 9, color: hue(pair), symbol: kind === 'array' ? 'diamond' : 'circle',
+                  line: { color: palette.surface, width: 2 } },
+        hovertemplate: '<b>%{customdata[2]}</b> MB/s — ' + pairLabel(pair) +
+          '<br>%{customdata[0]} · %{x:,} per call · %{customdata[1]} calls/s<extra></extra>',
+      });
+      const fit = powerFit(xs, ys);
+      if (fit && fit.r2 >= 0.5) {
+        const x0 = Math.min(...xs), x1 = Math.max(...xs);
+        traces.push({
+          type: 'scatter', mode: 'lines', showlegend: false, hoverinfo: 'skip',
+          x: [x0, x1], y: [fit.a * Math.pow(x0, fit.b), fit.a * Math.pow(x1, fit.b)],
+          line: { color: hue(pair), width: 1, dash: 'dot' }, opacity: 0.55,
+        });
+        notes.push({ pair, kind, b: fit.b, r2: fit.r2 });
+      }
+    }
+  }
+  if (!traces.length) return { empty: 'No pairing selected.' };
+
+  // Perfect scaling: every extra value in a call is free. Anchored at the
+  // slowest visible single-value rate so it reads as a slope, not a target.
+  const singles = visiblePairs()
+    .map((pair) => at(pair, state.op, state.mode, state.sec, state.n, 's'))
+    .filter((row) => row && row.mbmed > 0);
+  const shapesX = shapes.map((s) => s.per_call);
+  const xMin = Math.min(...shapesX), xMax = Math.max(...shapesX);
+  const shapesList = [];
+  if (singles.length) {
+    const anchor = Math.min(...singles.map((row) => row.mbmed));
+    shapesList.push({
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(xMin), y0: Math.log10(anchor),
+      x1: Math.log10(xMax), y1: Math.log10(anchor * (xMax / xMin)),
+      line: { color: palette.axis, width: 1.5, dash: 'dot' }, layer: 'below',
+    });
+    annotations.push({
+      x: Math.log10(xMax), y: Math.log10(anchor * (xMax / xMin)),
+      text: 'slope 1: extra values are free  ', showarrow: false,
+      xanchor: 'right', yanchor: 'bottom',
+      font: { color: palette.muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  const layout = layoutFor({
+    height: 420,
+    margin: { l: 8, r: 16, t: 12, b: 46 },
+    showlegend: true,
+    legend: { orientation: 'h', y: -0.22, yanchor: 'top', x: 0, font: { size: 11 } },
+    shapes: shapesList,
+    annotations,
+    xaxis: {
+      type: 'log', title: { text: 'values carried by one service call' },
+      tickvals: shapesX, ticktext: shapesX.map((v) => nf0.format(v)),
+    },
+    yaxis: { type: 'log', title: { text: 'megabytes per second' }, tickformat: '~s' },
+  });
+
+  return { data: traces, layout, caption: captionPayload(notes, shapes), table: tablePayload(shapes) };
+}
+
+function captionPayload(notes, shapes) {
+  const parts = [sliceWords('payload') +
+    '. Solid lines vary the nodes per Read/Write call; dashed lines vary the elements in one ' +
+    'array node. The dotted fit through each is a power law, MB/s ∝ payload^b.'];
+  if (notes.length) {
+    const best = notes.reduce((a, b) => (b.b > a.b ? b : a));
+    const worst = notes.reduce((a, b) => (b.b < a.b ? b : a));
+    parts.push('Steepest: ' + pairLabel(best.pair) + ' ' + best.kind + ', b = ' + best.b.toFixed(2) +
+      ' (r² ' + best.r2.toFixed(2) + ') — close to 1 means the per-call cost all but disappears. ' +
+      'Flattest: ' + pairLabel(worst.pair) + ' ' + worst.kind + ', b = ' + worst.b.toFixed(2) + '.');
+    const arrays = notes.filter((n) => n.kind === 'array');
+    const batches = notes.filter((n) => n.kind === 'batch');
+    if (arrays.length && batches.length) {
+      const mean = (list) => list.reduce((s, n) => s + n.b, 0) / list.length;
+      const ab = mean(arrays), bb = mean(batches);
+      parts.push('Averaged over the shown pairings, arrays scale at b = ' + ab.toFixed(2) +
+        ' against b = ' + bb.toFixed(2) + ' for batches: ' +
+        (ab > bb ? 'one big array beats many nodes in one call at equal value count.'
+                 : 'batching keeps up with arrays here.'));
+    }
+  }
+  const biggest = shapes[shapes.length - 1];
+  parts.push('Largest payload measured: ' + biggest.label + ' at ' +
+    nf0.format(biggest.per_call) + ' values per call.');
+  return parts.join(' ');
+}
+
+function tablePayload(shapes) {
+  const rows = [];
+  for (const pair of visiblePairs()) {
+    for (const shape of shapes) {
+      const row = at(pair, state.op, state.mode, state.sec, state.n, shape.key);
+      if (!row) continue;
+      rows.push({ key: pair, cells: [
+        pairLabel(pair), shape.label, nf0.format(shape.per_call),
+        nf0.format(Math.round(row.med)), fmtMb(row.mbmed),
+      ]});
+    }
+  }
+  return { columns: ['Pairing', 'Payload', 'Values per call', 'Calls/s', 'MB/s'], rows };
+}
+
+/** 6. Read vs. write -- the check that says the operation axis can be ignored. */
+function chartOperation() {
+  if (!(OPTIONS.op.includes('read') && OPTIONS.op.includes('write'))) {
+    return { empty: 'Both read and write are needed for this comparison; this dataset has only one.' };
+  }
+  const pairs = new Set(visiblePairs());
+  const byMode = { sync: [], async: [] };
+  for (const row of ROWS) {
+    if (row.op !== 'read' || !pairs.has(row.pair)) continue;
+    // Match like with like: the same payload shape on both axes, or a scalar
+    // read gets compared against an array write.
+    const write = at(row.pair, 'write', row.mode, row.sec, row.n, row.shape);
+    if (!write) continue;
+    (byMode[row.mode] || (byMode[row.mode] = [])).push({
+      x: row.med, y: write.med, pair: row.pair, mode: row.mode, sec: row.sec, n: row.n,
+      shape: row.shape, shapeLabel: shapeOf(row.shape).label,
+    });
+  }
+  const points = [].concat(byMode.sync || [], byMode.async || []);
+  if (!points.length) return null;
+  const all = points.flatMap((p) => [p.x, p.y]);
+  const lo = Math.min(...all) * 0.8, hi = Math.max(...all) * 1.25;
+  const conf = activeTheme();
+  // Two series only -- inside the three-slot cap that all-pairs forms carry.
+  const modeColor = { sync: conf === 'dark' ? SERIES_DARK_0 : SERIES_LIGHT_0,
+                      async: conf === 'dark' ? SERIES_DARK_1 : SERIES_LIGHT_1 };
+
+  const traces = ['sync', 'async'].filter((m) => (byMode[m] || []).length).map((mode) => ({
+    type: 'scatter', mode: 'markers', name: mode + ' (' + (mode === 'sync' ? '1' : '32') + ' outstanding)',
+    x: byMode[mode].map((p) => p.x), y: byMode[mode].map((p) => p.y),
+    customdata: byMode[mode].map((p) => [pairLabel(p.pair), POLICY_LABEL[p.sec], p.n, p.shapeLabel]),
+    marker: {
+      size: 9, color: modeColor[mode], opacity: 0.85,
+      line: { color: tokens().surface, width: 2 },
+    },
+    hovertemplate: 'read <b>%{x:,.0f}</b> · write <b>%{y:,.0f}</b> ops/s' +
+      '<br>%{customdata[0]}<br><span style="color:' + tokens().muted +
+      '">%{customdata[1]} · %{customdata[2]} client(s) · %{customdata[3]}</span><extra></extra>',
+  }));
+
+  const layout = layoutFor({
+    height: 400,
+    margin: { l: 8, r: 16, t: 12, b: 46 },
+    showlegend: true,
+    legend: { orientation: 'h', y: 1.02, yanchor: 'bottom', x: 0, font: { size: 11.5 } },
+    shapes: [{
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(lo), y0: Math.log10(lo), x1: Math.log10(hi), y1: Math.log10(hi),
+      line: { color: tokens().axis, width: 1.5, dash: 'dot' }, layer: 'below',
+    }],
+    annotations: [{
+      x: Math.log10(hi), y: Math.log10(hi), text: 'read = write  ', showarrow: false,
+      xanchor: 'right', yanchor: 'top', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    }],
+    xaxis: { type: 'log', title: { text: 'read, operations per second' }, range: [Math.log10(lo), Math.log10(hi)], tickformat: '~s' },
+    yaxis: { type: 'log', title: { text: 'write, operations per second' }, range: [Math.log10(lo), Math.log10(hi)], tickformat: '~s' },
+  });
+
+  const within = points.filter((p) => Math.abs(p.y / p.x - 1) <= 0.1).length;
+  const worst = points.reduce((a, b) => (Math.abs(Math.log(b.y / b.x)) > Math.abs(Math.log(a.y / a.x)) ? b : a));
+  // The verdict follows the data rather than restating a prior conclusion:
+  // large payloads can pull read and write apart where scalars did not.
+  const agrees = within >= points.length / 2;
+  const caption = within + ' of ' + points.length + ' configurations sit within ±10% of the diagonal, ' +
+    (agrees
+      ? 'so read and write cost about the same and the operation axis can stay parked. '
+      : 'so read and write do not track each other here — check both rather than assuming one stands in for the other. ') +
+    'Largest gap: ' + pairLabel(worst.pair) + ' ' + worst.mode + ', ' + POLICY_LABEL[worst.sec] + ', ' +
+    worst.n + ' client(s), ' + worst.shapeLabel +
+    ' — write is ' + (worst.y / worst.x).toFixed(2) + '× read.';
+
+  return {
+    data: traces, layout, caption,
+    table: {
+      columns: ['Pairing', 'Mode', 'Security', 'Clients', 'Payload', 'Read', 'Write', 'Write ÷ read'],
+      rows: points.map((p) => ({
+        key: p.pair,
+        cells: [pairLabel(p.pair), p.mode, POLICY_LABEL[p.sec], String(p.n), p.shapeLabel,
+          nf0.format(Math.round(p.x)), nf0.format(Math.round(p.y)), (p.y / p.x).toFixed(2) + '×'],
+      })),
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ shell */
+
+// ``ignores`` strikes a dimension out of the card's scope line; ``notes`` says
+// why, so a reader never wonders whether a control silently failed.
+const CARDS = [
+  { id: 'ranking', build: chartRanking, ignores: [], notes: [] },
+  { id: 'heatmap', build: chartHeatmap, ignores: ['pairs'],
+    notes: ['ignores the pairing filter — the grid is the pairing'] },
+  { id: 'scaling', build: chartScaling, ignores: ['n'],
+    notes: ['ignores the client count — it is the x axis'] },
+  { id: 'ratio', build: chartRatio, ignores: [], notes: [] },
+  { id: 'payload', build: chartPayload, ignores: ['payload'],
+    notes: ['ignores the payload control — the payload size is the x axis'] },
+  { id: 'operation', build: chartOperation, ignores: ['op', 'mode', 'sec', 'n', 'payload'],
+    notes: ['every measured configuration is plotted at once, so the slice above does not scope it'] },
+];
+
+/** The slice in words. ``skip`` drops a dimension a chart divides out. */
+function sliceWords(skip) {
+  const bits = [];
+  if (skip !== 'op') bits.push(state.op);
+  if (skip !== 'mode') bits.push(state.mode);
+  if (skip !== 'sec') bits.push(POLICY_LABEL[state.sec]);
+  if (skip !== 'n') bits.push(state.n + ' client' + (state.n > 1 ? 's' : ''));
+  if (skip !== 'payload' && OPTIONS.payloads.length > 1) bits.push(shapeOf(state.payload).label);
+  return bits.join(' · ');
+}
+
+const RATIO_DIMENSION = { security: 'sec', pipeline: 'mode', baseline: null };
+
+/** The per-card scope line: what slice it shows, and what it deliberately ignores. */
+function renderScope(card) {
+  const host = document.querySelector('#card-' + card.id + ' .scope');
+  host.textContent = '';
+  const spec = card.id === 'ratio' ? RATIO_SPECS[state.ratio] : null;
+  const ignores = new Set(card.ignores);
+  if (spec && RATIO_DIMENSION[state.ratio]) ignores.add(RATIO_DIMENSION[state.ratio]);
+  const dims = [
+    ['op', state.op],
+    ['mode', state.mode],
+    ['sec', POLICY_LABEL[state.sec]],
+    ['n', state.n + ' client' + (state.n > 1 ? 's' : '')],
+  ];
+  if (OPTIONS.payloads.length > 1) dims.push(['payload', shapeOf(state.payload).label]);
+  const append = (text, ignored) => {
+    const node = document.createElement(ignored ? 'span' : 'b');
+    if (ignored) node.className = 'ign';
+    node.textContent = text;
+    host.appendChild(node);
+  };
+  dims.forEach(([key, text], i) => {
+    if (i) host.appendChild(document.createTextNode(' · '));
+    append(text, ignores.has(key));
+  });
+  const notes = card.notes ? card.notes.slice() : [];
+  if (spec && spec.overrides) notes.push('spans ' + spec.overrides + ' — both sides of the ratio');
+  if (notes.length) host.appendChild(document.createTextNode('  — ' + notes.join('; ')));
+}
+
+function renderTable(card, table) {
+  const host = document.querySelector('#table-' + card.id);
+  host.textContent = '';
+  if (!table) return;
+  const el = document.createElement('table');
+  const head = el.createTHead().insertRow();
+  for (const column of table.columns) {
+    const th = document.createElement('th');
+    th.textContent = column;
+    head.appendChild(th);
+  }
+  const body = el.createTBody();
+  for (const row of table.rows) {
+    const tr = body.insertRow();
+    row.cells.forEach((value, i) => {
+      const td = tr.insertCell();
+      if (i === 0) {
+        td.className = 'key';
+        if (row.key && colorOf.has(row.key)) {
+          const swatch = document.createElement('span');
+          swatch.className = 'sw';
+          swatch.style.background = hue(row.key);
+          td.appendChild(swatch);
+        }
+      }
+      td.appendChild(document.createTextNode(value));
+    });
+  }
+  host.appendChild(el);
+}
+
+function renderCard(card) {
+  const root = document.getElementById('card-' + card.id);
+  const plot = root.querySelector('.plot');
+  const tableHost = root.querySelector('.tablewrap');
+  const caption = root.querySelector('.caption');
+  renderScope(card);
+
+  let figure = null;
+  try {
+    figure = card.build();
+  } catch (error) {
+    console.error(card.id, error);
+  }
+
+  const showTable = tableOpen.has(card.id);
+  plot.classList.toggle('hidden', showTable);
+  tableHost.classList.toggle('hidden', !showTable);
+  if (!figure || figure.empty) {
+    Plotly.purge(plot);
+    plot.textContent = '';
+    const note = document.createElement('p');
+    note.className = 'empty';
+    note.textContent = figure && figure.empty ? figure.empty : 'Nothing to show for this selection.';
+    plot.appendChild(note);
+    caption.textContent = '';
+    renderTable(card, null);
+    return;
+  }
+
+  plot.querySelectorAll(':scope > .empty').forEach((note) => note.remove());
+  if (!showTable) Plotly.react(plot, figure.data, figure.layout, PLOT_CONFIG);
+  renderTable(card, figure.table);
+  caption.textContent = figure.caption || '';
+}
+
+function render() {
+  syncControls();
+  for (const card of CARDS) renderCard(card);
+  writeHash();
+}
+
+/* --------------------------------------------------------------- controls */
+
+function syncControls() {
+  for (const button of document.querySelectorAll('[data-set]')) {
+    const [key, value] = button.dataset.set.split(':');
+    const current = String(state[key]);
+    button.setAttribute('aria-pressed', current === value ? 'true' : 'false');
+  }
+  // Latency is only a latency when exactly one request is in flight.
+  const latency = document.querySelector('[data-set="metric:lat"]');
+  if (latency) {
+    const allowed = state.mode === 'sync';
+    latency.disabled = !allowed;
+    latency.title = allowed ? 'Microseconds per operation'
+      : 'Only meaningful in sync mode — async pipelines 32 requests, so the reciprocal is not a round trip.';
+    if (!allowed && state.metric === 'lat') state.metric = 'ops';
+  }
+  const whisker = document.querySelector('[data-toggle="whiskers"]');
+  if (whisker) whisker.setAttribute('aria-pressed', state.whiskers ? 'true' : 'false');
+  for (const chip of document.querySelectorAll('[data-pair]')) {
+    const shown = !state.hidden.includes(chip.dataset.pair);
+    chip.setAttribute('aria-pressed', shown ? 'true' : 'false');
+    chip.querySelector('.sw').style.background = shown ? hue(chip.dataset.pair) : 'transparent';
+  }
+  for (const [key, spec] of Object.entries(RATIO_SPECS)) {
+    const button = document.querySelector('[data-set="ratio:' + key + '"]');
+    if (button) button.disabled = !spec.need();
+  }
+}
+
+function wire() {
+  document.addEventListener('click', (event) => {
+    const setter = event.target.closest('[data-set]');
+    if (setter && !setter.disabled) {
+      const [key, value] = setter.dataset.set.split(':');
+      state[key] = key === 'n' ? parseInt(value, 10) : value;
+      render();
+      return;
+    }
+    const toggle = event.target.closest('[data-toggle]');
+    if (toggle) {
+      state[toggle.dataset.toggle] = !state[toggle.dataset.toggle];
+      render();
+      return;
+    }
+    const chip = event.target.closest('[data-pair]');
+    if (chip) {
+      const pair = chip.dataset.pair;
+      const position = state.hidden.indexOf(pair);
+      if (position >= 0) state.hidden.splice(position, 1); else state.hidden.push(pair);
+      render();
+      return;
+    }
+    const preset = event.target.closest('[data-preset]');
+    if (preset) {
+      const keep = {
+        all: () => SERIES.map((s) => s.pair),
+        self: () => SERIES.filter((s) => s.client === s.server).map((s) => s.pair),
+        client: () => SERIES.filter((s) => s.server === 'open62541').map((s) => s.pair),
+        server: () => SERIES.filter((s) => s.client === 'open62541').map((s) => s.pair),
+      }[preset.dataset.preset]();
+      state.hidden = SERIES.map((s) => s.pair).filter((p) => !keep.includes(p));
+      render();
+      return;
+    }
+    const tableButton = event.target.closest('[data-table]');
+    if (tableButton) {
+      const id = tableButton.dataset.table;
+      if (tableOpen.has(id)) tableOpen.delete(id); else tableOpen.add(id);
+      tableButton.setAttribute('aria-pressed', tableOpen.has(id) ? 'true' : 'false');
+      renderCard(CARDS.find((c) => c.id === id));
+      return;
+    }
+    const themeButton = event.target.closest('[data-themetoggle]');
+    if (themeButton) {
+      const next = activeTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      themeButton.textContent = next === 'dark' ? 'Light theme' : 'Dark theme';
+      render();
+    }
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!document.documentElement.getAttribute('data-theme')) render();
+  });
+}
+
+readHash();
+wire();
+render();
+</script>
+</body>
+</html>
