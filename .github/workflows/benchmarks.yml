@@ -1,6 +1,8 @@
 name: benchmarks
 
 on:
+  push:  # TEMPORARY: development on the fork, removed before the PR
+    branches: [ci/benchmarks]
   workflow_dispatch:
     inputs:
       profile:
