@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark index — bench.db</title>
+<style>
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--plane);
+  color: var(--primary);
+  -webkit-font-smoothing: antialiased;
+}
+.index-page {
+  color-scheme: light;
+  --surface: #fcfcfb; --plane: #f9f9f7; --primary: #0b0b0b; --secondary: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --ghost: rgba(11,11,11,0.05);
+  --warn: #b35900; --warn-dark: #e0b070;
+  background: var(--plane); color: var(--primary);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .index-page {
+    color-scheme: dark;
+    --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+    --warn: #e0b070; --warn-dark: #e0b070;
+  }
+}
+:root[data-theme="dark"] .index-page {
+  color-scheme: dark;
+  --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+  --warn: #e0b070; --warn-dark: #e0b070;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; }
+header.page { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 22px; }
+header.page h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.page p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.55; max-width: 72ch; }
+
+/* ---- tab strip --------------------------------------------------------- */
+.tab-strip {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 0 0 12px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+}
+.tab-btn {
+  border: 1px solid transparent; background: transparent;
+  padding: 7px 14px; font-size: 13px; line-height: 1.4;
+  color: var(--secondary); cursor: pointer; border-radius: 7px;
+  font: inherit; font-weight: 500;
+}
+.tab-btn:hover { background: var(--ghost); }
+.tab-btn[aria-pressed="true"] {
+  background: var(--accent); color: #fff; border-color: transparent;
+}
+.tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.badge {
+  display: inline-block; margin-left: 7px; padding: 1px 7px;
+  font-size: 11px; font-weight: 500; line-height: 1.5;
+  border-radius: 999px; vertical-align: 1px;
+}
+.badge-partial { background: rgba(179, 89, 0, 0.12); color: var(--warn); }
+.badge-none { background: rgba(208, 59, 59, 0.12); color: #b03030; }
+:root[data-theme="dark"] .badge-none { color: #ff8585; }
+
+/* ---- tab panels -------------------------------------------------------- */
+.tab-panel { display: block; }
+.tab-panel[hidden] { display: none; }
+.tab-iframe {
+  display: block; width: 100%; height: calc(100vh - 220px); min-height: 600px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface);
+}
+
+/* ---- empty-state card -------------------------------------------------- */
+.empty-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 28px 28px 22px; max-width: 720px;
+}
+.empty-card .empty-title {
+  font-size: 17px; font-weight: 600; margin: 0 0 6px;
+  color: var(--primary); letter-spacing: -0.01em;
+}
+.empty-card .empty-reason { margin: 0 0 16px; color: var(--secondary); font-size: 13.5px; }
+.empty-card .empty-count {
+  display: inline-block; margin: 0 0 16px;
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--ghost); color: var(--secondary);
+  font-variant-numeric: tabular-nums; font-size: 12.5px;
+}
+.empty-card .empty-cli {
+  margin: 16px 0 0; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--secondary); font-size: 13px;
+}
+.empty-card .empty-cli code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px; padding: 1px 6px;
+  background: var(--plane); border: 1px solid var(--border); border-radius: 4px;
+}
+
+footer.page { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 34px; }
+footer.page code { font-size: 11.5px; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="index-page">
+<div class="wrap">
+<header class="page">
+  <div>
+    <h1>Benchmark index — bench.db</h1>
+    <p>One tab per suite, in fixed order.
+    Report availability: 2 complete, 0 partial, 2 none. A renderable report may contain failed or incomplete measurements;
+    its measurement status is shown inside the tab.</p>
+  </div>
+</header>
+
+<div class="tab-strip" role="tablist">
+<button type="button" id="tab-btn-throughput" class="tab-btn" data-suite="throughput" role="tab" aria-controls="tab-throughput">throughput </button>
+<button type="button" id="tab-btn-server_limits" class="tab-btn" data-suite="server_limits" role="tab" aria-controls="tab-server_limits">server_limits <span class="badge badge-none">missing</span></button>
+<button type="button" id="tab-btn-server_capacity" class="tab-btn" data-suite="server_capacity" role="tab" aria-controls="tab-server_capacity">server_capacity </button>
+<button type="button" id="tab-btn-subscription" class="tab-btn" data-suite="subscription" role="tab" aria-controls="tab-subscription">subscription <span class="badge badge-none">missing</span></button>
+</div>
+
+<section id="tab-throughput" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-throughput"><iframe class="tab-iframe" title="throughput report" src="throughput.html" loading="lazy"></iframe></section>
+<section id="tab-server_limits" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-server_limits" hidden><div class="empty-card">
+  <h2 class="empty-title">server_limits</h2>
+  <p class="empty-reason">results/ci/bench.db has nothing to render; run 'python -m bench.server_limits sample results/ci/bench.db' to populate it.</p>
+  
+  <p class="empty-cli">Run <code>python -m bench.server_limits sample</code> to recover.</p>
+</div></section>
+<section id="tab-server_capacity" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-server_capacity" hidden><iframe class="tab-iframe" title="server_capacity report" src="server_capacity.html" loading="lazy"></iframe></section>
+<section id="tab-subscription" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-subscription" hidden><div class="empty-card">
+  <h2 class="empty-title">subscription</h2>
+  <p class="empty-reason">results/ci/bench.db has nothing to render; run 'python -m bench.subscription sample 1 results/ci/bench.db' to populate it.</p>
+  
+  <p class="empty-cli">Run <code>python -m bench.subscription sample 1</code> to recover.</p>
+</div></section>
+
+<footer class="page">
+  <p>Generated by <code>python -m bench.show bench.db</code>.
+  Each tab loads its suite's <code>&lt;suite&gt;.html</code> on demand.</p>
+</footer>
+</div>
+</div>
+<script>
+'use strict';
+(function () {
+  const strip = document.querySelector('.tab-strip');
+  if (!strip) return;
+  strip.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-suite]');
+    if (!btn) return;
+    const suite = btn.getAttribute('data-suite');
+    strip.querySelectorAll('button[data-suite]').forEach((b) => {
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach((panel) => {
+      if (panel.id === 'tab-' + suite) {
+        panel.removeAttribute('hidden');
+      } else {
+        panel.setAttribute('hidden', '');
+      }
+    });
+  });
+  // Mark the active button for screen readers and CSS state. The default
+  // active button is the one whose panel is not hidden on load.
+  const initialPanel = document.querySelector('.tab-panel:not([hidden])');
+  if (initialPanel) {
+    const suite = initialPanel.id.replace(/^tab-/, '');
+    const activeBtn = strip.querySelector('button[data-suite="' + suite + '"]');
+    if (activeBtn) activeBtn.setAttribute('aria-pressed', 'true');
+  }
+})();
+</script>
+</body>
+</html>
