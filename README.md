@@ -85,6 +85,11 @@ Use Bash, not `sh`. Override `SAMPLES`, `ITERATIONS`, `WARMUP`, or
 Workers rebuilt since a saved run can change its fingerprint; start a new
 named run instead of amending incompatible measurements.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the DCO sign-off requirement and
+additional contributor license grant to o6 Automation GmbH.
+
 ## License
 
 Copyright (c) 2026 o6 Automation GmbH (Author: Daniel Opitz)
