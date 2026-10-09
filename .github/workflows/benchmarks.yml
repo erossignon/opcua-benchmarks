@@ -49,7 +49,7 @@ permissions:
 concurrency:
   # Collapses repeated triggers of the same ref. A self-hosted runner executes
   # one job at a time, so the suite jobs then run one after the other.
-  group: benchmarks-${{ github.ref }}-${{ inputs.profile }}-${{ inputs.servers }}
+  group: benchmarks-${{ github.ref }}-${{ inputs.profile }}-${{ inputs.servers }}-${{ inputs.runner || vars.BENCH_RUNNER }}
   cancel-in-progress: false
 
 env:
