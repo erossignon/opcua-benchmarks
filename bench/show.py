@@ -112,6 +112,12 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
             "that are missing."
         ),
     )
+    parser.add_argument(
+        "--export",
+        type=Path,
+        metavar="DIR",
+        help="Write index.html and every complete suite report into DIR (a static site) instead of serving.",
+    )
     return parser.parse_args(argv)
 
 
@@ -391,11 +397,14 @@ def _show(args) -> int:
     with closing(BenchDB(database, suite=_INDEX_SUITE)) as store:
         store.put_report(page)
 
+    if args.export:
+        _write_site(args.export, database, page, tabs)
+
     if _has_issues(tabs):
         print(_summarise_issues(tabs), file=sys.stderr)
         return 2
 
-    if args.build_only:
+    if args.build_only or args.export:
         return 0
 
     # No-server exit codes are pinned above; serving happens on the
@@ -413,16 +422,26 @@ def _show(args) -> int:
     from common.report import serve
 
     with tempfile.TemporaryDirectory(prefix="bench-show-index-") as working:
-        working_dir = Path(working)
-        destination = working_dir / "index.html"
-        destination.write_text(page, encoding="utf-8")
-        for suite, tab in zip(SHOW_SUITES, tabs):
-            if tab.state == "complete" and tab.report_filename:
-                with closing(BenchDB(database, suite=suite)) as store:
-                    store.export_report(working_dir / tab.report_filename)
+        destination = _write_site(Path(working), database, page, tabs)
         with closing(BenchDB(database, suite="")) as store:
             serve(destination, args.port)
     return 0
+
+
+def _write_site(directory: Path, database: Path, page: str, tabs: list[SuiteTab]) -> Path:
+    """Materialise the index and every stored per-suite report side by side.
+
+    A ``partial`` suite (one SDK failed) still has a report worth publishing:
+    the index shows its card, and the report itself sits next to it.
+    """
+    directory.mkdir(parents=True, exist_ok=True)
+    destination = directory / "index.html"
+    destination.write_text(page, encoding="utf-8")
+    for spec, suite in zip(_SUITES, SHOW_SUITES):
+        if _report_stored(database, suite):
+            with closing(BenchDB(database, suite=suite)) as store:
+                store.export_report(directory / spec.report_name)
+    return destination
 
 
 if __name__ == "__main__":

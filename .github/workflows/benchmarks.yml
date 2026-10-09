@@ -1,0 +1,73 @@
+name: benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "quick (throughput + capacity, about 1 h) or standard (all four suites)"
+        type: choice
+        options: [quick, standard]
+        default: quick
+      servers:
+        description: "Comma-separated server SDKs (empty = all)"
+        type: string
+        default: ""
+      runner:
+        description: "runs-on label: a GitHub-hosted image, or self-hosted for a dedicated machine"
+        type: string
+        default: ubuntu-24.04
+      publish:
+        description: "Publish the report and add the run to the history on GitHub Pages"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  # Two runs on one machine would measure each other.
+  group: benchmarks-${{ inputs.runner || 'ubuntu-24.04' }}
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 340
+    env:
+      PROFILE: ${{ inputs.profile || 'quick' }}
+      BENCH_SERVERS: ${{ inputs.servers }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: System packages
+        run: sudo apt-get update -q && sudo apt-get install -yq build-essential cmake libssl-dev
+
+      - name: Python environment
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -q -r requirements.txt
+
+      - name: Build workers
+        run: .venv/bin/python -m bench.build --node --dotnet --sdks
+
+      - name: Run benchmarks
+        run: |
+          servers=${BENCH_SERVERS:-}
+          .venv/bin/python -m bench.ci run results/ci/bench.db --profile "$PROFILE" --name ci ${servers:+--servers "$servers"}
+
+      - name: Build report
+        if: always()
+        run: .venv/bin/python -m bench.show results/ci/bench.db --export results/ci/site || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ github.run_id }}
+          path: results/ci/
+          if-no-files-found: warn
