@@ -6,48 +6,87 @@
 <title>OPC UA benchmark history</title>
 <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
 <style>
-  :root {
-    --bg: #fbfbfa; --fg: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc; --card: #ffffff;
-    --up: #1a7f37; --down: #c4321b; --accent: #2457c5;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #161615; --fg: #ecebe6; --muted: #9c9b94; --line: #2f2f2c; --card: #1e1e1c;
-      --up: #4ac26b; --down: #f0735a; --accent: #7aa2f7; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; }
-  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
-  p.lede { color: var(--muted); margin: 0 0 20px; max-width: 75ch; }
-  .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; margin-bottom: 12px; }
-  label { display: flex; flex-direction: column; font-size: .8rem; color: var(--muted); gap: 4px; }
-  label.check { flex-direction: row; align-items: center; color: var(--fg); font-size: .9rem; }
-  select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
-    background: var(--card); color: var(--fg); max-width: 100%; }
-  #chart { background: var(--card); border: 1px solid var(--line); border-radius: 8px; min-height: 420px; }
-  .scroll { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th { font-size: .8rem; color: var(--muted); font-weight: 600; }
-  td.num { text-align: right; }
-  .up { color: var(--up); font-weight: 600; }
-  .down { color: var(--down); font-weight: 600; }
-  .muted { color: var(--muted); }
-  caption { caption-side: top; text-align: left; color: var(--muted); font-size: .85rem; padding: 0 0 6px; }
-  .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--muted); }
-  a { color: var(--accent); }
-  .empty { padding: 40px; text-align: center; color: var(--muted); }
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+.viz-root { min-height: 100vh; background: var(--plane); color: var(--primary); color-scheme: light;
+  --surface: #fcfcfb; --plane: #f9f9f7; --primary: #0b0b0b; --secondary: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --ghost: rgba(11,11,11,0.05); --good: #0ca30c; --warn: #b7791f; --critical: #d03b3b; }
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .viz-root { color-scheme: dark; --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --ghost: rgba(255,255,255,0.07); --good: #0ca30c; --warn: #d4a72c; --critical: #d03b3b; }
+}
+:root[data-theme="dark"] .viz-root { color-scheme: dark; --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --ghost: rgba(255,255,255,0.07); --good: #0ca30c; --warn: #d4a72c; --critical: #d03b3b; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; }
+header.page { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 22px; }
+header.page h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.page p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.55; max-width: 68ch; }
+.spacer { flex: 1 1 auto; }
+.presets { display: flex; gap: 6px; margin-left: auto; }
+.presets button { font: inherit; border: 1px solid var(--border); background: transparent; border-radius: 7px;
+  padding: 4px 9px; font-size: 12px; color: var(--secondary); cursor: pointer; }
+.presets button:hover { background: var(--ghost); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 18px 14px; margin-bottom: 22px; }
+.card > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.card h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.card .q { font-size: 12.5px; color: var(--muted); }
+.card .caption { font-size: 13px; color: var(--secondary); line-height: 1.55; margin: 12px 2px 0;
+  border-top: 1px solid var(--border); padding-top: 11px; }
+.card .caption + .caption { border-top: 0; padding-top: 0; }
+.tablewrap { overflow-x: auto; margin-top: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  position: sticky; top: 0; background: var(--surface); }
+td { font-variant-numeric: tabular-nums; color: var(--secondary); }
+td.key { color: var(--primary); }
+td.left, th.left { text-align: left; }
+.badge { font-size: 11px; border-radius: 4px; padding: 1px 6px; border: 1px solid currentColor; }
+.badge.good { color: var(--good); } .badge.warn { color: var(--warn); } .badge.bad { color: var(--critical); }
+.meter { display: block; height: 8px; border-radius: 3px; background: var(--accent); min-width: 2px; }
+details { margin: 10px 2px; }
+details > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--secondary); }
+details .tablewrap { max-height: 70vh; overflow: auto; margin-top: 8px; }
+pre { white-space: pre-wrap; font-size: 12px; color: var(--muted); }
+footer.page { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 34px; }
+
+/* the page's own pieces, on the tokens above */
+.controls { position: sticky; top: 0; z-index: 20; margin: 0 0 22px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; }
+.controls label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); }
+.controls select { font: inherit; font-size: 12.5px; text-transform: none; letter-spacing: 0; padding: 5px 8px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--primary); max-width: 100%; }
+#chart { min-height: 420px; }
+.up { color: var(--good); font-weight: 600; }
+.down { color: var(--critical); font-weight: 600; }
+.muted { color: var(--muted); }
+caption { caption-side: top; text-align: left; color: var(--muted); font-size: 12.5px; padding: 0 0 8px; }
+.tag { font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; color: var(--muted); }
+a { color: var(--accent); }
+.empty { padding: 40px; text-align: center; color: var(--muted); }
 </style>
 </head>
 <body>
-<main>
-  <h1>OPC UA benchmark history</h1>
-  <p class="lede">Every published CI run of the benchmark suites, one evenly spaced point per run, per machine.
-  Hosted runners change hardware from run to run, which moves every SDK at once: compare SDKs within a
-  run (the standing table: rank, share of the fastest, ×slower) or with <em>Relative to</em> an SDK of the same run
-  before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
+<div class="viz-root"><div class="wrap">
+  <header class="page">
+    <div>
+      <h1>OPC UA benchmark history</h1>
+      <p>Every published CI run of the benchmark suites, one evenly spaced point per run, per machine.
+      Hosted runners change hardware from run to run, which moves every SDK at once: compare SDKs within a
+      run (the standing table: rank, share of the fastest, ×slower) or with <em>Relative to</em> an SDK of the
+      same run before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="presets"><button type="button" data-themetoggle>Dark theme</button></div>
+  </header>
 
   <div class="controls">
     <label>Machine <select id="machine"></select></label>
@@ -56,20 +95,25 @@
     <label>Case <select id="case"></select></label>
     <label>Relative to <select id="relative"></select></label>
   </div>
-  <div id="chart"></div>
 
-  <h2>Latest run against the previous one: standing within each run</h2>
-  <div class="scroll"><table id="latest"></table></div>
+  <section class="card"><header><h2>1. Trend</h2><span class="q">one point per run of the selected machine and profile</span></header>
+    <div id="chart"></div></section>
 
-  <h2>Runs</h2>
-  <div class="scroll"><table id="runs"></table></div>
-</main>
+  <section class="card"><header><h2>2. Latest run against the previous one</h2><span class="q">standing within each run</span></header>
+    <div class="tablewrap"><table id="latest"></table></div></section>
+
+  <section class="card"><header><h2>3. Runs</h2><span class="q">newest first</span></header>
+    <div class="tablewrap"><table id="runs"></table></div></section>
+</div></div>
 <script>
 // "×1.2" for 1.2 times the reference SDK, "1/2.3" for 2.3 times less (higher is better).
 const short = (x) => x.toFixed(x >= 10 ? 0 : 1).replace(/\.0$/, "");
 const fmtRatio = (r) => r == null ? "–" : r >= 1 ? `×${short(r)}` : `1/${short(1 / r)}`;
 const THRESHOLD = 0.10;
 const $ = (id) => document.getElementById(id);
+// The theme toggle overrides the system scheme, as in the suite reports.
+const isDark = () => (document.documentElement.getAttribute("data-theme")
+  || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
 const fmt = (v) => v == null ? "–" : (Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : v.toPrecision(3));
 const escape = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -116,7 +160,7 @@ function draw() {
   const suite = $("suite").value, kase = $("case").value;
   const metric = runs.flatMap((r) => r.metrics).find((m) => m.suite === suite && m.case === kase);
   const servers = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === suite && m.case === kase).map((m) => m.server)))].sort();
-  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = isDark();
   const reference = $("relative").value;
   const traces = servers.map((server) => {
     let lastVersion;
@@ -135,7 +179,7 @@ function draw() {
     };
   });
   const unit = reference ? `relative to ${reference}` : (metric?.unit ?? "");
-  const fg = dark ? "#ecebe6" : "#1d1d1b", grid = dark ? "#2f2f2c" : "#e2e1dc";
+  const fg = dark ? "#c3c2b7" : "#52514e", grid = dark ? "#2c2c2a" : "#e1e0d9";
   const layout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: fg },
     margin: { l: 64, r: 16, t: 16, b: 48 }, legend: { orientation: "h", y: -0.18 },
@@ -161,7 +205,7 @@ function draw() {
       .filter((t) => t.y != null).sort((a, b) => b.y - a.y);
     Plotly.react("chart", [{
       type: "bar", x: ranked.map((t) => t.name), y: ranked.map((t) => t.y), hovertext: ranked.map((t) => t.text),
-      hovertemplate: "%{hovertext}<extra></extra>", marker: { color: dark ? "#7aa2f7" : "#2457c5" },
+      hovertemplate: "%{hovertext}<extra></extra>", marker: { color: dark ? "#3987e5" : "#2a78d6" },
     }], { ...layout, showlegend: false, xaxis: { gridcolor: grid, title: `${runs[0]?.id ?? ""}: one run, no trend yet` } },
     { responsive: true, displaylogo: false });
   } else {
@@ -249,6 +293,14 @@ async function main() {
   $("relative").onchange = draw;
   $("case").onchange = () => { refreshSelectors(); draw(); };
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+  const toggle = document.querySelector("[data-themetoggle]");
+  const label = () => { toggle.textContent = isDark() ? "Light theme" : "Dark theme"; };
+  toggle.addEventListener("click", () => {
+    document.documentElement.setAttribute("data-theme", isDark() ? "light" : "dark");
+    label();
+    draw();
+  });
+  label();
   draw();
   drawRuns();
 }

@@ -8,12 +8,12 @@ import statistics
 import plotly.graph_objects as go
 
 from common.bench_db import BenchDB
+from common.report_theme import BASE_CSS, FONT_STACK, THEME_TOGGLE, THEME_TOGGLE_JS
 from server_capacity.run import SUITE
 from server_capacity.options import IMPLEMENTATIONS
 from server_capacity.search import METHOD
 
 REPORT_MARKER = "<!-- server-capacity-report:v9 -->"
-FONT_STACK = 'system-ui, -apple-system, "Segoe UI", sans-serif'
 # A probe whose clients used this share of their CPUs, or never waited on the server, measured the load generator.
 CLIENT_BOUND_CPU_SHARE = 0.9
 CLIENT_BOUND_WAIT = 0.05
@@ -280,6 +280,7 @@ def build_page(database, cdn=False):
         chart.update_xaxes(gridcolor="rgba(138,137,132,0.25)", zerolinecolor="rgba(138,137,132,0.4)")
         chart.update_yaxes(gridcolor="rgba(138,137,132,0.25)", automargin=True)
     capacity_chart.update_traces(textfont_size=12, selector=dict(type="bar"))
+    capacity_chart.update_layout(title_text="")  # the card carries the title
     figure.update_layout(height=480, legend=dict(orientation="h", y=-0.2))
     table = []
     for case, obs in points:
@@ -324,19 +325,22 @@ def build_page(database, cdn=False):
     capacities = metadata.get("capacities", {})
     rates = {sdk: result.get("capacity_requests_per_second") for sdk, result in capacities.items()}
     fastest = max((rate for rate in rates.values() if rate), default=None)
+    tone = {"confirmed": "good", "variable": "warn"}
     standing = []
     for sdk in sorted(capacities, key=lambda sdk: -(rates[sdk] or 0)):
         result, rate = capacities[sdk], rates[sdk]
-        limited = client_limited(points, sdk, client_cpus)
-        status = escape(result["status"]).replace("_", " ")
+        badges = f'<span class="badge {tone.get(result["status"], "bad")}">{escape(result["status"]).replace("_", " ")}</span>'
+        if client_limited(points, sdk, client_cpus):
+            badges += (
+                ' <span class="badge warn" title="every confirmation repeat was limited by the load generator">'
+                "client-limited: a lower bound</span>"
+            )
+        share = (rate or 0) / fastest * 100 if fastest else 0
         standing.append(
-            f"<tr><td>{escape(sdk)}</td>"
-            f'<td><span class="badge {escape(result["status"])}">{status}</span>'
-            + (' <span class="badge limited" title="every confirmation repeat was limited by the load generator">'
-               "client-limited: a lower bound</span>" if limited else "")
-            + f'</td><td class="num">{f"{rate:,.0f}" if rate else "–"}</td>'
-            f'<td class="num">{f"×{fastest / rate:.1f}" if rate and fastest else "–"}</td>'
-            f'<td class="bar"><span style="width:{(rate or 0) / fastest * 100 if fastest else 0:.1f}%"></span></td></tr>'
+            f'<tr><td class="key">{escape(sdk)}</td><td class="left">{badges}</td>'
+            f"<td>{f'{rate:,.0f}' if rate else '–'}</td>"
+            f"<td>{f'×{fastest / rate:.1f}' if rate and fastest else '–'}</td>"
+            f'<td class="left" style="width:30%"><span class="meter" style="width:{share:.1f}%"></span></td></tr>'
         )
     machine = " · ".join(
         str(part)
@@ -348,69 +352,46 @@ def build_page(database, cdn=False):
         if part
     )
     errors = "".join(f"<li>{escape(f['configuration'])}: {escape(f.get('error', 'failure'))}</li>" for f in failures)
-    failed_section = (
-        f"<section><h2>Failed measurements</h2><ul>{errors}</ul></section>" if failures else ""
+    failed_card = (
+        f'<section class="card"><header><h2>Failed measurements</h2></header><ul>{errors}</ul></section>' if failures else ""
     )
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>Server capacity · {escape(name)}</title>{REPORT_MARKER}
-<style>
-:root {{ --bg: #fbfbfa; --card: #ffffff; --fg: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc; --accent: #2457c5;
-  --good: #1a7f37; --warn: #9a6700; --bad: #c4321b; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --bg: #161615; --card: #1e1e1c; --fg: #ecebe6; --muted: #9c9b94;
-  --line: #2f2f2c; --accent: #7aa2f7; --good: #4ac26b; --warn: #d4a72c; --bad: #f0735a; }} }}
-* {{ box-sizing: border-box; }}
-body {{ margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 {FONT_STACK}; }}
-main {{ max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }}
-h1 {{ font-size: 1.5rem; margin: 0 0 4px; }} h2 {{ font-size: 1.1rem; margin: 0 0 10px; }}
-.meta {{ color: var(--muted); margin: 0 0 20px; }}
-section {{ background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin: 16px 0; }}
-.note {{ color: var(--muted); font-size: .9rem; max-width: 80ch; }}
-.scroll {{ overflow-x: auto; }}
-table {{ border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }}
-th, td {{ text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }}
-th {{ color: var(--muted); font-size: .8rem; font-weight: 600; position: sticky; top: 0; background: var(--card); }}
-td.num {{ text-align: right; }} td.bar {{ width: 30%; }}
-td.bar span {{ display: block; height: 10px; border-radius: 3px; background: var(--accent); }}
-.badge {{ font-size: .75rem; border-radius: 4px; padding: 1px 6px; border: 1px solid currentColor; }}
-.badge.confirmed {{ color: var(--good); }} .badge.variable, .badge.limited {{ color: var(--warn); }}
-.badge.budget_exhausted, .badge.failed {{ color: var(--bad); }}
-details {{ margin: 10px 0; }} summary {{ cursor: pointer; font-weight: 600; }}
-details .scroll {{ max-height: 70vh; overflow: auto; margin-top: 8px; }}
-pre {{ white-space: pre-wrap; font-size: .8rem; color: var(--muted); }}
-</style></head><body><main>
-<h1>Server capacity · {escape(name)}</h1>
-<p class="meta">{state}{f" · {escape(machine)}" if machine else ""}</p>
-<section><h2>Capacity per SDK</h2>
-<div class="scroll"><table><tr><th>SDK</th><th>Status</th><th>Requests/s</th><th>×slower than the fastest</th><th></th></tr>
+<style>{BASE_CSS}</style></head><body><div class="viz-root"><div class="wrap">
+<header class="page"><div><h1>Server capacity · {escape(name)}</h1>
+<p>{state}{f" · {escape(machine)}" if machine else ""}</p></div>
+<div class="spacer"></div>{THEME_TOGGLE}</header>
+<section class="card"><header><h2>1. Capacity per SDK</h2><span class="q">how many scalar Reads per second each server sustained</span></header>
+<div class="tablewrap"><table><tr><th>SDK</th><th class="left">Status</th><th>Requests/s</th><th>×slower than the fastest</th><th class="left"></th></tr>
 {''.join(standing)}</table></div>
-<p class="note">The stored estimate of each search: the highest confirmed load, which does not prove an absolute
-server maximum. <em>client-limited</em>: every confirmation repeat had its clients near {CLIENT_BOUND_CPU_SHARE:.0%}
-of their {client_cpus or "?"} CPUs or never waiting on the server, so the load generator, not the server, set the
-number.</p></section>
-<section><h2>Observed throughput by SDK</h2>
+<p class="caption">The stored estimate of each search: the highest confirmed load, which does not prove an absolute
+server maximum. <em>client-limited</em>: every confirmation repeat had its clients at {CLIENT_BOUND_CPU_SHARE:.0%}
+or more of their {client_cpus or "?"} CPUs, or never waiting on the server, so the load generator, not the server,
+set the number.</p></section>
+<section class="card"><header><h2>2. Observed throughput by SDK</h2><span class="q">search-space and confirmation means</span></header>
 {capacity_chart.to_html(full_html=False, include_plotlyjs='cdn' if cdn else True)}
-<p class="note"><strong>Search-space mean:</strong> each successfully tested load configuration has equal weight,
+<p class="caption"><strong>Search-space mean:</strong> each successfully tested load configuration has equal weight,
 using discovery measurements only. Some loads may offer insufficient work to saturate the server,
 leaving capacity unused. This average depends on the configurations explored; it is neither maximum
 capacity nor typical production performance.</p>
-<p class="note"><strong>Confirmation mean:</strong> combines fresh successful repeats across all selected top-decile
+<p class="caption"><strong>Confirmation mean:</strong> combines fresh successful repeats across all selected top-decile
 load configurations. Discovery measurements do not contribute. Whiskers show ±1 sample standard
 deviation across these repeats, reflecting both differences between selected loads and variation
 between repeats; they are not a confidence interval or a maximum. Hover shows sample counts,
 excluded failures and sample variance. Slow successful repeats remain included.
 Fewer than two successful repeats means variability is unknown, not zero.</p>
-<p class="note">Failed and invalid probes are excluded from both means and retained in the evidence below.
+<p class="caption">Failed and invalid probes are excluded from both means and retained in the evidence below.
 Named runs are kept separate.</p></section>
-<section><h2>Every probe</h2>
+<section class="card"><header><h2>3. Every probe</h2><span class="q">requests/s against the total outstanding requests</span></header>
 {figure.to_html(full_html=False, include_plotlyjs=False)}
-<p class="note">Measurement method: {escape(metadata.get('method', 'unrecorded'))}. {method_description}</p>
-<details><summary>All measured load configurations (requests/s)</summary><div class="scroll">
+<p class="caption">Measurement method: {escape(metadata.get('method', 'unrecorded'))}. {method_description}</p>
+<details><summary>All measured load configurations (requests/s)</summary><div class="tablewrap">
 <table><tr><th>SDK</th><th>Load</th><th>Maximum</th><th>Mean</th><th>Sample SD</th><th>Successful probes</th><th>Failed probes</th></tr>{''.join(loads)}</table></div></details>
-<details><summary>Probe details ({len(table)} probes)</summary><div class="scroll">
+<details><summary>Probe details ({len(table)} probes)</summary><div class="tablewrap">
 <table><tr><th>SDK</th><th>Clients</th><th>Outstanding/client</th><th>Phase</th><th>Requests/s</th>
 <th>Error rate</th><th>p50 ms</th><th>p99 ms</th><th>Max client CPU</th><th>Min full-window wait</th><th>Error statuses</th><th>Probe failure</th></tr>{''.join(table)}</table></div></details>
-<details><summary>Stored search conclusions</summary><div class="scroll">
+<details><summary>Stored search conclusions</summary><div class="tablewrap">
 <table><tr><th>SDK</th><th>Status</th><th>Stored estimate (requests/s)</th><th>Evidence / limitation</th></tr>{''.join(summaries)}</table></div></details>
 <details><summary>Confirmation evidence</summary><pre>{evidence}</pre></details></section>
-{failed_section}
-</main></body></html>"""
+{failed_card}
+</div></div><script>{THEME_TOGGLE_JS}</script></body></html>"""
