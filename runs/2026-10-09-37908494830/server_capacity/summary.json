@@ -1,0 +1,93 @@
+{
+ "id": "2026-10-09-37908494830",
+ "date": "2026-10-09T09:10:58Z",
+ "profile": "quick",
+ "trigger": "push",
+ "ref": "main",
+ "commit": "a61f5b7c0f3bb037811f8c5d9bcafe3f72b2cc88",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/37908494830",
+ "runner": {
+  "label": "ubuntu-24.04",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "cores": 4,
+  "memory_gb": 15.6
+ },
+ "versions": {
+  "node-opcua": "2.187.0",
+  "asyncua": "2.0.1",
+  "o6-python": "2.0.1",
+  "milo": "1.1.8",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176"
+ },
+ "failures": 0,
+ "metrics": [
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "asyncua",
+   "value": 13597.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "gopcua",
+   "value": 31902.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "milo",
+   "value": 56290.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua",
+   "value": 196006.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "o6-python",
+   "value": 94191.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "open62541",
+   "value": 188765.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "s2opc",
+   "value": 93568.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "ua-dotnet",
+   "value": 65080.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}

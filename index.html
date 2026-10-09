@@ -120,11 +120,23 @@ function draw() {
   });
   const unit = $("relative").checked ? `× ${REFERENCE}` : (metric?.unit ?? "");
   const fg = dark ? "#ecebe6" : "#1d1d1b", grid = dark ? "#2f2f2c" : "#e2e1dc";
-  Plotly.react("chart", traces, {
+  const layout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: fg },
     margin: { l: 64, r: 16, t: 16, b: 48 }, legend: { orientation: "h", y: -0.18 },
     xaxis: { gridcolor: grid }, yaxis: { title: unit, gridcolor: grid, rangemode: "tozero" },
-  }, { responsive: true, displaylogo: false });
+  };
+  if (runs.length < 2) {
+    // One run is no trend yet: show it as bars, fastest first.
+    const ranked = traces.map((t) => ({ name: t.name, y: t.y[0], text: t.text[0] }))
+      .filter((t) => t.y != null).sort((a, b) => b.y - a.y);
+    Plotly.react("chart", [{
+      type: "bar", x: ranked.map((t) => t.name), y: ranked.map((t) => t.y), hovertext: ranked.map((t) => t.text),
+      hovertemplate: "%{hovertext}<br>%{y:.4~s}<extra></extra>", marker: { color: dark ? "#7aa2f7" : "#2457c5" },
+    }], { ...layout, showlegend: false, xaxis: { gridcolor: grid, title: `${runs[0]?.id ?? ""}: one run, no trend yet` } },
+    { responsive: true, displaylogo: false });
+  } else {
+    Plotly.react("chart", traces, layout, { responsive: true, displaylogo: false });
+  }
   drawLatest(runs, suite, kase, servers, metric);
 }
 
