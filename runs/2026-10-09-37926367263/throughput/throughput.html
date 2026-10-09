@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPC UA client/server benchmark — sterfive-Geminilake</title>
+<style>
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--plane);
+  color: var(--primary);
+  -webkit-font-smoothing: antialiased;
+}
+.viz-root {
+  min-height: 100vh;
+  background: var(--plane);
+  color: var(--primary);
+  color-scheme: light;
+  --surface: #fcfcfb; --plane: #f9f9f7; --primary: #0b0b0b; --secondary: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --ghost: rgba(11,11,11,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .viz-root {
+    color-scheme: dark;
+    --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+  }
+}
+:root[data-theme="dark"] .viz-root {
+  color-scheme: dark;
+  --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --ghost: rgba(255,255,255,0.07);
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; }
+header.page { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+header.page h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+header.page p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.55; max-width: 68ch; }
+.spacer { flex: 1 1 auto; }
+button, select { font: inherit; color: inherit; }
+
+/* ---- control row -------------------------------------------------------- */
+.controls {
+  position: sticky; top: 0; z-index: 20;
+  margin: 22px 0 26px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center;
+  backdrop-filter: saturate(1.2) blur(6px);
+}
+.group { display: flex; align-items: center; gap: 8px; }
+.group > .glabel {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+}
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; padding: 5px 10px; font-size: 12.5px;
+  color: var(--secondary); cursor: pointer; line-height: 1.4;
+}
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button:hover:not(:disabled) { background: var(--ghost); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.seg button:disabled { opacity: 0.38; cursor: not-allowed; }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ---- series legend ------------------------------------------------------ */
+.legendbar {
+  display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+  margin: -12px 0 26px; padding: 12px 14px;
+  border: 1px solid var(--border); border-top: 0; border-radius: 0 0 10px 10px;
+  background: var(--surface);
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); border-radius: 999px; background: transparent;
+  padding: 4px 11px 4px 8px; font-size: 12.5px; color: var(--primary); cursor: pointer;
+  min-height: 26px;
+}
+.chip:hover { background: var(--ghost); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip .sw { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.chip[aria-pressed="false"] { color: var(--muted); }
+.chip[aria-pressed="false"] .sw { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--axis); }
+.presets { display: flex; gap: 6px; margin-left: auto; }
+.presets button {
+  border: 1px solid var(--border); background: transparent; border-radius: 7px;
+  padding: 4px 9px; font-size: 12px; color: var(--secondary); cursor: pointer;
+}
+.presets button:hover { background: var(--ghost); }
+
+/* ---- chart cards -------------------------------------------------------- */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 18px 14px; margin-bottom: 22px;
+}
+.card > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+.card h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.card .q { font-size: 12.5px; color: var(--muted); }
+.card .scope { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+.card .scope .ign { text-decoration: line-through; opacity: 0.75; }
+.card .scope b { font-weight: 600; color: var(--secondary); }
+.card .caption {
+  font-size: 13px; color: var(--secondary); line-height: 1.55; margin: 12px 2px 0;
+  border-top: 1px solid var(--border); padding-top: 11px;
+}
+.card .tools { margin-left: auto; display: flex; gap: 6px; }
+.card .tools button {
+  border: 1px solid var(--border); background: transparent; border-radius: 7px;
+  padding: 3px 9px; font-size: 12px; color: var(--secondary); cursor: pointer;
+}
+.card .tools button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
+.plot { width: 100%; }
+.tablewrap { overflow-x: auto; margin-top: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+td { font-variant-numeric: tabular-nums; color: var(--secondary); }
+td.key { color: var(--primary); }
+td .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
+.hidden { display: none !important; }
+footer.page { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 34px; }
+footer.page code { font-size: 11.5px; }
+.warnnote { color: var(--secondary); }
+.warnnote .hatch {
+  display: inline-block; width: 11px; height: 11px; vertical-align: -1px; margin-right: 4px;
+  border: 1px solid var(--axis); border-radius: 2px;
+  background: repeating-linear-gradient(45deg, var(--axis) 0 1.5px, transparent 1.5px 4px);
+}
+.empty { color: var(--muted); font-size: 13px; padding: 26px 2px; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+<header class="page">
+  <div>
+    <h1>OPC UA client/server throughput</h1>
+    <p>160 measured configurations across
+    10 client/server pairings, read and write, sync and async,
+    plaintext and SignAndEncrypt, 1 to 3 concurrent clients.
+    Every chart below reads from the same control row.</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="presets"><button type="button" data-themetoggle>Dark theme</button></div>
+</header>
+
+<div class="controls"><div class="group"><span class="glabel">Operation</span><div class="seg" role="group" aria-label="Operation"><button type="button" data-set="op:read" title="Benchmark the read service">Read</button><button type="button" data-set="op:write" title="Benchmark the write service">Write</button></div></div><div class="group"><span class="glabel">Mode</span><div class="seg" role="group" aria-label="Mode"><button type="button" data-set="mode:sync" title="One request at a time">sync</button><button type="button" data-set="mode:async" title="Up to 32 requests in flight">async</button></div></div><div class="group"><span class="glabel">Clients</span><div class="seg" role="group" aria-label="Clients"><button type="button" data-set="n:1" title="1 concurrent client process(es)">1</button><button type="button" data-set="n:3" title="3 concurrent client process(es)">3</button></div></div><div class="group"><span class="glabel">Payload</span><div class="seg" role="group" aria-label="Payload"><button type="button" data-set="payload:s" title="1 value(s) per service call">single value</button><button type="button" data-set="payload:b100" title="100 value(s) per service call">batch 100</button></div></div><div class="group"><span class="glabel">Metric</span><div class="seg" role="group" aria-label="Metric"><button type="button" data-set="metric:ops" title="Read/Write service calls per second">calls/s</button><button type="button" data-set="metric:data" title="Int32 payload moved per second, 4 bytes a value">MB/s</button><button type="button" data-set="metric:lat" title="Microseconds per service call">µs/call</button></div></div><div class="group"><span class="glabel">Scale</span><div class="seg" role="group" aria-label="Scale"><button type="button" data-set="scale:abs" title="Measured values">Absolute</button><button type="button" data-set="scale:rel" title="Normalised to the open62541 C client and server">× C</button></div></div><div class="group"><span class="glabel">Axis</span><div class="seg" role="group" aria-label="Axis"><button type="button" data-set="axis:linear" title="Bar length stays proportional to the value">Linear</button><button type="button" data-set="axis:log" title="Fits the full 190x range, at the cost of proportional bars">Log</button></div></div><div class="group"><div class="seg"><button type="button" data-toggle="whiskers" title="Show the min-max range across samples">Whiskers</button></div></div><div class="group"><span class="glabel">Ratio</span><div class="seg" role="group" aria-label="Ratio"><button type="button" data-set="ratio:security" title="Basic256Sha256 divided by SecurityPolicy None">Encryption</button><button type="button" data-set="ratio:pipeline" title="async divided by sync">Pipelining</button><button type="button" data-set="ratio:baseline" title="This pairing divided by the C client and server">vs C</button></div></div></div>
+<div class="legendbar">
+  <button type="button" class="chip" data-pair="open62541/open62541"><span class="sw" style="background:#2a78d6"></span>open62541 (C) &rarr; open62541 (C)</button><button type="button" class="chip" data-pair="open62541/o6-python"><span class="sw" style="background:#1baf7a"></span>open62541 (C) &rarr; o6\Python</button><button type="button" class="chip" data-pair="open62541/asyncua"><span class="sw" style="background:#008300"></span>open62541 (C) &rarr; asyncua</button><button type="button" class="chip" data-pair="open62541/ua-dotnet"><span class="sw" style="background:#007f86"></span>open62541 (C) &rarr; OPC Foundation (.NET)</button><button type="button" class="chip" data-pair="open62541/node-opcua"><span class="sw" style="background:#206060"></span>open62541 (C) &rarr; node-opcua (Node.js, single thread)</button><button type="button" class="chip" data-pair="open62541/gopcua"><span class="sw" style="background:#008300"></span>open62541 (C) &rarr; gopcua (Go)</button><button type="button" class="chip" data-pair="open62541/milo"><span class="sw" style="background:#4a3aa7"></span>open62541 (C) &rarr; Eclipse Milo (Java)</button><button type="button" class="chip" data-pair="open62541/node-opcua-fronts"><span class="sw" style="background:#007f86"></span>open62541 (C) &rarr; node-opcua fronts (Node.js, CPU-1 threads)</button><button type="button" class="chip" data-pair="open62541/node-opcua-fronts-2"><span class="sw" style="background:#a54800"></span>open62541 (C) &rarr; node-opcua fronts (Node.js, 2 threads)</button><button type="button" class="chip" data-pair="open62541/s2opc"><span class="sw" style="background:#806500"></span>open62541 (C) &rarr; S2OPC (C)</button>
+  <div class="presets">
+    <button type="button" data-preset="all">All</button>
+    <button type="button" data-preset="self">Same impl</button>
+    <button type="button" data-preset="client">Isolate client</button>
+    <button type="button" data-preset="server">Isolate server</button>
+  </div>
+</div>
+
+
+<section class="card" id="card-ranking">
+  <header>
+    <h2>1. Who is fastest?</h2>
+    <span class="q">one bar per pairing, in the selected slice</span>
+    <div class="tools">
+      <button type="button" data-table="ranking" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-ranking"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-heatmap">
+  <header>
+    <h2>2. Is that the client or the server?</h2>
+    <span class="q">the pairing matrix, one cell per combination</span>
+    <div class="tools">
+      <button type="button" data-table="heatmap" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-heatmap"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-scaling">
+  <header>
+    <h2>3. Does it hold under load?</h2>
+    <span class="q">throughput against concurrent clients</span>
+    <div class="tools">
+      <button type="button" data-table="scaling" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-scaling"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-ratio">
+  <header>
+    <h2>4. What does the feature cost?</h2>
+    <span class="q">ratios against 1.0</span>
+    <div class="tools">
+      <button type="button" data-table="ratio" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-ratio"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-payload">
+  <header>
+    <h2>5. What do batching and arrays buy?</h2>
+    <span class="q">megabytes per second against payload size, with a power-law fit</span>
+    <div class="tools">
+      <button type="button" data-table="payload" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-payload"></div>
+  <p class="caption"></p>
+</section>
+
+<section class="card" id="card-operation">
+  <header>
+    <h2>†. Does read vs. write matter?</h2>
+    <span class="q">the check behind parking the operation axis</span>
+    <div class="tools">
+      <button type="button" data-table="operation" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <p class="scope"></p>
+  <div class="plot"></div>
+  <div class="tablewrap hidden" id="table-operation"></div>
+  <p class="caption"></p>
+</section>
+
+
+<footer class="page">
+  <p>Node.js sync mode uses sequential asynchronous I/O with one outstanding service.</p>
+  <p class="warnnote"><span class="hatch"></span>A hatched bar or a
+  &#9888; in a table marks a provisional median: either the fastest sample was more
+  than twice the slowest, or the configuration holds fewer samples than the run
+  asked for. The Samples column gives the count behind each row.</p>
+  <p>Intel(R) Celeron(R) J4125 CPU @ 2.00GHz · 4 logical cores ·
+  Linux-6.8.0-142-generic-x86_64-with-glibc2.39 · Python 3.12.3
+  · sterfive-Geminilake · 2026-10-09T12:08:22.262877+00:00</p>
+  <p>5000 timed operations per client, 20000 warm-up, median of 1 sample(s), async pipeline depth 32. Generated from <code>run.py sample</code> by
+  <code>throughput/show.py</code>. Every chart has a table view; the current
+  selection lives in the page URL.</p>
+</footer>
+</div>
+</div>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script>
+'use strict';
+
+const DATA = {"rows":[{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":329.428,"lo":329.428,"hi":329.428,"mbmed":0.131771,"mblo":0.131771,"mbhi":0.131771},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3949.357,"lo":3949.357,"hi":3949.357,"mbmed":0.015797,"mblo":0.015797,"mbhi":0.015797},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2271.301,"lo":2271.301,"hi":2271.301,"mbmed":0.90852,"mblo":0.90852,"mbhi":0.90852},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":9359.282,"lo":9359.282,"hi":9359.282,"mbmed":0.037437,"mblo":0.037437,"mbhi":0.037437},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2048.633,"lo":2048.633,"hi":2048.633,"mbmed":0.819453,"mblo":0.819453,"mbhi":0.819453},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":12146.73,"lo":12146.73,"hi":12146.73,"mbmed":0.048587,"mblo":0.048587,"mbhi":0.048587},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4264.51,"lo":4264.51,"hi":4264.51,"mbmed":1.705804,"mblo":1.705804,"mbhi":1.705804},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":26054.744,"lo":26054.744,"hi":26054.744,"mbmed":0.104219,"mblo":0.104219,"mbhi":0.104219},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":8005.585,"lo":8005.585,"hi":8005.585,"mbmed":3.202234,"mblo":3.202234,"mbhi":3.202234},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":34387.468,"lo":34387.468,"hi":34387.468,"mbmed":0.13755,"mblo":0.13755,"mbhi":0.13755},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":7892.715,"lo":7892.715,"hi":7892.715,"mbmed":3.157086,"mblo":3.157086,"mbhi":3.157086},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":36479.983,"lo":36479.983,"hi":36479.983,"mbmed":0.14592,"mblo":0.14592,"mbhi":0.14592},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3027.337,"lo":3027.337,"hi":3027.337,"mbmed":1.210935,"mblo":1.210935,"mbhi":1.210935},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":21012.199,"lo":21012.199,"hi":21012.199,"mbmed":0.084049,"mblo":0.084049,"mbhi":0.084049},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":14557.003,"lo":14557.003,"hi":14557.003,"mbmed":5.822801,"mblo":5.822801,"mbhi":5.822801},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":52417.631,"lo":52417.631,"hi":52417.631,"mbmed":0.209671,"mblo":0.209671,"mbhi":0.209671},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":10373.863,"lo":10373.863,"hi":10373.863,"mbmed":4.149545,"mblo":4.149545,"mbhi":4.149545},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":17435.223,"lo":17435.223,"hi":17435.223,"mbmed":0.069741,"mblo":0.069741,"mbhi":0.069741},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2771.123,"lo":2771.123,"hi":2771.123,"mbmed":1.108449,"mblo":1.108449,"mbhi":1.108449},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":11937.138,"lo":11937.138,"hi":11937.138,"mbmed":0.047749,"mblo":0.047749,"mbhi":0.047749},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":257.827,"lo":257.827,"hi":257.827,"mbmed":0.103131,"mblo":0.103131,"mbhi":0.103131},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3694.272,"lo":3694.272,"hi":3694.272,"mbmed":0.014777,"mblo":0.014777,"mbhi":0.014777},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2281.421,"lo":2281.421,"hi":2281.421,"mbmed":0.912568,"mblo":0.912568,"mbhi":0.912568},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":9396.073,"lo":9396.073,"hi":9396.073,"mbmed":0.037584,"mblo":0.037584,"mbhi":0.037584},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1653.72,"lo":1653.72,"hi":1653.72,"mbmed":0.661488,"mblo":0.661488,"mbhi":0.661488},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":18557.486,"lo":18557.486,"hi":18557.486,"mbmed":0.07423,"mblo":0.07423,"mbhi":0.07423},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":827.478,"lo":827.478,"hi":827.478,"mbmed":0.330991,"mblo":0.330991,"mbhi":0.330991},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":21459.665,"lo":21459.665,"hi":21459.665,"mbmed":0.085839,"mblo":0.085839,"mbhi":0.085839},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4162.665,"lo":4162.665,"hi":4162.665,"mbmed":1.665066,"mblo":1.665066,"mbhi":1.665066},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":26016.613,"lo":26016.613,"hi":26016.613,"mbmed":0.104066,"mblo":0.104066,"mbhi":0.104066},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4161.407,"lo":4161.407,"hi":4161.407,"mbmed":1.664563,"mblo":1.664563,"mbhi":1.664563},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20742.389,"lo":20742.389,"hi":20742.389,"mbmed":0.08297,"mblo":0.08297,"mbhi":0.08297},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2046.927,"lo":2046.927,"hi":2046.927,"mbmed":0.818771,"mblo":0.818771,"mbhi":0.818771},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20011.25,"lo":20011.25,"hi":20011.25,"mbmed":0.080045,"mblo":0.080045,"mbhi":0.080045},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":11676.425,"lo":11676.425,"hi":11676.425,"mbmed":4.67057,"mblo":4.67057,"mbhi":4.67057},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":50514.541,"lo":50514.541,"hi":50514.541,"mbmed":0.202058,"mblo":0.202058,"mbhi":0.202058},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2283.352,"lo":2283.352,"hi":2283.352,"mbmed":0.913341,"mblo":0.913341,"mbhi":0.913341},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":12926.292,"lo":12926.292,"hi":12926.292,"mbmed":0.051705,"mblo":0.051705,"mbhi":0.051705},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2389.144,"lo":2389.144,"hi":2389.144,"mbmed":0.955658,"mblo":0.955658,"mbhi":0.955658},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13067.058,"lo":13067.058,"hi":13067.058,"mbmed":0.052268,"mblo":0.052268,"mbhi":0.052268},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":325.538,"lo":325.538,"hi":325.538,"mbmed":0.130215,"mblo":0.130215,"mbhi":0.130215},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3138.306,"lo":3138.306,"hi":3138.306,"mbmed":0.012553,"mblo":0.012553,"mbhi":0.012553},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1201.339,"lo":1201.339,"hi":1201.339,"mbmed":0.480536,"mblo":0.480536,"mbhi":0.480536},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5795.004,"lo":5795.004,"hi":5795.004,"mbmed":0.02318,"mblo":0.02318,"mbhi":0.02318},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":879.569,"lo":879.569,"hi":879.569,"mbmed":0.351827,"mblo":0.351827,"mbhi":0.351827},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":2933.931,"lo":2933.931,"hi":2933.931,"mbmed":0.011736,"mblo":0.011736,"mbhi":0.011736},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2781.305,"lo":2781.305,"hi":2781.305,"mbmed":1.112522,"mblo":1.112522,"mbhi":1.112522},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":6521.906,"lo":6521.906,"hi":6521.906,"mbmed":0.026088,"mblo":0.026088,"mbhi":0.026088},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4142.904,"lo":4142.904,"hi":4142.904,"mbmed":1.657162,"mblo":1.657162,"mbhi":1.657162},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":7982.364,"lo":7982.364,"hi":7982.364,"mbmed":0.031929,"mblo":0.031929,"mbhi":0.031929},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3978.522,"lo":3978.522,"hi":3978.522,"mbmed":1.591409,"mblo":1.591409,"mbhi":1.591409},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":8187.294,"lo":8187.294,"hi":8187.294,"mbmed":0.032749,"mblo":0.032749,"mbhi":0.032749},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2579.591,"lo":2579.591,"hi":2579.591,"mbmed":1.031836,"mblo":1.031836,"mbhi":1.031836},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10284.517,"lo":10284.517,"hi":10284.517,"mbmed":0.041138,"mblo":0.041138,"mbhi":0.041138},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":7491.856,"lo":7491.856,"hi":7491.856,"mbmed":2.996742,"mblo":2.996742,"mbhi":2.996742},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10451.056,"lo":10451.056,"hi":10451.056,"mbmed":0.041804,"mblo":0.041804,"mbhi":0.041804},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3286.048,"lo":3286.048,"hi":3286.048,"mbmed":1.314419,"mblo":1.314419,"mbhi":1.314419},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3853.776,"lo":3853.776,"hi":3853.776,"mbmed":0.015415,"mblo":0.015415,"mbhi":0.015415},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2009.315,"lo":2009.315,"hi":2009.315,"mbmed":0.803726,"mblo":0.803726,"mbhi":0.803726},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":4961.275,"lo":4961.275,"hi":4961.275,"mbmed":0.019845,"mblo":0.019845,"mbhi":0.019845},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":254.326,"lo":254.326,"hi":254.326,"mbmed":0.10173,"mblo":0.10173,"mbhi":0.10173},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":2994.572,"lo":2994.572,"hi":2994.572,"mbmed":0.011978,"mblo":0.011978,"mbhi":0.011978},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1351.372,"lo":1351.372,"hi":1351.372,"mbmed":0.540549,"mblo":0.540549,"mbhi":0.540549},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5801.41,"lo":5801.41,"hi":5801.41,"mbmed":0.023206,"mblo":0.023206,"mbhi":0.023206},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":868.526,"lo":868.526,"hi":868.526,"mbmed":0.34741,"mblo":0.34741,"mbhi":0.34741},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5074.671,"lo":5074.671,"hi":5074.671,"mbmed":0.020299,"mblo":0.020299,"mbhi":0.020299},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":699.37,"lo":699.37,"hi":699.37,"mbmed":0.279748,"mblo":0.279748,"mbhi":0.279748},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5588.121,"lo":5588.121,"hi":5588.121,"mbmed":0.022352,"mblo":0.022352,"mbhi":0.022352},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1422.412,"lo":1422.412,"hi":1422.412,"mbmed":0.568965,"mblo":0.568965,"mbhi":0.568965},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3694.498,"lo":3694.498,"hi":3694.498,"mbmed":0.014778,"mblo":0.014778,"mbhi":0.014778},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1278.389,"lo":1278.389,"hi":1278.389,"mbmed":0.511356,"mblo":0.511356,"mbhi":0.511356},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3435.669,"lo":3435.669,"hi":3435.669,"mbmed":0.013743,"mblo":0.013743,"mbhi":0.013743},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1832.836,"lo":1832.836,"hi":1832.836,"mbmed":0.733134,"mblo":0.733134,"mbhi":0.733134},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10128.312,"lo":10128.312,"hi":10128.312,"mbmed":0.040513,"mblo":0.040513,"mbhi":0.040513},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":7422.876,"lo":7422.876,"hi":7422.876,"mbmed":2.969151,"mblo":2.969151,"mbhi":2.969151},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":14320.637,"lo":14320.637,"hi":14320.637,"mbmed":0.057283,"mblo":0.057283,"mbhi":0.057283},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1634.994,"lo":1634.994,"hi":1634.994,"mbmed":0.653997,"mblo":0.653997,"mbhi":0.653997},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":4616.835,"lo":4616.835,"hi":4616.835,"mbmed":0.018467,"mblo":0.018467,"mbhi":0.018467},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1950.432,"lo":1950.432,"hi":1950.432,"mbmed":0.780173,"mblo":0.780173,"mbhi":0.780173},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":1,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":8810.691,"lo":8810.691,"hi":8810.691,"mbmed":0.035243,"mblo":0.035243,"mbhi":0.035243},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":328.978,"lo":328.978,"hi":328.978,"mbmed":0.131591,"mblo":0.131591,"mbhi":0.131591},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3999.021,"lo":3999.021,"hi":3999.021,"mbmed":0.015996,"mblo":0.015996,"mbhi":0.015996},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2619.7,"lo":2619.7,"hi":2619.7,"mbmed":1.04788,"mblo":1.04788,"mbhi":1.04788},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":11891.436,"lo":11891.436,"hi":11891.436,"mbmed":0.047566,"mblo":0.047566,"mbhi":0.047566},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1965.488,"lo":1965.488,"hi":1965.488,"mbmed":0.786195,"mblo":0.786195,"mbhi":0.786195},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20985.289,"lo":20985.289,"hi":20985.289,"mbmed":0.083941,"mblo":0.083941,"mbhi":0.083941},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4255.966,"lo":4255.966,"hi":4255.966,"mbmed":1.702386,"mblo":1.702386,"mbhi":1.702386},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":27774.718,"lo":27774.718,"hi":27774.718,"mbmed":0.111099,"mblo":0.111099,"mbhi":0.111099},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":7993.43,"lo":7993.43,"hi":7993.43,"mbmed":3.197372,"mblo":3.197372,"mbhi":3.197372},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":37187.775,"lo":37187.775,"hi":37187.775,"mbmed":0.148751,"mblo":0.148751,"mbhi":0.148751},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":11422.257,"lo":11422.257,"hi":11422.257,"mbmed":4.568903,"mblo":4.568903,"mbhi":4.568903},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":53008.045,"lo":53008.045,"hi":53008.045,"mbmed":0.212032,"mblo":0.212032,"mbhi":0.212032},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3005.107,"lo":3005.107,"hi":3005.107,"mbmed":1.202043,"mblo":1.202043,"mbhi":1.202043},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":21249.632,"lo":21249.632,"hi":21249.632,"mbmed":0.084999,"mblo":0.084999,"mbhi":0.084999},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":14482.644,"lo":14482.644,"hi":14482.644,"mbmed":5.793058,"mblo":5.793058,"mbhi":5.793058},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":51703.295,"lo":51703.295,"hi":51703.295,"mbmed":0.206813,"mblo":0.206813,"mbhi":0.206813},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":10294.371,"lo":10294.371,"hi":10294.371,"mbmed":4.117748,"mblo":4.117748,"mbhi":4.117748},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":17975.102,"lo":17975.102,"hi":17975.102,"mbmed":0.0719,"mblo":0.0719,"mbhi":0.0719},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2215.808,"lo":2215.808,"hi":2215.808,"mbmed":0.886323,"mblo":0.886323,"mbhi":0.886323},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":19110.764,"lo":19110.764,"hi":19110.764,"mbmed":0.076443,"mblo":0.076443,"mbhi":0.076443},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":257.048,"lo":257.048,"hi":257.048,"mbmed":0.102819,"mblo":0.102819,"mbhi":0.102819},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3733.236,"lo":3733.236,"hi":3733.236,"mbmed":0.014933,"mblo":0.014933,"mbhi":0.014933},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2597.559,"lo":2597.559,"hi":2597.559,"mbmed":1.039023,"mblo":1.039023,"mbhi":1.039023},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":11810.085,"lo":11810.085,"hi":11810.085,"mbmed":0.04724,"mblo":0.04724,"mbhi":0.04724},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1583.512,"lo":1583.512,"hi":1583.512,"mbmed":0.633405,"mblo":0.633405,"mbhi":0.633405},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20313.633,"lo":20313.633,"hi":20313.633,"mbmed":0.081255,"mblo":0.081255,"mbhi":0.081255},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":812.231,"lo":812.231,"hi":812.231,"mbmed":0.324892,"mblo":0.324892,"mbhi":0.324892},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":21743.874,"lo":21743.874,"hi":21743.874,"mbmed":0.086975,"mblo":0.086975,"mbhi":0.086975},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4728.876,"lo":4728.876,"hi":4728.876,"mbmed":1.89155,"mblo":1.89155,"mbhi":1.89155},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":25619.811,"lo":25619.811,"hi":25619.811,"mbmed":0.102479,"mblo":0.102479,"mbhi":0.102479},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":4859.922,"lo":4859.922,"hi":4859.922,"mbmed":1.943969,"mblo":1.943969,"mbhi":1.943969},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":26281.29,"lo":26281.29,"hi":26281.29,"mbmed":0.105125,"mblo":0.105125,"mbhi":0.105125},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2021.216,"lo":2021.216,"hi":2021.216,"mbmed":0.808486,"mblo":0.808486,"mbhi":0.808486},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":20251.804,"lo":20251.804,"hi":20251.804,"mbmed":0.081007,"mblo":0.081007,"mbhi":0.081007},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":11649.279,"lo":11649.279,"hi":11649.279,"mbmed":4.659712,"mblo":4.659712,"mbhi":4.659712},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":49649.561,"lo":49649.561,"hi":49649.561,"mbmed":0.198598,"mblo":0.198598,"mbhi":0.198598},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2214.408,"lo":2214.408,"hi":2214.408,"mbmed":0.885763,"mblo":0.885763,"mbhi":0.885763},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":17349.842,"lo":17349.842,"hi":17349.842,"mbmed":0.069399,"mblo":0.069399,"mbhi":0.069399},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2114.671,"lo":2114.671,"hi":2114.671,"mbmed":0.845868,"mblo":0.845868,"mbhi":0.845868},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"async","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":19270.773,"lo":19270.773,"hi":19270.773,"mbmed":0.077083,"mblo":0.077083,"mbhi":0.077083},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":327.818,"lo":327.818,"hi":327.818,"mbmed":0.131127,"mblo":0.131127,"mbhi":0.131127},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3519.474,"lo":3519.474,"hi":3519.474,"mbmed":0.014078,"mblo":0.014078,"mbhi":0.014078},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2774.01,"lo":2774.01,"hi":2774.01,"mbmed":1.109604,"mblo":1.109604,"mbhi":1.109604},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10199.177,"lo":10199.177,"hi":10199.177,"mbmed":0.040797,"mblo":0.040797,"mbhi":0.040797},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1921.909,"lo":1921.909,"hi":1921.909,"mbmed":0.768763,"mblo":0.768763,"mbhi":0.768763},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":8021.671,"lo":8021.671,"hi":8021.671,"mbmed":0.032087,"mblo":0.032087,"mbhi":0.032087},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3405.126,"lo":3405.126,"hi":3405.126,"mbmed":1.36205,"mblo":1.36205,"mbhi":1.36205},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10690.477,"lo":10690.477,"hi":10690.477,"mbmed":0.042762,"mblo":0.042762,"mbhi":0.042762},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":5458.703,"lo":5458.703,"hi":5458.703,"mbmed":2.183481,"mblo":2.183481,"mbhi":2.183481},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":11823.408,"lo":11823.408,"hi":11823.408,"mbmed":0.047294,"mblo":0.047294,"mbhi":0.047294},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":5528.379,"lo":5528.379,"hi":5528.379,"mbmed":2.211352,"mblo":2.211352,"mbhi":2.211352},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13850.686,"lo":13850.686,"hi":13850.686,"mbmed":0.055403,"mblo":0.055403,"mbhi":0.055403},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2897.762,"lo":2897.762,"hi":2897.762,"mbmed":1.159105,"mblo":1.159105,"mbhi":1.159105},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":14660.949,"lo":14660.949,"hi":14660.949,"mbmed":0.058644,"mblo":0.058644,"mbhi":0.058644},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":13653.232,"lo":13653.232,"hi":13653.232,"mbmed":5.461293,"mblo":5.461293,"mbhi":5.461293},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":37499.697,"lo":37499.697,"hi":37499.697,"mbmed":0.149999,"mblo":0.149999,"mbhi":0.149999},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":9873.634,"lo":9873.634,"hi":9873.634,"mbmed":3.949454,"mblo":3.949454,"mbhi":3.949454},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":16486.002,"lo":16486.002,"hi":16486.002,"mbmed":0.065944,"mblo":0.065944,"mbhi":0.065944},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2838.434,"lo":2838.434,"hi":2838.434,"mbmed":1.135373,"mblo":1.135373,"mbhi":1.135373},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"read","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":17600.048,"lo":17600.048,"hi":17600.048,"mbmed":0.0704,"mblo":0.0704,"mbhi":0.0704},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":255.875,"lo":255.875,"hi":255.875,"mbmed":0.10235,"mblo":0.10235,"mbhi":0.10235},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":3313.791,"lo":3313.791,"hi":3313.791,"mbmed":0.013255,"mblo":0.013255,"mbhi":0.013255},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2746.782,"lo":2746.782,"hi":2746.782,"mbmed":1.098713,"mblo":1.098713,"mbhi":1.098713},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":10384.494,"lo":10384.494,"hi":10384.494,"mbmed":0.041538,"mblo":0.041538,"mbhi":0.041538},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1565.193,"lo":1565.193,"hi":1565.193,"mbmed":0.626077,"mblo":0.626077,"mbhi":0.626077},{"pair":"open62541/milo","client":"open62541","server":"milo","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":12752.932,"lo":12752.932,"hi":12752.932,"mbmed":0.051012,"mblo":0.051012,"mbhi":0.051012},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":721.813,"lo":721.813,"hi":721.813,"mbmed":0.288725,"mblo":0.288725,"mbhi":0.288725},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":7775.304,"lo":7775.304,"hi":7775.304,"mbmed":0.031101,"mblo":0.031101,"mbhi":0.031101},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":3823.022,"lo":3823.022,"hi":3823.022,"mbmed":1.529209,"mblo":1.529209,"mbhi":1.529209},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":8133.064,"lo":8133.064,"hi":8133.064,"mbmed":0.032532,"mblo":0.032532,"mbhi":0.032532},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2381.263,"lo":2381.263,"hi":2381.263,"mbmed":0.952505,"mblo":0.952505,"mbhi":0.952505},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":5842.044,"lo":5842.044,"hi":5842.044,"mbmed":0.023368,"mblo":0.023368,"mbhi":0.023368},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":1946.597,"lo":1946.597,"hi":1946.597,"mbmed":0.778639,"mblo":0.778639,"mbhi":0.778639},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":14142.191,"lo":14142.191,"hi":14142.191,"mbmed":0.056569,"mblo":0.056569,"mbhi":0.056569},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":10743.255,"lo":10743.255,"hi":10743.255,"mbmed":4.297302,"mblo":4.297302,"mbhi":4.297302},{"pair":"open62541/open62541","client":"open62541","server":"open62541","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":36224.754,"lo":36224.754,"hi":36224.754,"mbmed":0.144899,"mblo":0.144899,"mbhi":0.144899},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2095.534,"lo":2095.534,"hi":2095.534,"mbmed":0.838214,"mblo":0.838214,"mbhi":0.838214},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":13606.455,"lo":13606.455,"hi":13606.455,"mbmed":0.054426,"mblo":0.054426,"mbhi":0.054426},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":100,"array":1,"per_call":100,"shape":"b100","ns":1,"want":1,"med":2649.362,"lo":2649.362,"hi":2649.362,"mbmed":1.059745,"mblo":1.059745,"mbhi":1.059745},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","op":"write","mode":"sync","sec":"none","policy":"None","n":3,"batch":1,"array":1,"per_call":1,"shape":"s","ns":1,"want":1,"med":18603.037,"lo":18603.037,"hi":18603.037,"mbmed":0.074412,"mblo":0.074412,"mbhi":0.074412}],"failures":[],"series":[{"pair":"open62541/open62541","client":"open62541","server":"open62541","light":"#2a78d6","dark":"#3987e5"},{"pair":"open62541/o6-python","client":"open62541","server":"o6-python","light":"#1baf7a","dark":"#199e70"},{"pair":"open62541/asyncua","client":"open62541","server":"asyncua","light":"#008300","dark":"#008300"},{"pair":"open62541/ua-dotnet","client":"open62541","server":"ua-dotnet","light":"#007f86","dark":"#44bbbb"},{"pair":"open62541/node-opcua","client":"open62541","server":"node-opcua","light":"#206060","dark":"#60bbbb"},{"pair":"open62541/gopcua","client":"open62541","server":"gopcua","light":"#008300","dark":"#008300"},{"pair":"open62541/milo","client":"open62541","server":"milo","light":"#4a3aa7","dark":"#9085e9"},{"pair":"open62541/node-opcua-fronts","client":"open62541","server":"node-opcua-fronts","light":"#007f86","dark":"#44bbbb"},{"pair":"open62541/node-opcua-fronts-2","client":"open62541","server":"node-opcua-fronts-2","light":"#a54800","dark":"#ee9955"},{"pair":"open62541/s2opc","client":"open62541","server":"s2opc","light":"#806500","dark":"#bbaa44"}],"options":{"op":["read","write"],"mode":["sync","async"],"sec":["none"],"n":[1,3],"payloads":[{"key":"s","batch":1,"array":1,"per_call":1,"label":"single value","kind":"batch"},{"key":"b100","batch":100,"array":1,"per_call":100,"label":"batch 100","kind":"batch"}],"impl":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua","node-opcua-fronts","node-opcua-fronts-2"]},"baseline":"open62541/open62541","metadata":{"timestamp_utc":"2026-10-09T12:08:22.262877+00:00","hostname":"sterfive-Geminilake","platform":"Linux-6.8.0-142-generic-x86_64-with-glibc2.39","system":"Linux","release":"6.8.0-142-generic","machine":"x86_64","cpu_model":"Intel(R) Celeron(R) J4125 CPU @ 2.00GHz","cpu_count_logical":4,"total_memory_bytes":3919331328,"python_version":"3.12.3","node_opcua":{"dependencies_sha256":"08cc4377bb0a5c83abd62ea1f9df199d918975fab919fc670d3d86c4f4df0f4b","inputs":"e82ec45d465dd9a3e81be237f562a3517daca99a9268ee6e930753200e1d25b3","lifecycle_policy":"ignore-scripts","lock_sha256":"984a016c7cc908a0d5385c08c734129fd612b8e08a1a3bb93895187e6e41f41a","npm_sha256":"bffaf0d018e43e4a65c6d64230cc3ca66054b250772f1ef3b854aa86c1331d20","runtime":{"arch":"x64","npm":"11.19.0","platform":"linux","versions":{"acorn":"8.18.0","ada":"4.0.0","amaro":"1.1.11","ares":"1.34.8","brotli":"1.2.0","cldr":"48.0","icu":"78.3","llhttp":"9.4.3","merve":"1.2.2","modules":"137","napi":"10","nbytes":"0.1.4","ncrypto":"0.0.1","nghttp2":"1.70.0","nghttp3":"","ngtcp2":"","node":"24.21.0","openssl":"3.5.8","simdjson":"4.6.7","simdutf":"6.4.0","sqlite":"3.53.4","tz":"2026c","undici":"7.29.1","unicode":"17.0","uv":"1.52.1","uvwasi":"0.0.23","v8":"13.6.233.17-node.53","zlib":"1.3.2.1-motley-8002e91","zstd":"1.5.7"}},"runtime_info":{"defaults":{"byteStringBytes":16777216,"capabilities":{"conformanceUnits":[],"localeIdArray":[],"maxArrayLength":1048576,"maxBrowseContinuationPoints":0,"maxByteStringLength":16777216,"maxHistoryContinuationPoints":0,"maxMonitoredItems":1000000,"maxMonitoredItemsPerSubscription":100000,"maxMonitoredItemsQueueSize":60000,"maxQueryContinuationPoints":0,"maxSelectClauseParameters":1000,"maxSessions":10,"maxStringLength":16777216,"maxSubscriptions":100,"maxSubscriptionsPerSession":10,"maxWhereClauseParameters":1000,"minSupportedSampleRate":100,"operationLimits":{"maxMonitoredItemsPerCall":10000,"maxNodesPerBrowse":10000,"maxNodesPerHistoryReadData":1000,"maxNodesPerHistoryReadEvents":1000,"maxNodesPerHistoryUpdateData":0,"maxNodesPerHistoryUpdateEvents":0,"maxNodesPerMethodCall":1000,"maxNodesPerNodeManagement":0,"maxNodesPerRead":10000,"maxNodesPerRegisterNodes":10000,"maxNodesPerTranslateBrowsePathsToNodeIds":10000,"maxNodesPerWrite":10000},"serverProfileArray":[],"softwareCertificates":[]},"generalArrayElements":1048576,"maxConnectionsPerEndpoint":10,"typedArrayElements":16777216},"nodeset":{"name":"Opc.Ua.NodeSet2.xml","sha256":"a749678b5c4f2381fffdfc0e9514ec3315f36b1bdb31af402d3741a2db54f889"},"package":"2.187.0","packages":{"node_modules/@leichtgewicht/ip-codec":{"integrity":"sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==","version":"2.0.5"},"node_modules/@peculiar/asn1-asym-key":{"integrity":"sha512-1R8xUTeqcUTSMLFTTCzJyFuKiq3y25EQKs9DezUetJ8qMqbJyxo3XkzykiwwT/Xzlt5/vRzS/sW4M1r+pq1FTg==","version":"2.10.0"},"node_modules/@peculiar/asn1-cms":{"integrity":"sha512-CkX0H4NCIOMHOU3rh2xXZywinYZ/EnJlaOlJiGI0e5L4XjFqHf4iH30LMbXWChVppdA9ljbanjtzQFOhDNfTWg==","version":"2.10.0"},"node_modules/@peculiar/asn1-csr":{"integrity":"sha512-jTPTr/9rxKM+niQLMF3jiAMb0lWHUhUHIuSOhdGCIfpB4FAQYf9SoiXOgxP8bS/68IB+bj+1OHvVnDVCQfVUZw==","version":"2.10.0"},"node_modules/@peculiar/asn1-ecc":{"integrity":"sha512-GFd3iOjFrWX+QWH2R2dO5QSJyyRGv9CIBKtRlGlPNCvb2RvmCbBDexe91MJgV76c69d998Xsa+CvuQ98seoiPg==","version":"2.10.0"},"node_modules/@peculiar/asn1-pfx":{"integrity":"sha512-1y3QK9ZH1IPleAMmRoJlPS10eGkAWnULETW8zDFNUK1ffqpG7zmDY+kYBMYQgwlcQZ2iitLm2z2EBP0xzRXpaA==","version":"2.10.0"},"node_modules/@peculiar/asn1-pkcs8":{"integrity":"sha512-Ri+BZT9bnwqlHWmhs7lvWjvJRxKev2hA2+4EbZajgeYWCbR8hyv0znF4DhsFouOhMj2nSDV/iGJ6DMQtwITnCw==","version":"2.10.0"},"node_modules/@peculiar/asn1-pkcs9":{"integrity":"sha512-XIXsbDQFezYk6fudczkuvawkRD4GNpISGCqfYhdkJlvcGF/RFknU+0DDJagOaJqBf+PdPzk4J9oMqDGcvfR9HQ==","version":"2.10.0"},"node_modules/@peculiar/asn1-rsa":{"integrity":"sha512-4Jvmwlh3gZAhNZ4/u7JSyLuce9hofOFZ4o3PYKAccCImGnyaT5CMym/ATgvAvqpOYFNW531oPZvJlEBhJy9VfA==","version":"2.10.0"},"node_modules/@peculiar/asn1-schema":{"integrity":"sha512-GhokD41lV4gQrrLYm3wCkHfBOnJrnhDMgt4XeMW8gzfE1UdJqIuSwsE+ggf82XBjUXRJylcm+KIGQFa4utIVLw==","version":"2.10.0"},"node_modules/@peculiar/asn1-x509":{"integrity":"sha512-ucNVg8+ANveTpMN3fy9lA2alryONdXc2A4cEG2hMniWbvQt+YOZoe8BI80YYNO8FBcuDY1qbDQ4uQGQVraHxGA==","version":"2.10.0"},"node_modules/@peculiar/asn1-x509-attr":{"integrity":"sha512-/85GtKOKmgvuSJNlaFfwGWNdRSZZ+hpF02NyM01XiCdzpaZONiBltDyfluFPvFx966CR+ZHNSG1jniwpy07oGg==","version":"2.10.0"},"node_modules/@peculiar/asn1-x509-post-quantum":{"integrity":"sha512-cXKcZ30wKbUkRK5RK4Z3W1imewXvHAB9apEAuIqJ0OOkOQCpJrwLOuN38QlsEXqOI+3gtUv8Kf3UZohUmCbf3w==","version":"2.10.0"},"node_modules/@peculiar/json-schema":{"integrity":"sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==","version":"1.1.12"},"node_modules/@peculiar/utils":{"integrity":"sha512-+oL3HPFRIZ1St2K50lWCXiioIgSoxzz7R1J3uF6neO2yl1sgmpgY6XXJH4BdpoDkMWznQTeYF6oWNDZLCdQ4eQ==","version":"2.0.3"},"node_modules/@peculiar/webcrypto":{"integrity":"sha512-ODOov0sGMJMf3jPonOkgGqPknTsu+DdQ7kD++gz8aI+aFMOMHFbWAA2taqXXVTdP+OTOQR/znGvSpmkeI0WTYQ==","version":"1.7.1"},"node_modules/@peculiar/x509":{"integrity":"sha512-IYbg1R03CSQGWwl24kGyqrdVtixNSbRaDvBg1r5wyYjTP+VwPQkka1BzTgU5+vxiuwqg04OxdvdJ1xYYFIdUSA==","version":"2.1.0"},"node_modules/@ster5/global-mutex":{"integrity":"sha512-uiGJTiE0ZiQ6z9VMOHVT3RNrErCi3pZh1bGbfb27GAXCAsvCyLz61pLfBYq8uzsf6Y2qdybhoTwHy7UGtK6MYw==","version":"3.3.0"},"node_modules/@types/dns-packet":{"integrity":"sha512-qXOC7XLOEe43ehtWJCMnQXvgcIpv6rPmQ1jXT98Ad8A3TB1Ue50jsCbSSSyuazScEuZ/Q026vHbrOTVkmwA+7Q==","version":"5.6.5"},"node_modules/@types/multicast-dns":{"integrity":"sha512-ib5K4cIDR4Ro5SR3Sx/LROkMDa0BHz0OPaCBL/OSPDsAXEGZ3/KQeS6poBKYVN7BfjXDL9lWNwzyHVgt/wkyCw==","version":"7.2.4"},"node_modules/@types/node":{"integrity":"sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg==","version":"26.6.4"},"node_modules/@types/semver":{"integrity":"sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==","version":"7.8.0"},"node_modules/ansi-styles":{"integrity":"sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==","version":"4.3.0"},"node_modules/array-back":{"integrity":"sha512-SGDvmg6QTYiTxCBkYVmThcoa67uLl35pyzRHdpCGBOcqFy6BtwnphoFPk7LhJshD+Yk1Kt35WGWeZPTgwR4Fhw==","version":"6.2.3"},"node_modules/array-flatten":{"integrity":"sha512-hNfzcOV8W4NdualtqBFPyVO+54DSJuZGY9qT4pRroB6S9e3iiido2ISIC5h9R2sPJ8H3FHCIiEnsv1lPXO3KtQ==","version":"2.1.2"},"node_modules/asn1":{"integrity":"sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==","version":"0.2.6"},"node_modules/asn1js":{"integrity":"sha512-S2s3aOytiKdFRdulw2qPE51MzjzVOisppcVv7jVFR+Kw0kxwvFrDcYA0h7Ndqbmj0HkMIXYWaoj7fli8kgx1eg==","version":"3.0.10"},"node_modules/assert-plus":{"integrity":"sha512-NfJ4UzBCcQGLDlQq7nHxH+tv3kyZ0hHQqF5BO6J7tNJeP5do1llPr8dZ8zHonfhAu0PHAdMkSo+8o0wxg9lZWw==","version":"1.0.0"},"node_modules/backoff":{"integrity":"sha512-wC5ihrnUXmR2douXmXLCe5O3zg3GKIyvRi/hi58a/XyRxVI+3/yM0PYueQOZXPXQ9pxBislYkw+sF9b7C/RuMA==","version":"2.5.0"},"node_modules/bcrypt-pbkdf":{"integrity":"sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==","version":"1.0.2"},"node_modules/byline":{"integrity":"sha512-s6webAy+R4SR8XVuJWt2V2rGvhnrhxN+9S15GNuTK3wKPOXFF6RNc+8ug2XhH+2s4f+uudG4kUVYmYOQWL2g0Q==","version":"5.0.0"},"node_modules/chalk":{"integrity":"sha512-/Ce6KNm3vIbWdMlNna6RVIZ/ICQxnJxCicet5LBKK9ZffBkqzDw0xh9EiKSljdRtiIQ1S1z4YgcscUUGzNCWrA==","version":"6.0.1"},"node_modules/chalk-template":{"integrity":"sha512-/ghrgmhfY8RaSdeo43hNXxpoHAtxdbskUHjPpfqUWGttFgycUhYPGx3YZBCnUCvOa7Doivn1IZec3DEGFoMgLg==","version":"0.4.0"},"node_modules/chalk-template/node_modules/chalk":{"integrity":"sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==","version":"4.1.2"},"node_modules/chokidar":{"integrity":"sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==","version":"4.0.3"},"node_modules/color-convert":{"integrity":"sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==","version":"2.0.1"},"node_modules/color-name":{"integrity":"sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==","version":"1.1.4"},"node_modules/command-line-args":{"integrity":"sha512-AIjYVxrV9X752LmPDLbVYv8aMCuHPSLZJXEo2qo/xJfv+NYhaZ4sMSF01rM+gHPaMgvPM0l5D/F+Qx+i2WfSmQ==","version":"6.0.2"},"node_modules/command-line-usage":{"integrity":"sha512-85UdvzTNx/+s5CkSgBm/0hzP80RFHAa7PsfeADE5ezZF3uHz3/Tqj9gIKGT9PTtpycc3Ua64T0oVulGfKxzfqg==","version":"7.0.4"},"node_modules/dashdash":{"integrity":"sha512-jRFi8UDGo6j+odZiEpjazZaWqEal3w/basFjQHQEwVtZJGDpxbH1MeYluwCS8Xq5wmLJooDlMgvVarmWfGM44g==","version":"1.14.1"},"node_modules/dequeue":{"integrity":"sha512-2FIVJZTaWhUj0Y2uKmDAasTP6ZwFWRjkRc01MYN5jFm96iIzkYyNzGADfJ13C5W7CTN7XO9mBYDcVB68eNybBA==","version":"1.0.5"},"node_modules/dns-equal":{"integrity":"sha512-z+paD6YUQsk+AbGCEM4PrOXSss5gd66QfcVBFTKR/HpFL9jCqikS94HYwKww6fQyO7IxrIIyUu+g0Ka9tUS2Cg==","version":"1.0.0"},"node_modules/dns-packet":{"integrity":"sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==","version":"5.6.1"},"node_modules/ecc-jsbn":{"integrity":"sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==","version":"0.1.2"},"node_modules/env-paths":{"integrity":"sha512-pxP8eL2SwwaTRi/KHYwLYXinDs7gL3jxFcBYmEdYfZmZXbaVDvdppd0XBU8qVz03rDfKZMXg1omHCbsJjZrMsw==","version":"4.0.0"},"node_modules/fast-deep-equal":{"integrity":"sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==","version":"3.1.3"},"node_modules/find-replace":{"integrity":"sha512-Y45BAiE3mz2QsrN2fb5QEtO4qb44NcS7en/0y9PEVsg351HsLeVclP8QPMH79Le9sH3rs5RSwJu99W0WPZO43Q==","version":"5.0.2"},"node_modules/getpass":{"integrity":"sha512-0fzj9JxOLfJ+XGLhR8ze3unN0KZCgZwiSSDz168VERjK8Wl8kVSdcu2kspd4s4wtAa1y/qrVRiAA0WclVsu0ng==","version":"0.1.7"},"node_modules/has-flag":{"integrity":"sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==","version":"4.0.0"},"node_modules/hexy":{"integrity":"sha512-HxJ6HCV/zrSBeAVRNEhr3CE6yTlCYklMHfCVfJkp7kC+HJqSP1SQ+howWPiHK37t++ELUtgoAoGJut5HyRhIvg==","version":"0.4.0"},"node_modules/humanize":{"integrity":"sha512-bvZZ7vXpr1RKoImjuQ45hJb5OvE2oJafHysiD/AL3nkqTZH2hFCjQ3YZfCd63FefDitbJze/ispUPP0gfDsT2Q==","version":"0.0.9"},"node_modules/is-safe-filename":{"integrity":"sha512-4SrR7AdnY11LHfDKTZY1u6Ga3RuxZdl3YKWWShO5iyuG5h8QS4GD2tOb04peBJ5I7pXbR+CGBNEhTcwK+FzN3g==","version":"0.1.1"},"node_modules/jsbn":{"integrity":"sha512-UVU9dibq2JcFWxQPA6KCqj5O42VOmAY3zQUfEKxU0KpTGXwNoCjkX1e13eHNvw/xPynt6pU0rZ1htjWTNTSXsg==","version":"0.1.1"},"node_modules/lodash.camelcase":{"integrity":"sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==","version":"4.3.0"},"node_modules/lodash.partition":{"integrity":"sha512-35L3dSF3Q6V1w5j6V3NhNlQjzsRDC/pYKCTdYTmwqSib+Q8ponkAmt/PwEOq3EmI38DSCl+SkIVwLd+uSlVdrg==","version":"4.6.0"},"node_modules/lodash.sortby":{"integrity":"sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==","version":"4.7.0"},"node_modules/multicast-dns":{"integrity":"sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==","version":"7.2.5"},"node_modules/node-opcua":{"integrity":"sha512-+pYje7/e+gwI7ac46QqKzXGW+MM52gmg+i3Q5unqxSOyyMMssJOcRZQdRPy/LpHyCWAfung0KfQ09FLEepsBRQ==","version":"2.187.0"},"node_modules/node-opcua-address-space":{"integrity":"sha512-6UyoZ6WSOFYvZlRswc69m0E1MWt4REgdjiyhe/u84BDiJtO6Ex1B8oS17YK5R6z4q20SW8kby2EumXz61znBSA==","version":"2.187.0"},"node_modules/node-opcua-address-space-base":{"integrity":"sha512-/+3bI5vaDl/sl9HXh17XyjSNAO8t/68CR9TCiBm3ak1oAsKK0yW4y6mh197kiUB+UqqN1lsg3b+Km9vqkNE9FQ==","version":"2.187.0"},"node_modules/node-opcua-address-space-for-conformance-testing":{"integrity":"sha512-TwzfqoFsXgyZQ2XJkr76pW5Xx77lX0W9nZWlfQ/ir2zt26krKFw5hDQ434t8VILNzd5gDQaQl3niigsoIcdVxg==","version":"2.187.0"},"node_modules/node-opcua-address-space-store":{"integrity":"sha512-0zAh9q5YA2zqBGv18eCPr7agd3wlkB7Jv6Is1hPqaHk7Y+k37vW+7mR1JYAEAI03KRrNI68KlnAUZzm888j1gA==","version":"2.187.0"},"node_modules/node-opcua-aggregates":{"integrity":"sha512-0lCZwn5SaVl/O9s43fnpbvyJune+x8B7+ZHIY4EgTIpxWYk7BLdBigVs1n9AX1mgJonSB25AdIjJeZTe6Z9Gww==","version":"2.187.0"},"node_modules/node-opcua-alarm-condition":{"integrity":"sha512-1LEHK+9re/iVeKLf2zq7bwaSMdW25eD2EXcIkK2HgbaptJVwDtf16hAG4/O3HXjIy3J5ERaEeHUzqo0AFz8fiw==","version":"2.187.0"},"node_modules/node-opcua-assert":{"integrity":"sha512-rBihYif7mYsC0xZ3dyQRswjEU5kuCd4RESFb1MKFo0LFFSUCZXp6Ob5bvwdEnBD41zdYA7ew3fCByqZsyz4wmg==","version":"2.186.7"},"node_modules/node-opcua-basic-types":{"integrity":"sha512-zdOrshbUDY8pXoqNn/3nby74i2t9y/PKwz3lJjdz8fHkPcHhouuecVzhiyDL6+gM5TjRC5qrRGg1K1MWF1976A==","version":"2.187.0"},"node_modules/node-opcua-binary-stream":{"integrity":"sha512-gj4IknNb/7rGd/NyTcTiIwdF2EuT70pIW9I0cdD0HGLC7X1hip+aEDGaa9enzpQgWqOfK0Pvfz6vU6YplwDW6w==","version":"2.187.0"},"node_modules/node-opcua-buffer-utils":{"integrity":"sha512-1KKtaVnqzoP27/DL5WyrzYwq//mU0maflTL01q/QGVjSaM0wqe+KcU8DkmNpAQc7Od5gOiR4peIe5S2X1q4V3w==","version":"2.187.0"},"node_modules/node-opcua-certificate-manager":{"integrity":"sha512-cmlczhZSklg8BMEEiI1Gj9S6xbxAnR+fIRK9tGvVOrrC17lYfWwHiT8lTUyC9PaTrxmGsJp99KFolQA9xoC+4Q==","version":"2.187.0"},"node_modules/node-opcua-chunkmanager":{"integrity":"sha512-6F3iK7uUxz0w8Y4SAFAs+OoLHyWFZcOoEAyep/hO8b074O8D8aE+iW3Wl0/byVkfXUaUcfPamKvEb1mLI0zb/w==","version":"2.187.0"},"node_modules/node-opcua-client":{"integrity":"sha512-aCQ47OqsN1NwgDePHVQFc40b/NTgS+GXnLaR2tKDSNNDg0598vJk+BzM5qdEqzVkXNACPXR9xfUt60qI2ojHvQ==","version":"2.187.0"},"node_modules/node-opcua-client-dynamic-extension-object":{"integrity":"sha512-4k408jDpARtCVCBRS0BLOPPhxY7iKh5l3/a7+Ev6JDq10QWHJeSir834yJGJknGF86gsZNvySOJj8CMs56JGwA==","version":"2.187.0"},"node_modules/node-opcua-client-proxy":{"integrity":"sha512-smJOV18P1jLc29+N/5+pKstR0fVjuqVKiO8g69hR0FB6KkxmDxncy+0GWstZl20uwPdIJrjmwRdGeLqDj78gUg==","version":"2.187.0"},"node_modules/node-opcua-common":{"integrity":"sha512-MjRdrO2IMhU2clvHhNamX3FDPjK/QYl9Ksb4b3Y3ykayEEHIJmvbVEjIdvGjSygRYkdO3haWBuqHetb/eLR5Mg==","version":"2.187.0"},"node_modules/node-opcua-constants":{"integrity":"sha512-0H/It463ZKlgzQnrsGGcskI933vGGPmf4zCyM5Hb2jmlrImqpnM38xZMBi7ZDHzK2abUbewA73GftStlubRveA==","version":"2.185.0"},"node_modules/node-opcua-crypto":{"integrity":"sha512-EX24n3hcvit2RP0C/AUeA3lcWFSkWv49fgKOZ7FflyyJ77w7tcrjr5CUV0ulE4XB0Ca2rP1cvSUlLqb95IQScg==","version":"6.2.0"},"node_modules/node-opcua-data-access":{"integrity":"sha512-q8pYpBIYhv3RO5R7fT9ntYR1bKNZT29Y0Pzhl/nAMyREeJFH4jLENVEFzljzkq2N8XRbjmPePAtAfq5ScuSgYg==","version":"2.187.0"},"node_modules/node-opcua-data-model":{"integrity":"sha512-xnTvGrcXwqUbbRBLynZ6r1mckM8ybn3XKeHtlxXafTuhQb07PnBu+YmdNc6sXL8/ENevA7S7Lmsl3S9C2Sx5uQ==","version":"2.187.0"},"node_modules/node-opcua-data-value":{"integrity":"sha512-KT66mABVw0R0xoEX7b6YxI9mKYQia552NzVUfd60OVvVIQt94KW0ZLsdmfOI9HfARD5IU0e9Fct2T9NClqQVxA==","version":"2.187.0"},"node_modules/node-opcua-date-time":{"integrity":"sha512-A2nNB5Jc5dPjW+Erk7xafJlmZ0pCJNl6Wbpgr1P64KrkCwEuY4NYQceo8mCYCBSz2bcYbtL+fbp+KEEuNbGEjw==","version":"2.187.0"},"node_modules/node-opcua-debug":{"integrity":"sha512-xWEpA1gRtHAQaSleKqUv4Vej30RRFa+jzCygkmN7ZKLpCKy0DQi1sq5lef5StfLyav0eejV7XorXw3WHfJGXWA==","version":"2.186.7"},"node_modules/node-opcua-enum":{"integrity":"sha512-xMEGdleMpsbhlSyaIndkyjH6Npv/v/GYjWyWBqy4/Ma/OLNE59Ifxynga3lnS+VZg+GkSUfIK1I5po/fxR57zw==","version":"2.187.0"},"node_modules/node-opcua-extension-object":{"integrity":"sha512-0JF1dkrfaAy1XkjPKR7DrTpciida1ifIycVWHY3PrdhQz5m9yee6j6wBKynTwfQWWt3YgGgPVxHwVk0culmy7Q==","version":"2.187.0"},"node_modules/node-opcua-factory":{"integrity":"sha512-adNCMnwCHXGw8lVu33czXTDkXJgNZk1MUmDr6tLy4U9HZE46adUaYhVEU4VKh1jQPgF4dKZFaDPcsuAL67lSRA==","version":"2.187.0"},"node_modules/node-opcua-guid":{"integrity":"sha512-g5umlVt7MALZdvBNE0dK6uPlXsjhdLRrJRpT8hqMw847nuMfBIkdLKpccoz8fH61s3KOF8UOmHZTpTVHXSmNgw==","version":"2.184.0"},"node_modules/node-opcua-hostname":{"integrity":"sha512-PZr7a1ZbUtZlj8ywVIjjhT5MDlcVL1RONWHZh6CdChUBAVdJdLip6lnuDktu5EyLNH+f/6RE4pOf3Fw0L499mA==","version":"2.184.0"},"node_modules/node-opcua-json":{"integrity":"sha512-1k3rE24DiqOPYCUpYJvUxpjxIRDPNOCsyoIug5XZooyOjrRbMxtIZakUsIbLHrkX5J/poEVFsn0ESaIHkPJuKQ==","version":"2.187.0"},"node_modules/node-opcua-nodeid":{"integrity":"sha512-mRTQu2h6358yaDabQ/lwDSFCxoDyWVh3Ve8KfALJroTdjjut4VYSAGynlvrOWuGcbyGY3dI0oCeFTpfjndW6hw==","version":"2.187.0"},"node_modules/node-opcua-nodeset-ua":{"integrity":"sha512-xxxjTs+eD2xXcTU7WJvYa4uaWu/HjR1T5z3+Z5R/W2gMEpU5xdNjtHsZp8O5gqE902YQ3ZTmdT8Q8vaoBrzjPw==","version":"2.187.0"},"node_modules/node-opcua-nodesets":{"integrity":"sha512-kiyG1WA1ghpgWUyFI6oLM8kLtxxATsPgKwmQKiprDM8KlJTIgNDS81Kyn3MdScHC74vUAkIpxo3Wz2kxvBJOeA==","version":"2.187.0"},"node_modules/node-opcua-numeric-range":{"integrity":"sha512-/ncx0jOs/DMdHIUSp03Ohayy1AgsZOPa+4SSQno7t+Cn/CCQmzC6QNeb83+quPppCaZ2aCSUz4Iuv9Bzf/3BBw==","version":"2.187.0"},"node_modules/node-opcua-object-registry":{"integrity":"sha512-3bcG0IHBvM0DghgOpR4wh0ZfiwGK4CCpBYr6aSQtNyVOp5DcY/YgpIlBi4/qa2M1ErL+SPm7z1RGaSr3oLHbPQ==","version":"2.186.7"},"node_modules/node-opcua-packet-analyzer":{"integrity":"sha512-/xAwFs8SFdfseV0mH6HUlxQZv/VmJrBiIF9f0XNRvdbqdPaKr+WUrBZ8BODvZMaj/dyHNnGnvG/Etgq+JCjOlg==","version":"2.187.0"},"node_modules/node-opcua-packet-assembler":{"integrity":"sha512-awQZ2msNRPuNv/Zcd4b8MODi1Xab1WUh5T3ebrx3lpdDC9whiCWAvHZXYl4XDLLjyCpVjTksrFmW/cKhT/U93g==","version":"2.187.0"},"node_modules/node-opcua-pki":{"integrity":"sha512-VD3Fbq+29hqQu2vRH6/p/+MnVX4JRjtEB/Z2g3uylmHLQmZraF0sU/DQCUGDWth3KhP46h7fSnyaYuikTmTTOA==","version":"7.1.0"},"node_modules/node-opcua-pseudo-session":{"integrity":"sha512-/RFxiYJhIohgrv5TbPzfHZ1vFtHDruScGekwx92phOrjfmnazmyT2a6uYothCqwlv5uPx1pgMZiQJSz3uBiNvw==","version":"2.187.0"},"node_modules/node-opcua-schemas":{"integrity":"sha512-DvFFXTLC7sAPaNMr8p9c4IyQSLSd7n+kHEWqxdDWtOUtct/JYsmCPIw2/BJxF/OMuatfh8IfRoO4/6Gx5HVuOw==","version":"2.187.0"},"node_modules/node-opcua-secure-channel":{"integrity":"sha512-f+Ryhx5no8PAHrXt7m21Q1Xkt9m6nvzIUvRNZF3nSp2ZizHiL3N7frJX8iy5P+lffAupf/6+YssPzGWqy0FWUA==","version":"2.187.0"},"node_modules/node-opcua-server":{"integrity":"sha512-3evc5iNd/I2AEF6YBvS6CkAR/bBRhAA+7aev1hR2Xv+OuNxV9kHC7ZQWJtW0E700ZlEVV/exQ7KWZbZ6YhP+5g==","version":"2.187.0"},"node_modules/node-opcua-server-discovery":{"integrity":"sha512-OMHWihtXcAFXCNzl/Hw6QhZ8yXNtOhhRYB3ufUmMxl+6wigEeuW+0eYQwUBu6loJ9X1krmYMwi99/yXMspGj/g==","version":"2.187.0"},"node_modules/node-opcua-service-browse":{"integrity":"sha512-lfrMmN8ndzcR9bK30Cus6RBX7xM8qKcUMs6t7M0baUw+LNVe2aLI7ODs+RFOqADLoWQTT1VgVb3daNaZhIYfNA==","version":"2.187.0"},"node_modules/node-opcua-service-call":{"integrity":"sha512-furQD9cGwdH8bZCJrEEsVZIumuf4dDcSF5MeJyxNphrav9nlTUChnPHEXloDAUfN2C3Jj0o9IH/c9m6jGT4omQ==","version":"2.187.0"},"node_modules/node-opcua-service-discovery":{"integrity":"sha512-dRraiyjIMVqulJxj3xs8bIDGiKoC+tRw4nOJi/ruwMf7+C+dMEkmmzFY4gXNeZkFRR4x/DEzJfByXqgP9wERlA==","version":"2.187.0"},"node_modules/node-opcua-service-endpoints":{"integrity":"sha512-oL9+IG65t4nXpTsGFCkj+mrEtrQg2ci+HbqddjNnKBOGjvqrdaG1qvrk4tVdKVa/lzCZ72AhDjmL9wpSZWuUiw==","version":"2.187.0"},"node_modules/node-opcua-service-filter":{"integrity":"sha512-NNlkzsebajFHfx2ejcR7x1hisRcA2egFKw8W41ZWZrVhpDqm0uTiClFfWxSyPToFYwrorIkIx/ubxrNFUXs8YQ==","version":"2.187.0"},"node_modules/node-opcua-service-history":{"integrity":"sha512-VmWKd16ICxvN5Kgc3zWpk7opDFH7ji8MZp4bMfvRoiSJVHsL7Sp13V5fpAL1WhbOBv7/hD7RFl400u5Hifuo/w==","version":"2.187.0"},"node_modules/node-opcua-service-node-management":{"integrity":"sha512-K8l09/sN9Tp+tnGmfs/pEpvgonPUe3mzERlXAiZveW6R292W0QOT/LBnldqbzFWrkLlQVvGJRWtmDlTY5+qewQ==","version":"2.187.0"},"node_modules/node-opcua-service-query":{"integrity":"sha512-2udgAr601NaWVkbPoPtjHh+25o/prAt4jPnvufSJvt+837znvbyyHj+QqaY0i2Jehk2UpnVZm5pD2nPZDvBGlA==","version":"2.187.0"},"node_modules/node-opcua-service-read":{"integrity":"sha512-YiQC/xMcwShgzfGg6rj+7yVSJKsJ6yGP0DSV9dD1AUGWNPUaN/kGtHv8QoPMzbiCP8e2QWI06BuHYMd8ljiYdA==","version":"2.187.0"},"node_modules/node-opcua-service-register-node":{"integrity":"sha512-3UKhabvbx3pxK+wGDA0ffn+1+S8rAjnjLvmKeZCfZOqdG8FvhoF+RZVv0EpPJoKB1GGY3DaU7Y/2A6DIoFSWjg==","version":"2.187.0"},"node_modules/node-opcua-service-secure-channel":{"integrity":"sha512-UMc/4PuYzPJPZolcWbu0Pb654Xnlio/Z4m6WAMi3lB36X6HkgE2dUVvpWBRIpCYVISIqPlakpoG1QKDBvc3uTw==","version":"2.187.0"},"node_modules/node-opcua-service-session":{"integrity":"sha512-MH97O3csJf2IGzXb8TUha0pdlPQoaCKCfwvrHahNdIkw9qXfigXKFrHH06k2XzLa07Ic289RomtItxFLX/ZaQA==","version":"2.187.0"},"node_modules/node-opcua-service-subscription":{"integrity":"sha512-IeE5KgrM7EHnK2COXrEzPxqBn0MNyI5zjDUmbL9S4eYGLUMOKUOFmdOR1VLEp+QyEUcIbf6V3bq3t0z5avRDSQ==","version":"2.187.0"},"node_modules/node-opcua-service-translate-browse-path":{"integrity":"sha512-bJvjbaYiogyqxZxc0plF1fGTp6CBp5mObOcNaU/JqbA4ghfBaRQqWwhknhPLL9ow1WyHKyKgcVpDPSS1ymO+wA==","version":"2.187.0"},"node_modules/node-opcua-service-write":{"integrity":"sha512-UGsICIspcglBHCmd69ONkH7Q53cgP5qse29fCL1FA9QxHnWBioJ/lwrc8uSZ1u31b/YnYn7Jg4ntvZizacoWmg==","version":"2.187.0"},"node_modules/node-opcua-status-code":{"integrity":"sha512-W8RQeeiR7qHk2n0yHmD6kVtyFnv0rEzhMp7yEQfHROE3KQ4Gg3Nsn0lahwQBQ4QZ6w9EjhlImpJ+poyNMThRhg==","version":"2.187.0"},"node_modules/node-opcua-transport":{"integrity":"sha512-3TByZceCjas2P7IFkAV2BZlABQNit+BkxGjCMdnk+ZG2WM4Tf1Q9zvuek266Y/FgFaELUq/d7go6x4cFr417NQ==","version":"2.187.0"},"node_modules/node-opcua-types":{"integrity":"sha512-3CsqWs/c6LuGOBhNVdLKPKx7Eehb6KbzAN3J1n4mk5SidsnMeCe+4OaOlwSyOQCxtu1KXLAeY2j9F7xXrjU6Gg==","version":"2.187.0"},"node_modules/node-opcua-uanodeset-json":{"integrity":"sha512-akF1gXtu58mbERzUbch6qiJfGeEGzgyU8HeD3BhBIYiUzIGN9cWztIgx5movYh8UFAkvvnly5ZJX3BjDCoCSDw==","version":"2.187.0"},"node_modules/node-opcua-utils":{"integrity":"sha512-wybTo6+jinaMjZQply2kblDIMRrYbxHNjPQM5EEB5EFUmQuHSYVZvvcwOtrAqqMFLFfINR8QIrN3p+2O50NBHQ==","version":"2.187.0"},"node_modules/node-opcua-variant":{"integrity":"sha512-usMU7LWGKIiuddE85oERMY8es51NJwPPWWA9ORJlQTzIQAlxB38kNyFbWkW9vd2MqmaBM/GiAcVfhxWfPTuE7Q==","version":"2.187.0"},"node_modules/node-opcua-vendor-diagnostic":{"integrity":"sha512-9QkRfNBPEqX5c8ROcwFeKJ/MFr02RZLQNKa5NLUqRVMUoFJyn4cA8Ci6i7En62T0tgvsEXCXpJYqR64nTnxP6Q==","version":"2.187.0"},"node_modules/node-opcua-xml2json":{"integrity":"sha512-CD2OBsa8rj1X6zC0Wcjw7kbBg1UetqeGaYg1cmpQV2sAntodiJx6UV1GyDFuW0olst6iglHV57F3NYI2cnldBg==","version":"2.187.0"},"node_modules/pend":{"integrity":"sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==","version":"1.2.0"},"node_modules/precond":{"integrity":"sha512-QCYG84SgGyGzqJ/vlMsxeXd/pgL/I94ixdNFyh1PusWmTCyVfPJjZ1K1jvHtsbfnXQs2TSkEP2fR7QiMZAnKFQ==","version":"0.2.3"},"node_modules/pvtsutils":{"integrity":"sha512-PLgQXQ6H2FWCaeRak8vvk1GW462lMxB5s3Jm673N82zI4vqtVUPuZdffdZbPDFRoU8kAhItWFtPCWiPpp4/EDg==","version":"1.3.6"},"node_modules/pvutils":{"integrity":"sha512-BbubeCEyTuQjVMakvJQ/Sxbc93F2pwmbsxONT/ZRrwU7Ua38d8unYTwXpTVLAKJ4BDuH9IGztCjQcd/N/39Dvg==","version":"1.2.0"},"node_modules/readdirp":{"integrity":"sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==","version":"4.1.2"},"node_modules/reflect-metadata":{"integrity":"sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==","version":"0.2.2"},"node_modules/safer-buffer":{"integrity":"sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==","version":"2.1.2"},"node_modules/semver":{"integrity":"sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==","version":"7.8.5"},"node_modules/sshpk":{"integrity":"sha512-2p2KJZTSqQ/I3+HX42EpYOa2l3f8Erv8MWKsy2I9uf4wA7yFIkXRffYdsx86y6z4vHtV8u7g+pPlr8/4ouAxsQ==","version":"1.18.0"},"node_modules/sterfive-bonjour-service":{"integrity":"sha512-QqDpnBb3KLD6ytdY2KSxsynw1jJAvzfOloQt83GQNXO6CGf84ZY+37tpOEZo1FzgUkFiVsL7pYyg71olDppI/w==","version":"1.1.4"},"node_modules/supports-color":{"integrity":"sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==","version":"7.2.0"},"node_modules/table-layout":{"integrity":"sha512-iK5/YhZxq5GO5z8wb0bY1317uDF3Zjpha0QFFLA8/trAoiLbQD0HUbMesEaxyzUgDxi2QlcbM8IvqOlEjgoXBA==","version":"4.1.1"},"node_modules/thenify-ex":{"integrity":"sha512-YHA/2DlY1vWpqGLCc7BzdT9aTrqyHCbsX5J3zbW68LLeD4RPwd+2tMEWshMP+27ikuTnaeKbFDmjqc7fKWmDew==","version":"4.4.0"},"node_modules/thunky":{"integrity":"sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==","version":"1.1.0"},"node_modules/tslib":{"integrity":"sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==","version":"2.8.1"},"node_modules/tsyringe":{"integrity":"sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==","version":"4.10.0"},"node_modules/tsyringe/node_modules/tslib":{"integrity":"sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==","version":"1.14.1"},"node_modules/tweetnacl":{"integrity":"sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==","version":"0.14.5"},"node_modules/typical":{"integrity":"sha512-ya4mg/30vm+DOWfBg4YK3j2WD6TWtRkCbasOJr40CseYENzCUby/7rIvXA99JGsQHeNxLbnXdyLLxKSv3tauFw==","version":"7.3.0"},"node_modules/undici-types":{"integrity":"sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==","version":"8.9.0"},"node_modules/webcrypto-core":{"integrity":"sha512-gsXecm82UQNlTBURJGuqOWy1Ww08S3kZUcr3aOJS02Pk0xLtkfeUAVC0u0xhgdonFme80edSJUIJyuvL/7250Q==","version":"1.9.2"},"node_modules/wordwrapjs":{"integrity":"sha512-0yweIbkINJodk27gX9LBGMzyQdBDan3s/dEAiwBOj+Mf0PPyWL6/rikalkv8EeD0E8jm4o5RXEOrFTP3NXbhJg==","version":"5.1.1"},"node_modules/xml-writer":{"integrity":"sha512-elFVMRiV5jb59fbc87zzVa0C01QLBEWP909mRuWqFqrYC5wNTH5QW4AaKMNv7d6zAsuOulkD7wnztZNLQW0Nfg==","version":"1.7.0"},"node_modules/yauzl":{"integrity":"sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==","version":"3.4.0"}},"throughput":{"arrayElements":8294400,"connections":"max-clients + 16","messageBytes":67108864,"readWriteOperations":"max(10000,max-batch)","sessions":"max-clients + 16","transport":{"maxChunkCount":8192,"maxMessageSize":67108864,"receiveBufferSize":65536,"sendBufferSize":65536}}},"runtime_sha256":"7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c","source_commit":"3397e8ca2017b8592a50912b34c747f3da617763","profile":"throughput","mode_semantics":"sync: sequential; async: continuously refilled window","memory_policy":"old-space=min(4096MiB,50%-share); RSS-watchdog-20ms; no-RLIMIT_AS; estimate-v1","throughput_capacity":{"max_sessions":19,"max_connections":19,"max_read_write_operations":10000}},"ua_dotnet":{"architecture":"x86_64","artifacts":{"client":{"Benchmark.Client":"807ba84cf56c0bcb3ef77c078d68d0d3c9af907a44ec87d8e785d9bbc194b87e","Benchmark.Client.deps.json":"5028e6f202768b9d2336103e5499cadd70ece5bd707bf96e158d02ecc43e5f78","Benchmark.Client.dll":"fe8adedb84b710aa80cb9cf103e7cad5355bf8a1c59231c8ec6a42199cdf787d","Benchmark.Client.pdb":"fcc775bd6fc15e92596c8c67bee561d257fa4fab33099d6273170329ee45f8eb","Benchmark.Client.runtimeconfig.json":"c6e74389d43492c705ff551b5d5c976dd27cf59bd9277d4d392b27f0a3f3f54b","Benchmark.Common.dll":"c7497415a356e172a7e168c95106a8d850ed1d7b8b733c41b24e7c0b3e62f86d","Benchmark.Common.pdb":"348ea3d916b3cf93ed81f59ce74c23b342759b94790a8507f7be669a56e52f5c","BitFaster.Caching.dll":"7af73841cafd0c8b05ad166c45ad0886bcf80926d4c4a65e0fa7578ea1e04d03","Microsoft.Extensions.DependencyInjection.Abstractions.dll":"ca708422782fb25819941a16a057ea96d6d18b037e7e5cbfdf340b7a04362b57","Microsoft.Extensions.DependencyInjection.dll":"47f8175d34e9087d3858644803c558cb9cf52b29bffda796f65c1c527d1b6a22","Microsoft.Extensions.Logging.Abstractions.dll":"ec244a2db19dffe90cd299fa4b0691456ced342a078b4a93cf3726a9b431e9ac","Microsoft.Extensions.Logging.dll":"74d8fd2d7997fc638474e2bd79916458a30481e6a6925b50e7e96b4b852031c3","Microsoft.Extensions.Options.dll":"644350f8c2404d4479b97a250edb29585e5fafec1b6ce8486ae600c5015fd7fb","Microsoft.Extensions.Primitives.dll":"a0794c3bab2d7e0c848f0dffb3b9aa4b43ce07dc0abd122ebb7bf6dc79452ec4","Newtonsoft.Json.dll":"a28c251dfe36d881e9e2462e171441b8b0ec156fe3f452602c9149b1b9efe05b","Opc.Ua.Client.dll":"43498aa1da7feb053580302092546d5a3d59033dec099cd9e977e77d86cbc9df","Opc.Ua.Client.pdb":"9f94057fc4e972b067365a2cf09d43189da03a80ae9975825df3b121958ec85b","Opc.Ua.Client.xml":"eb5782c1ba5f250dab1258894348e418e60c67c9a0e42188d55aa6708691ee46","Opc.Ua.Configuration.dll":"000fc8d4713f03953b199bf34010727185dfbaf903971e88baa532260278fd29","Opc.Ua.Configuration.pdb":"200597629278f62d54b1d1811a2bf32e7506d4757e8b91cdab2491461c29d045","Opc.Ua.Configuration.xml":"06c7df490b51182f78a52791482e8694c669930223eb61f80ac3eb004e42cf04","Opc.Ua.Core.dll":"a681561bf31836babdcbe9a31586d70e652c029b11b8c9a0cbaaf5c569c697a0","Opc.Ua.Core.pdb":"43c9936531a96016d577c4adddcd43f38e6c988c5cdc40d7dead03a1ccaa1d8b","Opc.Ua.Core.xml":"1285099fb8344460b5303463c9ddd7d222083fc3b6f90a230b2451c67fff9f9e","Opc.Ua.Security.Certificates.dll":"e99956c9d3c0e31c85f6dd2601474a56172817e85fae4bafa1a5d57b080dd97e","Opc.Ua.Security.Certificates.pdb":"2a3f94caba18eb33a99d61ae4bbde91868a3583d6719d690ddfd3db6246037f9","Opc.Ua.Security.Certificates.xml":"e033fba79ca30c9db25a31bc9f36565fa12c37c9c6fbe30eaff559138f30e5ea","Opc.Ua.Types.dll":"6b4f995d5edde391ea406f4c838a0e2edb33a925d01f8ad59f707986becf28ea","Opc.Ua.Types.pdb":"7ff11406d912a585fc6beae1b6d75fd1cf12c2dd3c56fb5c6b42617ff06285ad","Opc.Ua.Types.xml":"b3bcf3dad4bfcddc719c44d7001d91298965e95ed51ea46b7d84d26c125c725b"},"server":{"Benchmark.Common.dll":"c7497415a356e172a7e168c95106a8d850ed1d7b8b733c41b24e7c0b3e62f86d","Benchmark.Common.pdb":"348ea3d916b3cf93ed81f59ce74c23b342759b94790a8507f7be669a56e52f5c","Benchmark.Server":"1b0ab0607958bf1cf8773b82a8c9fe4bb59b8b502bbb681b40b4f133683fdc6b","Benchmark.Server.deps.json":"eee82feabe1517f6d5d4185703b73d20a2f5b9dfb4993763d3c32e99ca82be34","Benchmark.Server.dll":"9a708bee031555a5d86eb0059901504af7be1e66534c96f5f5080fc17162f0ea","Benchmark.Server.pdb":"85e4c75357373dff4a19c882d204d1b2735fb9fd317fc7d93a24100fbce2e113","Benchmark.Server.runtimeconfig.json":"c6e74389d43492c705ff551b5d5c976dd27cf59bd9277d4d392b27f0a3f3f54b","Microsoft.Extensions.DependencyInjection.Abstractions.dll":"ca708422782fb25819941a16a057ea96d6d18b037e7e5cbfdf340b7a04362b57","Microsoft.Extensions.DependencyInjection.dll":"47f8175d34e9087d3858644803c558cb9cf52b29bffda796f65c1c527d1b6a22","Microsoft.Extensions.Logging.Abstractions.dll":"ec244a2db19dffe90cd299fa4b0691456ced342a078b4a93cf3726a9b431e9ac","Microsoft.Extensions.Logging.dll":"74d8fd2d7997fc638474e2bd79916458a30481e6a6925b50e7e96b4b852031c3","Microsoft.Extensions.Options.dll":"644350f8c2404d4479b97a250edb29585e5fafec1b6ce8486ae600c5015fd7fb","Microsoft.Extensions.Primitives.dll":"a0794c3bab2d7e0c848f0dffb3b9aa4b43ce07dc0abd122ebb7bf6dc79452ec4","Newtonsoft.Json.dll":"a28c251dfe36d881e9e2462e171441b8b0ec156fe3f452602c9149b1b9efe05b","Opc.Ua.Configuration.dll":"000fc8d4713f03953b199bf34010727185dfbaf903971e88baa532260278fd29","Opc.Ua.Configuration.pdb":"200597629278f62d54b1d1811a2bf32e7506d4757e8b91cdab2491461c29d045","Opc.Ua.Configuration.xml":"06c7df490b51182f78a52791482e8694c669930223eb61f80ac3eb004e42cf04","Opc.Ua.Core.dll":"a681561bf31836babdcbe9a31586d70e652c029b11b8c9a0cbaaf5c569c697a0","Opc.Ua.Core.pdb":"43c9936531a96016d577c4adddcd43f38e6c988c5cdc40d7dead03a1ccaa1d8b","Opc.Ua.Core.xml":"1285099fb8344460b5303463c9ddd7d222083fc3b6f90a230b2451c67fff9f9e","Opc.Ua.Security.Certificates.dll":"e99956c9d3c0e31c85f6dd2601474a56172817e85fae4bafa1a5d57b080dd97e","Opc.Ua.Security.Certificates.pdb":"2a3f94caba18eb33a99d61ae4bbde91868a3583d6719d690ddfd3db6246037f9","Opc.Ua.Security.Certificates.xml":"e033fba79ca30c9db25a31bc9f36565fa12c37c9c6fbe30eaff559138f30e5ea","Opc.Ua.Server.dll":"a01fa6aaaed22bfa9473b8f0709cac14e340cbb9d959edb17b08d41d8ea230fc","Opc.Ua.Server.pdb":"e2aa877669a613de00c23526c4a908bf764a5a9d5cbf38a17bbb91cb25ebdef4","Opc.Ua.Server.xml":"843313966610f7a286ac8eab2be111e9df6a02b479d0302b5a5ca5c94d125f7c","Opc.Ua.Types.dll":"6b4f995d5edde391ea406f4c838a0e2edb33a925d01f8ad59f707986becf28ea","Opc.Ua.Types.pdb":"7ff11406d912a585fc6beae1b6d75fd1cf12c2dd3c56fb5c6b42617ff06285ad","Opc.Ua.Types.xml":"b3bcf3dad4bfcddc719c44d7001d91298965e95ed51ea46b7d84d26c125c725b"}},"configuration":"Release","inputs":"0185b9224e2daff05c175decaeacd56d0fc2d4c304d6fc6e6ec993d9c7e9312e","packages":{"BitFaster.Caching":"2.6.0","Microsoft.Extensions.DependencyInjection":"10.0.8","Microsoft.Extensions.DependencyInjection.Abstractions":"10.0.8","Microsoft.Extensions.Logging":"10.0.8","Microsoft.Extensions.Logging.Abstractions":"10.0.8","Microsoft.Extensions.Options":"10.0.8","Microsoft.Extensions.Primitives":"10.0.8","Newtonsoft.Json":"13.0.4","PolySharp":"1.15.0","Roslynator.Analyzers":"4.15.0","Roslynator.Formatting.Analyzers":"4.15.0","System.Collections.Immutable":"10.0.8","System.Diagnostics.DiagnosticSource":"10.0.8","System.Formats.Asn1":"10.0.8","System.Text.Json":"10.0.8"},"sdk":"10.0.401","source":{"changes_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","commit":"511ef72a6148970fab15fa29bfc8b4978d6b6b74","dirty":false},"source_version":"1.5.378.176","runtime_info":{"runtime":"10.0.12","architecture":"X64","gc_server":false,"gc_latency":"Interactive","jit":"runtime defaults; tiered compilation","clock":"Stopwatch.GetTimestamp/CLOCK_MONOTONIC; Int128 nanosecond conversion","profile":"throughput","limits_source":"library constructors: ApplicationConfiguration.cs; throughput transport and request-queue overrides","limits":{"MaxSessionCount":100,"MaxChannelCount":1000,"MinRequestThreadCount":10,"MaxRequestThreadCount":100,"MaxQueuedRequestCount":200,"MaxRequestAge":600000,"MaxMessageQueueSize":10,"MaxPublishRequestCount":20,"OperationLimits":{"MaxNodesPerRead":0,"MaxNodesPerHistoryReadData":0,"MaxNodesPerHistoryReadEvents":0,"MaxNodesPerWrite":0,"MaxNodesPerHistoryUpdateData":0,"MaxNodesPerHistoryUpdateEvents":0,"MaxNodesPerMethodCall":0,"MaxNodesPerBrowse":0,"MaxNodesPerRegisterNodes":0,"MaxNodesPerTranslateBrowsePathsToNodeIds":0,"MaxNodesPerNodeManagement":0,"MaxMonitoredItemsPerCall":0},"TransportQuotas":{"OperationTimeout":60000,"MaxStringLength":65535,"MaxByteStringLength":67108864,"MaxArrayLength":8294400,"MaxMessageSize":67108864,"MaxBufferSize":65535,"MaxEncodingNestingLevels":200,"MaxDecoderRecoveries":0,"ChannelLifetime":30000,"SecurityTokenLifetime":3600000}}},"profile":"throughput","memory_policy":"gc-heap-75%-of-resident-share; no-RLIMIT_AS"},"sdk_milo":{"artifacts":{"lib/bcpkix-jdk18on-1.86.jar":"8d8b41a4b149bdae8d331f059a578870954d1e3ff29f8269a9eb3ee19a7e4ef7","lib/bcprov-jdk18on-1.86.jar":"2af190b300cbb0b35e248ccf5f4a06b6072030aeb3da7a98ec73abe5b4cb371f","lib/bcutil-jdk18on-1.86.jar":"1c268e15f785aafb1e4670d8d6e5f856f69475e96c162dadcd1ff9b350e9139f","lib/jspecify-1.0.1.jar":"070d75f261fe4c5b8202508366715f7f2d4660f88c8ef7e6d3575e48c9683b66","lib/milo-sdk-core-1.1.8.jar":"e593105881c15b1f196d167e82e37dae52b9c5686a7d8db0a01007d8dd29a278","lib/milo-sdk-server-1.1.8.jar":"7e9990a2d33866ca4bb3eeab8d444db32b1667880611e4dfb387eda24593d12c","lib/milo-stack-core-1.1.8.jar":"a3a2e2bf3c89c2bb55550e1114a2e5b98766ef2374bf0ab6f5de080d583659a7","lib/milo-transport-1.1.8.jar":"409f807b046b77b695d53a18df71fb4422db1bc9540f66429f2a4b5b58ffe3bf","lib/netty-buffer-4.1.138.Final.jar":"5bef3ea2b9e80c5e8d03151ca1609bd75fd1e264863bf3e2f8d538392c0f2c38","lib/netty-channel-fsm-1.0.2.jar":"ad581f5242f00096bb9f6221259aeb8c9010caa5decdea948b529ee6d1a63b28","lib/netty-codec-4.1.138.Final.jar":"21b9b7717da9ed7034c7a9ef4fcea4a08825e8f52d775da4d898364edf99327f","lib/netty-common-4.1.138.Final.jar":"b4ebb8fa44cd5790731928a83fd0f25a530e41c407c093bef4a0196db30b693f","lib/netty-handler-4.1.138.Final.jar":"a79fb814e029db17da82baea25a0340172af2c59f107fd20b394c1fa28680f21","lib/netty-resolver-4.1.138.Final.jar":"50c338a0e5c9997513e738f0fcb47d579a9e8852d317ba367f5d141e210187c0","lib/netty-transport-4.1.138.Final.jar":"6c064c1cae4d410b920abfc07959a49db1b4778a9547614373e97d31cab0cad6","lib/netty-transport-native-unix-common-4.1.138.Final.jar":"8d1ada8f185d6f6da4cd79f9daeef39f1db49908cfec8bc2a1fb602458aa2341","lib/slf4j-api-2.0.17.jar":"7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832","lib/slf4j-simple-2.0.17.jar":"ddfea59ac074c6d3e24ac2c38622d2d963895e17f70b38ed4bdae4d780be6964","lib/strict-machine-1.0.0.jar":"2dc264721f301ffc0aebe5f7dbf09d7d483b0578bf0dfdcc19ec4a3dbce61018","server.jar":"2bd7888ca039055af640429b0baead922942133929f6768045b3348e27b515db"},"inputs":"43b1cc12079f713cfde4e46f01311319c1ebd25c138d276fb07ccab4bb2e9a23","runtime":"21.0.12.1+1","runtime_info":{"java":"21.0.12.1+1-LTS","sdk":"1.1.8","vm":"OpenJDK 64-Bit Server VM"},"sdk":"org.eclipse.milo:milo-sdk-server 1.1.8","profile":"throughput"},"sdk_s2opc":{"artifacts":{"base_nodeset.xml":"e3b0427911cf72f7c25d782b9f3eb6fa56ea0a11fe17c30d2a34e1ef36f4a9fa","server":"0e61a34a246448156a4505b86c949cd1beeeddac3450ec722ce843834c323821"},"compile_limits":{"SOPC_DEFAULT_MAX_ARRAY_LENGTH":16777216,"SOPC_DEFAULT_RECEIVE_MAX_NB_CHUNKS":1024,"SOPC_DEFAULT_SEND_MAX_NB_CHUNKS":1024,"SOPC_MAX_OPERATIONS_PER_MSG":100000,"SOPC_MAX_SECURE_CONNECTIONS":129,"SOPC_MAX_SESSIONS":128,"SOPC_MAX_SOCKETS":300,"SOPC_MAX_SOCKETS_CONNECTIONS":150},"inputs":"646c45fda1dda1d62f40511255a564d24e32a37a3246c9f1e50a6b6b702f9878","runtime":"mbedtls 3.6.7, expat 2.9.0","runtime_info":{},"sdk":"S2OPC Toolkit 1.7.3","profile":"throughput"},"sdk_gopcua":{"artifacts":{"server":"9f3c66fa66693012d50239b1998cd18f9596215509b59f54e4f10d358cfea389"},"inputs":"abc1c2c8630b5803d47067b519f6103d16548e01fc5b69b6540101dd7866df9a","runtime":"go1.27.1","runtime_info":{"go":"go1.27.1","sdk":"v0.9.1"},"sdk":"github.com/gopcua/opcua v0.9.1","profile":"throughput"},"sdk_node_opcua_fronts":{"artifacts":{"node-opcua.json":"cb07c634fe615fe8d4e3bc0641b1810f9b4f1d65831495695346f9388c0aaafe"},"inputs":"523266e55105a5889122c89d90a37aeda3a963527370d28f1b9a277ed9f52dcb","runtime":"node, as common/node/toolchain.json","runtime_info":{},"sdk":"node-opcua FrontThreadEngine, the package of common/node/toolchain.json","profile":"throughput"},"sdk_node_opcua_fronts_2":{"artifacts":{"node-opcua.json":"cb07c634fe615fe8d4e3bc0641b1810f9b4f1d65831495695346f9388c0aaafe"},"inputs":"8dbe3348bd0271ee065bc7abcefb85e364946767ea1bf916bb408d53b901418c","runtime":"node, as common/node/toolchain.json","runtime_info":{},"sdk":"node-opcua FrontThreadEngine, the package of common/node/toolchain.json","profile":"throughput"},"o6_version":"2.0.1","partial":false,"node_opcua_diagnostics":{"process_budget_bytes":1216303104,"available_memory_bytes":2739978240,"old_space_limit_mib":195,"server_rss_peaks":{"('open62541:node-opcua', 'None')":300859392,"('open62541:node-opcua-fronts', 'None')":588337152,"('open62541:node-opcua-fronts-2', 'None')":740319232},"effective_limits":{"capabilities":{"maxBrowseContinuationPoints":0,"maxHistoryContinuationPoints":0,"maxStringLength":16777216,"maxArrayLength":8294400,"maxByteStringLength":67108864,"maxQueryContinuationPoints":0,"minSupportedSampleRate":50,"operationLimits":{"maxNodesPerRead":10000,"maxNodesPerBrowse":10000,"maxNodesPerWrite":10000,"maxNodesPerMethodCall":1000,"maxNodesPerRegisterNodes":10000,"maxNodesPerNodeManagement":0,"maxMonitoredItemsPerCall":10000,"maxNodesPerHistoryReadData":1000,"maxNodesPerHistoryReadEvents":1000,"maxNodesPerHistoryUpdateData":0,"maxNodesPerHistoryUpdateEvents":0,"maxNodesPerTranslateBrowsePathsToNodeIds":10000},"serverProfileArray":["http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017","http://opcfoundation.org/UA-Profile/Server/DataAccess","http://opcfoundation.org/UA-Profile/Server/Events","http://opcfoundation.org/UA-Profile/Server/FileAccess","http://opcfoundation.org/UA-Profile/Server/Methods","http://opcfoundation.org/UA-Profile/Server/Standard","http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription","http://opcfoundation.org/UA-Profile/Server/StateMachine","http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"],"localeIdArray":["en-EN","fr-FR"],"softwareCertificates":[],"maxSessions":19,"maxSubscriptions":100,"maxMonitoredItems":1000000,"maxSubscriptionsPerSession":10,"maxMonitoredItemsPerSubscription":100000,"maxSelectClauseParameters":1000,"maxWhereClauseParameters":1000,"maxMonitoredItemsQueueSize":60000,"conformanceUnits":[]},"maxConnectionsPerEndpoint":19,"typedArrayElements":16777216,"generalArrayElements":8294400,"byteStringBytes":67108864}},"ua_dotnet_diagnostics":{"process_budget_bytes":1216303104,"available_memory_bytes":2739978240,"max_queued_request_count":200,"managed_heap_limit_bytes":308247552}}};
+const THEME = {"light":{"tokens":{"surface":"#fcfcfb","plane":"#f9f9f7","primary":"#0b0b0b","secondary":"#52514e","muted":"#898781","grid":"#e1e0d9","axis":"#c3c2b7","border":"rgba(11,11,11,0.10)","hover":"#ffffff"},"layout":{"bargap":0.45,"font":{"color":"#52514e","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12},"hoverlabel":{"align":"left","bgcolor":"#ffffff","bordercolor":"#c3c2b7","font":{"color":"#0b0b0b","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12}},"margin":{"b":8,"l":8,"r":24,"t":8},"paper_bgcolor":"#fcfcfb","plot_bgcolor":"#fcfcfb","showlegend":false,"transition":{"duration":0},"xaxis":{"automargin":true,"gridcolor":"#e1e0d9","griddash":"solid","gridwidth":1,"linecolor":"#c3c2b7","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#52514e","size":11}},"zerolinecolor":"#c3c2b7","zerolinewidth":1},"yaxis":{"automargin":true,"gridcolor":"#e1e0d9","griddash":"solid","gridwidth":1,"linecolor":"#c3c2b7","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#52514e","size":11}},"zerolinecolor":"#c3c2b7","zerolinewidth":1}},"sequential":[[0.0,"#cde2fb"],[0.16666666666666666,"#9ec5f4"],[0.3333333333333333,"#6da7ec"],[0.5,"#3987e5"],[0.6666666666666666,"#256abf"],[0.8333333333333334,"#184f95"],[1.0,"#0d366b"]],"onFillFlip":0.55,"onFillDark":"#0b0b0b","onFillLight":"#ffffff"},"dark":{"tokens":{"surface":"#1a1a19","plane":"#0d0d0d","primary":"#ffffff","secondary":"#c3c2b7","muted":"#898781","grid":"#2c2c2a","axis":"#383835","border":"rgba(255,255,255,0.10)","hover":"#242422"},"layout":{"bargap":0.45,"font":{"color":"#c3c2b7","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12},"hoverlabel":{"align":"left","bgcolor":"#242422","bordercolor":"#383835","font":{"color":"#ffffff","family":"system-ui, -apple-system, \"Segoe UI\", sans-serif","size":12}},"margin":{"b":8,"l":8,"r":24,"t":8},"paper_bgcolor":"#1a1a19","plot_bgcolor":"#1a1a19","showlegend":false,"transition":{"duration":0},"xaxis":{"automargin":true,"gridcolor":"#2c2c2a","griddash":"solid","gridwidth":1,"linecolor":"#383835","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#c3c2b7","size":11}},"zerolinecolor":"#383835","zerolinewidth":1},"yaxis":{"automargin":true,"gridcolor":"#2c2c2a","griddash":"solid","gridwidth":1,"linecolor":"#383835","linewidth":1,"tickfont":{"color":"#898781","size":11},"title":{"font":{"color":"#c3c2b7","size":11}},"zerolinecolor":"#383835","zerolinewidth":1}},"sequential":[[0.0,"#0d366b"],[0.16666666666666666,"#184f95"],[0.3333333333333333,"#256abf"],[0.5,"#3987e5"],[0.6666666666666666,"#6da7ec"],[0.8333333333333334,"#9ec5f4"],[1.0,"#cde2fb"]],"onFillFlip":0.45,"onFillDark":"#0b0b0b","onFillLight":"#ffffff"}};
+const ROWS = DATA.rows;
+const SERIES = DATA.series;
+const OPTIONS = DATA.options;
+const BASELINE = DATA.baseline;
+
+const PLOT_CONFIG = {
+  responsive: true,
+  displaylogo: false,
+  modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines'],
+};
+
+const IMPL_LABEL = {"open62541":"open62541 (C)","o6-python":"o6\\Python","asyncua":"asyncua","ua-dotnet":"OPC Foundation (.NET)","node-opcua":"node-opcua (Node.js, single thread)","milo":"Eclipse Milo (Java)","s2opc":"S2OPC (C)","gopcua":"gopcua (Go)","node-opcua-fronts":"node-opcua fronts (Node.js, CPU-1 threads)","node-opcua-fronts-2":"node-opcua fronts (Node.js, 2 threads)"};
+const POLICY_LABEL = { none: 'SecurityPolicy None', enc: 'Basic256Sha256' };
+const colorOf = new Map(SERIES.map((s) => [s.pair, s]));
+const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+// Slots 1 and 2 -- the read/write scatter is an all-pairs form, so it is capped
+// at the three leading slots that validate pairwise; it uses two.
+const SERIES_LIGHT_0 = '#2a78d6', SERIES_LIGHT_1 = '#eb6834';
+const SERIES_DARK_0 = '#3987e5', SERIES_DARK_1 = '#d95926';
+
+/* ------------------------------------------------------------------ state */
+
+const DEFAULTS = {
+  op: OPTIONS.op.includes('read') ? 'read' : OPTIONS.op[0],
+  mode: OPTIONS.mode.includes('async') ? 'async' : OPTIONS.mode[0],
+  sec: OPTIONS.sec.includes('none') ? 'none' : OPTIONS.sec[0],
+  n: OPTIONS.n[OPTIONS.n.length - 1],
+  payload: OPTIONS.payloads.some((p) => p.key === 's') ? 's' : OPTIONS.payloads[0].key,
+  metric: 'ops',
+  scale: 'abs',
+  axis: 'linear',
+  whiskers: true,
+  ratio: OPTIONS.sec.length > 1 ? 'security' : (OPTIONS.mode.length > 1 ? 'pipeline' : 'baseline'),
+  hidden: [],
+};
+const state = Object.assign({}, DEFAULTS);
+const tableOpen = new Set();
+
+function readHash() {
+  const raw = location.hash.replace(/^#/, '');
+  if (!raw) return;
+  for (const part of raw.split('&')) {
+    const [key, value] = part.split('=');
+    if (value === undefined) continue;
+    const decoded = decodeURIComponent(value);
+    if (key === 'n') { const v = parseInt(decoded, 10); if (OPTIONS.n.includes(v)) state.n = v; }
+    else if (key === 'hide') state.hidden = decoded ? decoded.split(',') : [];
+    else if (key === 'whiskers') state.whiskers = decoded === '1';
+    else if (key in state) state[key] = decoded;
+  }
+  if (!OPTIONS.op.includes(state.op)) state.op = DEFAULTS.op;
+  if (!OPTIONS.mode.includes(state.mode)) state.mode = DEFAULTS.mode;
+  if (!OPTIONS.sec.includes(state.sec)) state.sec = DEFAULTS.sec;
+  if (!OPTIONS.payloads.some((p) => p.key === state.payload)) {
+    state.payload = OPTIONS.payloads[0].key;
+  }
+}
+
+function writeHash() {
+  const parts = [
+    'op=' + state.op, 'mode=' + state.mode, 'sec=' + state.sec, 'n=' + state.n,
+    'payload=' + state.payload,
+    'metric=' + state.metric, 'scale=' + state.scale, 'axis=' + state.axis,
+    'whiskers=' + (state.whiskers ? '1' : '0'), 'ratio=' + state.ratio,
+  ];
+  if (state.hidden.length) parts.push('hide=' + encodeURIComponent(state.hidden.join(',')));
+  history.replaceState(null, '', '#' + parts.join('&'));
+}
+
+/* ------------------------------------------------------- data + formatting */
+
+const index = new Map();
+for (const row of ROWS) {
+  index.set([row.pair, row.op, row.mode, row.sec, row.n, row.shape].join('|'), row);
+}
+// The configurations that were measured and failed, keyed the same way. Kept
+// apart from `index` so no chart can plot one by accident: they carry a reason,
+// not a number.
+const failedIndex = new Map();
+for (const entry of (DATA.failures || [])) {
+  failedIndex.set([entry.pair, entry.op, entry.mode, entry.sec, entry.n, entry.shape].join('|'), entry);
+}
+const failedAt = (pair, op, mode, sec, n, shape) =>
+  failedIndex.get([pair, op, mode, sec, n, shape === undefined ? state.payload : shape].join('|'));
+const at = (pair, op, mode, sec, n, shape) =>
+  index.get([pair, op, mode, sec, n, shape === undefined ? state.payload : shape].join('|'));
+
+const visiblePairs = () => SERIES.filter((s) => !state.hidden.includes(s.pair)).map((s) => s.pair);
+const isLatency = () => state.metric === 'lat' && state.mode === 'sync';
+const isData = () => state.metric === 'data';
+/** A median is provisional for either reason: too few samples, or too wide a set. */
+const wideSpread = (row) => row.hi > 2 * row.lo;
+const shortSamples = (row) => row.ns < row.want;
+const unstable = (row) => wideSpread(row) || shortSamples(row);
+const shapeOf = (key) => OPTIONS.payloads.find((p) => p.key === key) || OPTIONS.payloads[0];
+
+/** Median in the selected metric space: calls/s, MB/s, or µs per call. */
+function metricOf(row) {
+  if (isLatency()) return 1e6 / row.med;
+  return isData() ? row.mbmed : row.med;
+}
+
+/** [low, median, high] in metric space, ordered ascending. */
+function bandOf(row) {
+  const lo = isData() ? row.mblo : row.lo;
+  const hi = isData() ? row.mbhi : row.hi;
+  const a = isLatency() ? 1e6 / row.hi : lo;
+  const b = isLatency() ? 1e6 / row.lo : hi;
+  return [Math.min(a, b), metricOf(row), Math.max(a, b)];
+}
+
+/** The plotted value: absolute metric, or the same metric over the C baseline. */
+function plotted(row) {
+  if (state.scale !== 'rel') return metricOf(row);
+  const base = at(BASELINE, row.op, row.mode, row.sec, row.n, row.shape);
+  return base ? metricOf(row) / metricOf(base) : NaN;
+}
+
+function plottedBand(row) {
+  const band = bandOf(row);
+  if (state.scale !== 'rel') return band;
+  const base = at(BASELINE, row.op, row.mode, row.sec, row.n, row.shape);
+  if (!base) return [NaN, NaN, NaN];
+  const divisor = metricOf(base);
+  return band.map((v) => v / divisor);
+}
+
+function unitLabel() {
+  if (state.scale === 'rel') return isLatency() ? '× baseline latency' : '× C baseline';
+  if (isLatency()) return 'µs per service call';
+  return isData() ? 'megabytes per second' : 'service calls per second';
+}
+
+/** A MB/s figure. The scale spans thousandths of a megabyte per second (one
+    Int32 per call) to thousands (a 4k array), so a fixed number of decimals is
+    either noise at the top or a bare 0 at the bottom; pick it by magnitude. */
+function fmtMb(v) {
+  if (!isFinite(v)) return '—';
+  if (v >= 100) return nf0.format(Math.round(v));
+  if (v >= 1) return v.toFixed(1);
+  if (v >= 0.01) return v.toFixed(3);
+  return v.toPrecision(2);
+}
+
+function fmtValue(v) {
+  if (!isFinite(v)) return '—';
+  if (state.scale === 'rel') return (v < 0.1 ? v.toFixed(3) : v.toFixed(2)) + '×';
+  if (isLatency()) return (v >= 100 ? nf0.format(Math.round(v)) : v.toFixed(1)) + ' µs';
+  if (isData()) return fmtMb(v);
+  return nf0.format(Math.round(v));
+}
+
+function fmtRatio(v) {
+  if (!isFinite(v)) return '—';
+  return (v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toFixed(2)) + '×';
+}
+
+const pairLabel = (pair) => {
+  const s = colorOf.get(pair);
+  return s ? IMPL_LABEL[s.client] + ' → ' + IMPL_LABEL[s.server] : pair;
+};
+
+/* --------------------------------------------------------------- theming */
+
+function activeTheme() {
+  const stamped = document.documentElement.getAttribute('data-theme');
+  if (stamped === 'dark' || stamped === 'light') return stamped;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+const tokens = () => THEME[activeTheme()].tokens;
+const hue = (pair) => {
+  const s = colorOf.get(pair);
+  return s ? s[activeTheme()] : tokens().muted;
+};
+
+/** Deep-merge chart-specific layout bits onto the themed chrome. */
+function layoutFor(overrides) {
+  const merge = (target, source) => {
+    for (const key of Object.keys(source)) {
+      const value = source[key];
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        target[key] = merge(Object.assign({}, target[key] || {}), value);
+      } else {
+        target[key] = value;
+      }
+    }
+    return target;
+  };
+  const base = JSON.parse(JSON.stringify(THEME[activeTheme()].layout));
+  // The chrome carries one axis spec; charts that use both need it on each.
+  base.yaxis = merge(JSON.parse(JSON.stringify(base.xaxis)), base.yaxis || {});
+  return merge(base, overrides || {});
+}
+
+/** A hatched fill marks a measurement whose max exceeded twice its min. */
+function patternFor(rows) {
+  return {
+    shape: rows.map((row) => (unstable(row) ? '/' : '')),
+    fgcolor: tokens().surface,
+    size: 5,
+    solidity: 0.28,
+  };
+}
+
+/* ---------------------------------------------------------------- charts */
+
+/** 1. Ranking bar -- who is fastest in the selected slice. */
+function chartRanking() {
+  const rows = visiblePairs()
+    .map((pair) => at(pair, state.op, state.mode, state.sec, state.n))
+    .filter(Boolean);
+  if (!rows.length) return null;
+  rows.sort((a, b) => (isLatency() ? plotted(a) - plotted(b) : plotted(b) - plotted(a)));
+  // Best on top: plotly stacks the first category at the bottom of a bar chart.
+  rows.reverse();
+
+  const values = rows.map(plotted);
+  const bands = rows.map(plottedBand);
+  const log = state.axis === 'log';
+  const labels = rows.map((row) => pairLabel(row.pair));
+
+  const trace = {
+    type: 'bar',
+    orientation: 'h',
+    x: values,
+    y: labels,
+    marker: {
+      color: rows.map((row) => hue(row.pair)),
+      pattern: patternFor(rows),
+      line: { width: 0 },
+
+    },
+    width: rows.map(() => 0.5),
+    // Each bar also says how many times slower than the fastest of the slice it is.
+    text: values.map((value) => {
+      const best = isLatency() ? Math.min(...values) : Math.max(...values);
+      const times = isLatency() ? value / best : best / value;
+      return best > 0 && value > 0 && times >= 1.05 ? fmtValue(value) + '  ·  ×' + times.toFixed(1) + ' slower' : fmtValue(value);
+    }),
+    textposition: 'outside',
+    cliponaxis: false,
+    textfont: { color: tokens().secondary, size: 11.5 },
+    // An unstable measurement always shows its range, whatever the toggle says.
+    error_x: {
+      type: 'data',
+      symmetric: false,
+      array: bands.map((band, i) => (state.whiskers || unstable(rows[i]) ? band[2] - values[i] : 0)),
+      arrayminus: bands.map((band, i) => (state.whiskers || unstable(rows[i]) ? values[i] - band[0] : 0)),
+      color: tokens().muted,
+      thickness: 1,
+      width: 4,
+      visible: true,
+    },
+    customdata: rows.map((row, i) => [fmtValue(bands[i][0]), fmtValue(bands[i][2]), row.pair]),
+    hovertemplate:
+      '<b>%{text}</b><br>%{y}<br><span style="color:' + tokens().muted +
+      '">range %{customdata[0]} – %{customdata[1]}</span><extra></extra>',
+  };
+
+  const top = Math.max(...bands.map((b) => b[2]));
+  const layout = layoutFor({
+    height: rows.length * 46 + 74,
+    margin: { l: 8, r: 150, t: 10, b: 42 },
+    xaxis: {
+      type: log ? 'log' : 'linear',
+      title: { text: unitLabel() + (log ? ' (log scale — bar length is not proportional)' : '') },
+      tickformat: state.scale === 'rel' ? '' : '~s',
+      rangemode: 'tozero',
+      range: log ? undefined : [0, top * 1.3],
+    },
+    yaxis: { showgrid: false, ticksuffix: '  ', automargin: true },
+  });
+
+  return {
+    data: [trace],
+    layout,
+    caption: captionRanking(rows.slice().reverse()),
+    table: {
+      columns: ['Pairing', 'Median', 'Min', 'Max', 'Spread', 'Samples'],
+      rows: rows.slice().reverse().map((row) => {
+        const band = plottedBand(row);
+        return {
+          key: row.pair,
+          cells: [
+            pairLabel(row.pair), fmtValue(plotted(row)), fmtValue(band[0]), fmtValue(band[2]),
+            (row.hi / row.lo).toFixed(2) + '×' + (wideSpread(row) ? ' ⚠' : ''),
+            row.ns + '/' + row.want + (shortSamples(row) ? ' ⚠' : ''),
+          ],
+        };
+      }),
+    },
+  };
+}
+
+function captionRanking(rows) {
+  if (!rows.length) return '';
+  const best = rows[0];
+  const parts = [sliceWords() + ': ' + pairLabel(best.pair) + ' leads at ' + fmtValue(plotted(best)) + '.'];
+  if (rows.length > 1) {
+    const next = rows[1];
+    const factor = isLatency() ? plotted(next) / plotted(best) : plotted(best) / plotted(next);
+    parts.push(pairLabel(next.pair) + ' follows at ' + fmtValue(plotted(next)) +
+      ' (' + factor.toFixed(2) + '× ' + (isLatency() ? 'the latency' : 'off the lead') + ').');
+  }
+  const wide = rows.filter(wideSpread).length;
+  if (wide) parts.push(wide === 1
+    ? 'One hatched bar had a fastest sample above twice its slowest — read that median with its whiskers.'
+    : wide + ' hatched bars had a fastest sample above twice their slowest — read those medians with their whiskers.');
+  const short = rows.filter(shortSamples).length;
+  if (short) parts.push(short === 1
+    ? 'One bar holds fewer samples than the run asked for; its median is provisional.'
+    : short + ' bars hold fewer samples than the run asked for; those medians are provisional.');
+  const hiddenCount = SERIES.length - rows.length;
+  if (hiddenCount > 0) parts.push(hiddenCount + ' pairing' + (hiddenCount > 1 ? 's' : '') + ' hidden; the axis is rescaled to what is shown.');
+  return parts.join(' ');
+}
+
+/** 2. Heatmap -- is the cost on the client side or the server side? */
+function chartHeatmap() {
+  const impls = OPTIONS.impl;
+  const z = [], text = [], hoverText = [];
+  for (const client of impls) {
+    const zrow = [], trow = [], hrow = [];
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      const row = at(pair, state.op, state.mode, state.sec, state.n);
+      const failed = row ? null : failedAt(pair, state.op, state.mode, state.sec, state.n);
+      const value = row ? plotted(row) : NaN;
+      zrow.push(row && isFinite(value) ? Math.log10(value) : null);
+      // '✕' is a configuration that ran and fell over, '—' one that was never
+      // in the matrix. Both are empty cells; only one of them is a result.
+      trow.push(row ? fmtValue(value) : (failed ? '✕' : '—'));
+      hrow.push(row
+        ? fmtValue(value) + '<br>' + IMPL_LABEL[client] + ' client → ' + IMPL_LABEL[server] + ' server'
+        : IMPL_LABEL[client] + ' → ' + IMPL_LABEL[server] + '<br>' +
+          (failed ? 'measured, but it failed: ' + failed.why : 'not in the benchmark matrix'));
+    }
+    z.push(zrow); text.push(trow); hoverText.push(hrow);
+  }
+  const flat = z.flat().filter((v) => v !== null);
+  if (!flat.length) return null;
+  const zmin = Math.min(...flat), zmax = Math.max(...flat);
+  const span = zmax - zmin || 1;
+  const conf = THEME[activeTheme()];
+
+  const annotations = [];
+  for (let r = 0; r < impls.length; r++) {
+    for (let c = 0; c < impls.length; c++) {
+      const raw = z[r][c];
+      const fraction = raw === null ? 0 : (raw - zmin) / span;
+      annotations.push({
+        x: IMPL_LABEL[impls[c]], y: IMPL_LABEL[impls[r]], text: text[r][c],
+        showarrow: false,
+        font: {
+          size: raw === null ? 12 : 13,
+          color: raw === null ? tokens().muted
+            : (fraction > conf.onFillFlip ? conf.onFillLight : conf.onFillDark),
+          family: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+        },
+      });
+    }
+  }
+
+  const ticks = niceLogTicks(zmin, zmax);
+  const trace = {
+    type: 'heatmap',
+    z, x: impls.map((i) => IMPL_LABEL[i]), y: impls.map((i) => IMPL_LABEL[i]),
+    colorscale: conf.sequential,
+    zmin, zmax,
+    xgap: 2, ygap: 2,
+    hoverongaps: false,
+    text: hoverText,
+    hovertemplate: '<b>%{text}</b><extra></extra>',
+    colorbar: {
+      thickness: 10, len: 0.82, outlinewidth: 0, ticklen: 3,
+      tickvals: ticks.values, ticktext: ticks.labels,
+      tickfont: { color: tokens().muted, size: 11 },
+      title: { text: unitLabel(), font: { color: tokens().secondary, size: 11 }, side: 'right' },
+    },
+  };
+
+  const layout = layoutFor({
+    height: 316,
+    margin: { l: 8, r: 8, t: 52, b: 14 },
+    annotations,
+    xaxis: { title: { text: 'Server implementation' }, side: 'top', showgrid: false, zeroline: false, ticks: '' },
+    yaxis: { title: { text: 'Client implementation' }, showgrid: false, zeroline: false, ticks: '', autorange: 'reversed' },
+  });
+
+  return { data: [trace], layout, caption: captionHeatmap(impls), table: tableHeatmap(impls) };
+}
+
+function niceLogTicks(zmin, zmax) {
+  const values = [], labels = [];
+  for (let exp = Math.floor(zmin); exp <= Math.ceil(zmax); exp++) {
+    for (const mult of [1, 2, 5]) {
+      const value = Math.log10(mult * Math.pow(10, exp));
+      if (value < zmin - 0.02 || value > zmax + 0.02) continue;
+      values.push(value);
+      labels.push(fmtValue(mult * Math.pow(10, exp)));
+    }
+  }
+  return { values, labels };
+}
+
+function captionHeatmap(impls) {
+  const cells = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const row = at(client + '/' + server, state.op, state.mode, state.sec, state.n);
+      if (row) cells.push({ client, server, v: plotted(row) });
+    }
+  }
+  if (!cells.length) return '';
+  const better = (a, b) => (isLatency() ? a.v < b.v : a.v > b.v);
+  const best = cells.reduce((a, b) => (better(a, b) ? a : b));
+  const parts = ['Read across a row to price the client, down a column to price the server. ' +
+    'Fastest cell: ' + IMPL_LABEL[best.client] + ' → ' + IMPL_LABEL[best.server] +
+    ' at ' + fmtValue(best.v) + '.'];
+  // Same server, swapped client -- the cleanest available client-cost read.
+  const anchor = 'open62541';
+  const sameServer = cells.filter((c) => c.server === anchor && c.client !== anchor);
+  if (sameServer.length) {
+    const self = cells.find((c) => c.client === anchor && c.server === anchor);
+    if (self) {
+      const worded = sameServer.map((c) => IMPL_LABEL[c.client] + ' ' +
+        (isLatency() ? (c.v / self.v).toFixed(1) + '× slower' : (self.v / c.v).toFixed(1) + '× slower'));
+      parts.push('Against the same C server, swapping only the client costs: ' + worded.join(', ') + '.');
+    }
+  }
+  const failed = failedHere(impls);
+  if (failed.length) {
+    parts.push(failed.length + ' pairing' + (failed.length > 1 ? 's' : '') +
+      ' could not be measured at this setting (✕): ' + failedWorded(failed) + '.');
+  }
+  return parts.join(' ');
+}
+
+/** The failures at the current setting, over the pairings the heatmap draws. */
+function failedHere(impls) {
+  const out = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      if (at(pair, state.op, state.mode, state.sec, state.n)) continue;
+      const failed = failedAt(pair, state.op, state.mode, state.sec, state.n);
+      if (failed) out.push(failed);
+    }
+  }
+  return out;
+}
+
+/** "o6\\Python → C and one other, the client ran out of memory" -- grouped by reason. */
+function failedWorded(failed) {
+  const byReason = new Map();
+  for (const entry of failed) {
+    if (!byReason.has(entry.why)) byReason.set(entry.why, []);
+    byReason.get(entry.why).push(pairLabel(entry.pair));
+  }
+  return [...byReason].map(([why, pairs]) => pairs.join(', ') + ' — ' + why).join('; ');
+}
+
+function tableHeatmap(impls) {
+  const rows = [];
+  for (const client of impls) {
+    for (const server of impls) {
+      const pair = client + '/' + server;
+      const row = at(pair, state.op, state.mode, state.sec, state.n);
+      if (row) {
+        const band = plottedBand(row);
+        rows.push({
+          key: row.pair,
+          cells: [IMPL_LABEL[client], IMPL_LABEL[server], fmtValue(plotted(row)), fmtValue(band[0]), fmtValue(band[2])],
+        });
+        continue;
+      }
+      // A pairing that was measured and failed belongs in the table too, with
+      // the reason where its median would be. Left out, the table reads as a
+      // matrix that never included it.
+      const failed = failedAt(pair, state.op, state.mode, state.sec, state.n);
+      if (failed) {
+        rows.push({ key: failed.pair, cells: [IMPL_LABEL[client], IMPL_LABEL[server], '✕ ' + failed.why, '—', '—'] });
+      }
+    }
+  }
+  return { columns: ['Client', 'Server', 'Median', 'Min', 'Max'], rows };
+}
+
+/** 3. Scaling -- throughput against the number of concurrent client processes. */
+function chartScaling() {
+  const pairs = visiblePairs();
+  const counts = OPTIONS.n;
+  if (counts.length < 2) {
+    return { empty: 'This dataset was measured at a single client count (' + counts[0] +
+      '), so there is no load curve to draw. Re-run with --clients 1,3,10.' };
+  }
+  const traces = [], annotations = [];
+  const endpoints = [];
+
+  for (const pair of pairs) {
+    const xs = [], ys = [], custom = [];
+    for (const n of counts) {
+      const row = at(pair, state.op, state.mode, state.sec, n);
+      if (!row) continue;
+      const band = plottedBand(row);
+      xs.push(n); ys.push(plotted(row));
+      custom.push([fmtValue(band[0]), fmtValue(band[2]), unstable(row) ? ' ⚠' : '']);
+    }
+    if (!xs.length) continue;
+    traces.push({
+      type: 'scatter', mode: 'lines+markers', name: pairLabel(pair),
+      x: xs, y: ys, customdata: custom,
+      line: { color: hue(pair), width: 2, shape: 'linear', dash: pair.includes('node-opcua') ? 'dashdot' : pair.includes('ua-dotnet') ? 'dash' : 'solid' },
+      marker: { size: 9, color: hue(pair), symbol: pair.includes('node-opcua') ? 'square' : 'circle', line: { color: tokens().surface, width: 2 } },
+      hovertemplate: '<b>%{y:,.0f}</b> — ' + pairLabel(pair) +
+        '<br><span style="color:' + tokens().muted + '">range %{customdata[0]} – %{customdata[1]}%{customdata[2]}</span><extra></extra>',
+    });
+    endpoints.push({ pair, x: xs[xs.length - 1], y: ys[ys.length - 1], first: ys[0] });
+  }
+  if (!traces.length) return null;
+
+  // Direct labels only where they can be read: everything when few series are
+  // shown, otherwise just the extremes. Converging labels are worse than none.
+  let labelled = endpoints;
+  if (endpoints.length > 4) {
+    const sorted = endpoints.slice().sort((a, b) => a.y - b.y);
+    labelled = [sorted[0], sorted[sorted.length - 1]];
+  }
+  for (const point of labelled) {
+    annotations.push({
+      x: Math.log10(point.x), y: Math.log10(point.y),
+      text: '  ' + pairLabel(point.pair), showarrow: false, xanchor: 'left',
+      font: { color: tokens().secondary, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  // Isolating one pairing earns its ideal-scaling reference. Only throughput
+  // has an "N clients should be N times as much" ideal -- latency does not.
+  const shapes = [];
+  if (endpoints.length === 1 && !isLatency() && state.scale === 'abs') {
+    const only = endpoints[0];
+    const x0 = counts[0], x1 = counts[counts.length - 1];
+    shapes.push({
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(x0), y0: Math.log10(only.first),
+      x1: Math.log10(x1), y1: Math.log10(only.first * (x1 / x0)),
+      line: { color: tokens().muted, width: 1.5, dash: 'dot' },
+    });
+    annotations.push({
+      x: Math.log10(x1), y: Math.log10(only.first * (x1 / x0)),
+      text: 'linear scaling  ', showarrow: false, xanchor: 'right', yanchor: 'bottom',
+      font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  const layout = layoutFor({
+    height: 380,
+    margin: { l: 8, r: 190, t: 12, b: 46 },
+    hovermode: 'x unified',
+    shapes,
+    annotations,
+    xaxis: {
+      type: 'log', title: { text: 'concurrent client processes' },
+      tickvals: counts, ticktext: counts.map(String), showgrid: true,
+    },
+    yaxis: { type: 'log', title: { text: unitLabel() }, tickformat: '~s' },
+  });
+
+  return {
+    data: traces, layout,
+    caption: captionScaling(endpoints, counts),
+    table: {
+      columns: ['Pairing'].concat(counts.map((n) => n + ' client' + (n > 1 ? 's' : ''))).concat(['Scaling']),
+      rows: pairs.map((pair) => {
+        const cells = [pairLabel(pair)];
+        const values = counts.map((n) => {
+          const row = at(pair, state.op, state.mode, state.sec, n);
+          return row ? plotted(row) : NaN;
+        });
+        values.forEach((v) => cells.push(fmtValue(v)));
+        cells.push(isFinite(values[0]) && isFinite(values[values.length - 1])
+          ? (values[values.length - 1] / values[0]).toFixed(2) + '×' : '—');
+        return { key: pair, cells };
+      }),
+    },
+  };
+}
+
+function captionScaling(endpoints, counts) {
+  if (!endpoints.length) return '';
+  const first = counts[0], last = counts[counts.length - 1];
+  if (isLatency()) {
+    const worst = endpoints.reduce((a, b) => (b.y / b.first > a.y / a.first ? b : a));
+    return 'Per-operation latency from ' + first + ' to ' + last + ' clients. ' +
+      pairLabel(worst.pair) + ' degrades most, ×' + (worst.y / worst.first).toFixed(2) +
+      ' — sync latency under contention, not a throughput ceiling.';
+  }
+  const factors = endpoints.map((p) => ({ pair: p.pair, factor: p.y / p.first }));
+  factors.sort((a, b) => b.factor - a.factor);
+  const best = factors[0], worst = factors[factors.length - 1];
+  const parts = ['From ' + first + ' to ' + last +
+    ' clients (perfect scaling would be ' + (last / first).toFixed(0) + '×): ' +
+    pairLabel(best.pair) + ' gains ' + best.factor.toFixed(2) + '×'];
+  if (factors.length > 1) {
+    parts[0] += ', ' + pairLabel(worst.pair) + ' ' +
+      (worst.factor < 1 ? 'loses throughput and ends at ' + (worst.factor * 100).toFixed(0) + '% of its 1-client rate'
+        : 'gains only ' + worst.factor.toFixed(2) + '×');
+  }
+  parts[0] += '.';
+  const saturated = factors.filter((f) => f.factor >= 1 && f.factor < 1.15).length;
+  const regressed = factors.filter((f) => f.factor < 1).length;
+  if (saturated) parts.push(saturated + ' pairing' + (saturated > 1 ? 's are' : ' is') +
+    ' already saturated at ' + first + ' client' + (first > 1 ? 's' : '') + ' — more clients buy nothing.');
+  if (regressed) parts.push(regressed + ' pairing' + (regressed > 1 ? 's go' : ' goes') +
+    ' backwards under load.');
+  if (endpoints.length > 1 && state.scale === 'abs') {
+    parts.push('Isolate a single pairing to see its linear-scaling reference.');
+  }
+  return parts.join(' ');
+}
+
+/** 4. Ratio bars -- what one feature costs, as a multiple of throughput. */
+const RATIO_SPECS = {
+  security: {
+    label: 'Encryption cost',
+    need: () => OPTIONS.sec.length > 1,
+    axis: 'Basic256Sha256 ÷ SecurityPolicy None',
+    overrides: 'both security policies',
+    of: (pair) => {
+      const a = at(pair, state.op, state.mode, 'enc', state.n);
+      const b = at(pair, state.op, state.mode, 'none', state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+  pipeline: {
+    label: 'Pipelining gain',
+    need: () => OPTIONS.mode.length > 1,
+    axis: 'async (32 outstanding) ÷ sync (1 outstanding)',
+    overrides: 'both request modes',
+    of: (pair) => {
+      const a = at(pair, state.op, 'async', state.sec, state.n);
+      const b = at(pair, state.op, 'sync', state.sec, state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+  baseline: {
+    label: 'Against C',
+    need: () => true,
+    axis: 'pairing ÷ open62541 C client and server',
+    overrides: null,
+    of: (pair) => {
+      const a = at(pair, state.op, state.mode, state.sec, state.n);
+      const b = at(BASELINE, state.op, state.mode, state.sec, state.n);
+      return a && b ? a.med / b.med : NaN;
+    },
+  },
+};
+
+function chartRatio() {
+  const spec = RATIO_SPECS[state.ratio] || RATIO_SPECS.baseline;
+  if (!spec.need()) return { empty: 'This dataset holds only one ' +
+    (state.ratio === 'security' ? 'security policy' : 'request mode') + ', so the ratio has nothing to divide.' };
+  const entries = visiblePairs()
+    .map((pair) => ({ pair, ratio: spec.of(pair) }))
+    .filter((e) => isFinite(e.ratio) && e.ratio > 0);
+  if (!entries.length) return null;
+  entries.sort((a, b) => a.ratio - b.ratio);
+
+  // Bars grow from 1.0 in log2 space, so halving and doubling read symmetric
+  // and the sign of the bar is the sign of the effect.
+  const xs = entries.map((e) => Math.log2(e.ratio));
+  const reach = Math.max(0.6, ...xs.map((v) => Math.abs(v) * 1.35));
+  const ticks = [];
+  for (let exp = Math.ceil(-reach); exp <= Math.floor(reach); exp++) ticks.push(exp);
+
+  const trace = {
+    type: 'bar', orientation: 'h',
+    x: xs, y: entries.map((e) => pairLabel(e.pair)),
+    marker: { color: entries.map((e) => hue(e.pair)), line: { width: 0 } },
+    width: entries.map(() => 0.55),
+    text: entries.map((e) => fmtRatio(e.ratio)),
+    textposition: 'outside',
+    cliponaxis: false,
+    textfont: { color: tokens().secondary, size: 11.5 },
+    customdata: entries.map((e) => [fmtRatio(e.ratio), pairLabel(e.pair)]),
+    hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>' +
+      '<span style="color:' + tokens().muted + '">' + spec.axis + '</span><extra></extra>',
+  };
+
+  const layout = layoutFor({
+    height: entries.length * 46 + 82,
+    margin: { l: 8, r: 90, t: 26, b: 46 },
+    xaxis: {
+      title: { text: spec.axis },
+      range: [-reach, reach],
+      tickvals: ticks,
+      ticktext: ticks.map((t) => fmtRatio(Math.pow(2, t))),
+      zeroline: true, zerolinecolor: tokens().secondary, zerolinewidth: 1.5,
+    },
+    yaxis: { showgrid: false, ticksuffix: '  ' },
+    annotations: [
+      { x: -reach, y: 1.06, xref: 'x', yref: 'paper', text: '← worse', showarrow: false,
+        xanchor: 'left', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' } },
+      { x: reach, y: 1.06, xref: 'x', yref: 'paper', text: 'better →', showarrow: false,
+        xanchor: 'right', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' } },
+    ],
+  });
+
+  return {
+    data: [trace], layout,
+    caption: captionRatio(spec, entries),
+    table: {
+      columns: ['Pairing', spec.label, 'Change'],
+      rows: entries.slice().reverse().map((e) => ({
+        key: e.pair,
+        cells: [pairLabel(e.pair), fmtRatio(e.ratio),
+          (e.ratio >= 1 ? '+' : '') + ((e.ratio - 1) * 100).toFixed(0) + '%'],
+      })),
+    },
+  };
+}
+
+function captionRatio(spec, entries) {
+  const best = entries[entries.length - 1], worst = entries[0];
+  const median = entries[Math.floor(entries.length / 2)].ratio;
+  const parts = [spec.label + ' at ' + sliceWords(RATIO_DIMENSION[state.ratio]) + '. ' +
+    'Median across the shown pairings ' + fmtRatio(median) + '; best ' +
+    pairLabel(best.pair) + ' at ' + fmtRatio(best.ratio) + ', worst ' +
+    pairLabel(worst.pair) + ' at ' + fmtRatio(worst.ratio) + '.'];
+  if (state.ratio === 'security') {
+    const lost = entries.filter((e) => e.ratio < 0.9).length;
+    parts.push(lost ? lost + ' of ' + entries.length + ' pairings lose more than 10% to SignAndEncrypt.'
+      : 'No shown pairing loses more than 10% to SignAndEncrypt.');
+  }
+  if (state.ratio === 'pipeline') {
+    const flat = entries.filter((e) => e.ratio < 1.2).length;
+    if (flat) parts.push(flat + ' pairing' + (flat > 1 ? 's gain' : ' gains') +
+      ' almost nothing from 32 outstanding requests — the server side is serialising them.');
+  }
+  return parts.join(' ');
+}
+
+/** Least-squares fit of log(y) against log(x): y = a * x^b.
+ *
+ * The exponent b is the whole point of the fit. Values moved per second grows
+ * as payload^b, so b = 1 means a bigger payload is free (the per-call cost
+ * vanishes) and b = 0 means it buys nothing at all. */
+function powerFit(xs, ys) {
+  const points = xs.map((x, i) => [Math.log(x), Math.log(ys[i])])
+    .filter(([lx, ly]) => isFinite(lx) && isFinite(ly));
+  if (points.length < 2) return null;
+  const n = points.length;
+  const mx = points.reduce((s, p) => s + p[0], 0) / n;
+  const my = points.reduce((s, p) => s + p[1], 0) / n;
+  let num = 0, den = 0;
+  for (const [lx, ly] of points) { num += (lx - mx) * (ly - my); den += (lx - mx) ** 2; }
+  if (den === 0) return null;
+  const b = num / den;
+  const a = Math.exp(my - b * mx);
+  // Coefficient of determination, so a fit that does not describe the data
+  // can be recognised as such rather than read as a law.
+  let ssRes = 0, ssTot = 0;
+  for (const [lx, ly] of points) {
+    ssRes += (ly - (Math.log(a) + b * lx)) ** 2;
+    ssTot += (ly - my) ** 2;
+  }
+  return { a, b, r2: ssTot === 0 ? 1 : 1 - ssRes / ssTot };
+}
+
+/** 5. Payload scaling -- what batching and arrays actually buy. */
+function chartPayload() {
+  const shapes = OPTIONS.payloads;
+  if (shapes.length < 2) {
+    return { empty: 'This dataset holds a single payload shape. Re-run with ' +
+      '--batchsize 1,10,100,1000 and --arraysize 1000,hd to draw the curve.' };
+  }
+  const palette = tokens();
+  const traces = [], annotations = [], notes = [];
+
+  // Batch and array sweeps share one x axis -- values carried by a single
+  // service call -- so the two ways of moving more per call are directly
+  // comparable. Line style, not colour, separates them: colour stays identity.
+  const KINDS = [
+    { kind: 'batch', dash: 'solid', label: 'nodes per call' },
+    { kind: 'array', dash: 'dash', label: 'elements per node' },
+  ];
+
+  for (const pair of visiblePairs()) {
+    for (const { kind, dash } of KINDS) {
+      const picked = shapes.filter((s) => s.kind === kind || s.key === 's');
+      const xs = [], ys = [], custom = [];
+      for (const shape of picked) {
+        const row = at(pair, state.op, state.mode, state.sec, state.n, shape.key);
+        if (!row || !(row.mbmed > 0)) continue;
+        xs.push(shape.per_call);
+        ys.push(row.mbmed);
+        custom.push([shape.label, nf0.format(Math.round(row.med)), fmtMb(row.mbmed)]);
+      }
+      if (xs.length < 2) continue;
+      traces.push({
+        type: 'scatter', mode: 'lines+markers', name: pairLabel(pair) + ' · ' + kind,
+        x: xs, y: ys, customdata: custom,
+        line: { color: hue(pair), width: 2, dash },
+        marker: { size: 9, color: hue(pair), symbol: kind === 'array' ? 'diamond' : 'circle',
+                  line: { color: palette.surface, width: 2 } },
+        hovertemplate: '<b>%{customdata[2]}</b> MB/s — ' + pairLabel(pair) +
+          '<br>%{customdata[0]} · %{x:,} per call · %{customdata[1]} calls/s<extra></extra>',
+      });
+      const fit = powerFit(xs, ys);
+      if (fit && fit.r2 >= 0.5) {
+        const x0 = Math.min(...xs), x1 = Math.max(...xs);
+        traces.push({
+          type: 'scatter', mode: 'lines', showlegend: false, hoverinfo: 'skip',
+          x: [x0, x1], y: [fit.a * Math.pow(x0, fit.b), fit.a * Math.pow(x1, fit.b)],
+          line: { color: hue(pair), width: 1, dash: 'dot' }, opacity: 0.55,
+        });
+        notes.push({ pair, kind, b: fit.b, r2: fit.r2 });
+      }
+    }
+  }
+  if (!traces.length) return { empty: 'No pairing selected.' };
+
+  // Perfect scaling: every extra value in a call is free. Anchored at the
+  // slowest visible single-value rate so it reads as a slope, not a target.
+  const singles = visiblePairs()
+    .map((pair) => at(pair, state.op, state.mode, state.sec, state.n, 's'))
+    .filter((row) => row && row.mbmed > 0);
+  const shapesX = shapes.map((s) => s.per_call);
+  const xMin = Math.min(...shapesX), xMax = Math.max(...shapesX);
+  const shapesList = [];
+  if (singles.length) {
+    const anchor = Math.min(...singles.map((row) => row.mbmed));
+    shapesList.push({
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(xMin), y0: Math.log10(anchor),
+      x1: Math.log10(xMax), y1: Math.log10(anchor * (xMax / xMin)),
+      line: { color: palette.axis, width: 1.5, dash: 'dot' }, layer: 'below',
+    });
+    annotations.push({
+      x: Math.log10(xMax), y: Math.log10(anchor * (xMax / xMin)),
+      text: 'slope 1: extra values are free  ', showarrow: false,
+      xanchor: 'right', yanchor: 'bottom',
+      font: { color: palette.muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    });
+  }
+
+  const layout = layoutFor({
+    height: 420,
+    margin: { l: 8, r: 16, t: 12, b: 46 },
+    showlegend: true,
+    legend: { orientation: 'h', y: -0.22, yanchor: 'top', x: 0, font: { size: 11 } },
+    shapes: shapesList,
+    annotations,
+    xaxis: {
+      type: 'log', title: { text: 'values carried by one service call' },
+      tickvals: shapesX, ticktext: shapesX.map((v) => nf0.format(v)),
+    },
+    yaxis: { type: 'log', title: { text: 'megabytes per second' }, tickformat: '~s' },
+  });
+
+  return { data: traces, layout, caption: captionPayload(notes, shapes), table: tablePayload(shapes) };
+}
+
+function captionPayload(notes, shapes) {
+  const parts = [sliceWords('payload') +
+    '. Solid lines vary the nodes per Read/Write call; dashed lines vary the elements in one ' +
+    'array node. The dotted fit through each is a power law, MB/s ∝ payload^b.'];
+  if (notes.length) {
+    const best = notes.reduce((a, b) => (b.b > a.b ? b : a));
+    const worst = notes.reduce((a, b) => (b.b < a.b ? b : a));
+    parts.push('Steepest: ' + pairLabel(best.pair) + ' ' + best.kind + ', b = ' + best.b.toFixed(2) +
+      ' (r² ' + best.r2.toFixed(2) + ') — close to 1 means the per-call cost all but disappears. ' +
+      'Flattest: ' + pairLabel(worst.pair) + ' ' + worst.kind + ', b = ' + worst.b.toFixed(2) + '.');
+    const arrays = notes.filter((n) => n.kind === 'array');
+    const batches = notes.filter((n) => n.kind === 'batch');
+    if (arrays.length && batches.length) {
+      const mean = (list) => list.reduce((s, n) => s + n.b, 0) / list.length;
+      const ab = mean(arrays), bb = mean(batches);
+      parts.push('Averaged over the shown pairings, arrays scale at b = ' + ab.toFixed(2) +
+        ' against b = ' + bb.toFixed(2) + ' for batches: ' +
+        (ab > bb ? 'one big array beats many nodes in one call at equal value count.'
+                 : 'batching keeps up with arrays here.'));
+    }
+  }
+  const biggest = shapes[shapes.length - 1];
+  parts.push('Largest payload measured: ' + biggest.label + ' at ' +
+    nf0.format(biggest.per_call) + ' values per call.');
+  return parts.join(' ');
+}
+
+function tablePayload(shapes) {
+  const rows = [];
+  for (const pair of visiblePairs()) {
+    for (const shape of shapes) {
+      const row = at(pair, state.op, state.mode, state.sec, state.n, shape.key);
+      if (!row) continue;
+      rows.push({ key: pair, cells: [
+        pairLabel(pair), shape.label, nf0.format(shape.per_call),
+        nf0.format(Math.round(row.med)), fmtMb(row.mbmed),
+      ]});
+    }
+  }
+  return { columns: ['Pairing', 'Payload', 'Values per call', 'Calls/s', 'MB/s'], rows };
+}
+
+/** 6. Read vs. write -- the check that says the operation axis can be ignored. */
+function chartOperation() {
+  if (!(OPTIONS.op.includes('read') && OPTIONS.op.includes('write'))) {
+    return { empty: 'Both read and write are needed for this comparison; this dataset has only one.' };
+  }
+  const pairs = new Set(visiblePairs());
+  const byMode = { sync: [], async: [] };
+  for (const row of ROWS) {
+    if (row.op !== 'read' || !pairs.has(row.pair)) continue;
+    // Match like with like: the same payload shape on both axes, or a scalar
+    // read gets compared against an array write.
+    const write = at(row.pair, 'write', row.mode, row.sec, row.n, row.shape);
+    if (!write) continue;
+    (byMode[row.mode] || (byMode[row.mode] = [])).push({
+      x: row.med, y: write.med, pair: row.pair, mode: row.mode, sec: row.sec, n: row.n,
+      shape: row.shape, shapeLabel: shapeOf(row.shape).label,
+    });
+  }
+  const points = [].concat(byMode.sync || [], byMode.async || []);
+  if (!points.length) return null;
+  const all = points.flatMap((p) => [p.x, p.y]);
+  const lo = Math.min(...all) * 0.8, hi = Math.max(...all) * 1.25;
+  const conf = activeTheme();
+  // Two series only -- inside the three-slot cap that all-pairs forms carry.
+  const modeColor = { sync: conf === 'dark' ? SERIES_DARK_0 : SERIES_LIGHT_0,
+                      async: conf === 'dark' ? SERIES_DARK_1 : SERIES_LIGHT_1 };
+
+  const traces = ['sync', 'async'].filter((m) => (byMode[m] || []).length).map((mode) => ({
+    type: 'scatter', mode: 'markers', name: mode + ' (' + (mode === 'sync' ? '1' : '32') + ' outstanding)',
+    x: byMode[mode].map((p) => p.x), y: byMode[mode].map((p) => p.y),
+    customdata: byMode[mode].map((p) => [pairLabel(p.pair), POLICY_LABEL[p.sec], p.n, p.shapeLabel]),
+    marker: {
+      size: 9, color: modeColor[mode], opacity: 0.85,
+      line: { color: tokens().surface, width: 2 },
+    },
+    hovertemplate: 'read <b>%{x:,.0f}</b> · write <b>%{y:,.0f}</b> ops/s' +
+      '<br>%{customdata[0]}<br><span style="color:' + tokens().muted +
+      '">%{customdata[1]} · %{customdata[2]} client(s) · %{customdata[3]}</span><extra></extra>',
+  }));
+
+  const layout = layoutFor({
+    height: 400,
+    margin: { l: 8, r: 16, t: 12, b: 46 },
+    showlegend: true,
+    legend: { orientation: 'h', y: 1.02, yanchor: 'bottom', x: 0, font: { size: 11.5 } },
+    shapes: [{
+      type: 'line', xref: 'x', yref: 'y',
+      x0: Math.log10(lo), y0: Math.log10(lo), x1: Math.log10(hi), y1: Math.log10(hi),
+      line: { color: tokens().axis, width: 1.5, dash: 'dot' }, layer: 'below',
+    }],
+    annotations: [{
+      x: Math.log10(hi), y: Math.log10(hi), text: 'read = write  ', showarrow: false,
+      xanchor: 'right', yanchor: 'top', font: { color: tokens().muted, size: 11, family: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
+    }],
+    xaxis: { type: 'log', title: { text: 'read, operations per second' }, range: [Math.log10(lo), Math.log10(hi)], tickformat: '~s' },
+    yaxis: { type: 'log', title: { text: 'write, operations per second' }, range: [Math.log10(lo), Math.log10(hi)], tickformat: '~s' },
+  });
+
+  const within = points.filter((p) => Math.abs(p.y / p.x - 1) <= 0.1).length;
+  const worst = points.reduce((a, b) => (Math.abs(Math.log(b.y / b.x)) > Math.abs(Math.log(a.y / a.x)) ? b : a));
+  // The verdict follows the data rather than restating a prior conclusion:
+  // large payloads can pull read and write apart where scalars did not.
+  const agrees = within >= points.length / 2;
+  const caption = within + ' of ' + points.length + ' configurations sit within ±10% of the diagonal, ' +
+    (agrees
+      ? 'so read and write cost about the same and the operation axis can stay parked. '
+      : 'so read and write do not track each other here — check both rather than assuming one stands in for the other. ') +
+    'Largest gap: ' + pairLabel(worst.pair) + ' ' + worst.mode + ', ' + POLICY_LABEL[worst.sec] + ', ' +
+    worst.n + ' client(s), ' + worst.shapeLabel +
+    ' — write is ' + (worst.y / worst.x).toFixed(2) + '× read.';
+
+  return {
+    data: traces, layout, caption,
+    table: {
+      columns: ['Pairing', 'Mode', 'Security', 'Clients', 'Payload', 'Read', 'Write', 'Write ÷ read'],
+      rows: points.map((p) => ({
+        key: p.pair,
+        cells: [pairLabel(p.pair), p.mode, POLICY_LABEL[p.sec], String(p.n), p.shapeLabel,
+          nf0.format(Math.round(p.x)), nf0.format(Math.round(p.y)), (p.y / p.x).toFixed(2) + '×'],
+      })),
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ shell */
+
+// ``ignores`` strikes a dimension out of the card's scope line; ``notes`` says
+// why, so a reader never wonders whether a control silently failed.
+const CARDS = [
+  { id: 'ranking', build: chartRanking, ignores: [], notes: [] },
+  { id: 'heatmap', build: chartHeatmap, ignores: ['pairs'],
+    notes: ['ignores the pairing filter — the grid is the pairing'] },
+  { id: 'scaling', build: chartScaling, ignores: ['n'],
+    notes: ['ignores the client count — it is the x axis'] },
+  { id: 'ratio', build: chartRatio, ignores: [], notes: [] },
+  { id: 'payload', build: chartPayload, ignores: ['payload'],
+    notes: ['ignores the payload control — the payload size is the x axis'] },
+  { id: 'operation', build: chartOperation, ignores: ['op', 'mode', 'sec', 'n', 'payload'],
+    notes: ['every measured configuration is plotted at once, so the slice above does not scope it'] },
+];
+
+/** The slice in words. ``skip`` drops a dimension a chart divides out. */
+function sliceWords(skip) {
+  const bits = [];
+  if (skip !== 'op') bits.push(state.op);
+  if (skip !== 'mode') bits.push(state.mode);
+  if (skip !== 'sec') bits.push(POLICY_LABEL[state.sec]);
+  if (skip !== 'n') bits.push(state.n + ' client' + (state.n > 1 ? 's' : ''));
+  if (skip !== 'payload' && OPTIONS.payloads.length > 1) bits.push(shapeOf(state.payload).label);
+  return bits.join(' · ');
+}
+
+const RATIO_DIMENSION = { security: 'sec', pipeline: 'mode', baseline: null };
+
+/** The per-card scope line: what slice it shows, and what it deliberately ignores. */
+function renderScope(card) {
+  const host = document.querySelector('#card-' + card.id + ' .scope');
+  host.textContent = '';
+  const spec = card.id === 'ratio' ? RATIO_SPECS[state.ratio] : null;
+  const ignores = new Set(card.ignores);
+  if (spec && RATIO_DIMENSION[state.ratio]) ignores.add(RATIO_DIMENSION[state.ratio]);
+  const dims = [
+    ['op', state.op],
+    ['mode', state.mode],
+    ['sec', POLICY_LABEL[state.sec]],
+    ['n', state.n + ' client' + (state.n > 1 ? 's' : '')],
+  ];
+  if (OPTIONS.payloads.length > 1) dims.push(['payload', shapeOf(state.payload).label]);
+  const append = (text, ignored) => {
+    const node = document.createElement(ignored ? 'span' : 'b');
+    if (ignored) node.className = 'ign';
+    node.textContent = text;
+    host.appendChild(node);
+  };
+  dims.forEach(([key, text], i) => {
+    if (i) host.appendChild(document.createTextNode(' · '));
+    append(text, ignores.has(key));
+  });
+  const notes = card.notes ? card.notes.slice() : [];
+  if (spec && spec.overrides) notes.push('spans ' + spec.overrides + ' — both sides of the ratio');
+  if (notes.length) host.appendChild(document.createTextNode('  — ' + notes.join('; ')));
+}
+
+function renderTable(card, table) {
+  const host = document.querySelector('#table-' + card.id);
+  host.textContent = '';
+  if (!table) return;
+  const el = document.createElement('table');
+  const head = el.createTHead().insertRow();
+  for (const column of table.columns) {
+    const th = document.createElement('th');
+    th.textContent = column;
+    head.appendChild(th);
+  }
+  const body = el.createTBody();
+  for (const row of table.rows) {
+    const tr = body.insertRow();
+    row.cells.forEach((value, i) => {
+      const td = tr.insertCell();
+      if (i === 0) {
+        td.className = 'key';
+        if (row.key && colorOf.has(row.key)) {
+          const swatch = document.createElement('span');
+          swatch.className = 'sw';
+          swatch.style.background = hue(row.key);
+          td.appendChild(swatch);
+        }
+      }
+      td.appendChild(document.createTextNode(value));
+    });
+  }
+  host.appendChild(el);
+}
+
+function renderCard(card) {
+  const root = document.getElementById('card-' + card.id);
+  const plot = root.querySelector('.plot');
+  const tableHost = root.querySelector('.tablewrap');
+  const caption = root.querySelector('.caption');
+  renderScope(card);
+
+  let figure = null;
+  try {
+    figure = card.build();
+  } catch (error) {
+    console.error(card.id, error);
+  }
+
+  const showTable = tableOpen.has(card.id);
+  plot.classList.toggle('hidden', showTable);
+  tableHost.classList.toggle('hidden', !showTable);
+  if (!figure || figure.empty) {
+    Plotly.purge(plot);
+    plot.textContent = '';
+    const note = document.createElement('p');
+    note.className = 'empty';
+    note.textContent = figure && figure.empty ? figure.empty : 'Nothing to show for this selection.';
+    plot.appendChild(note);
+    caption.textContent = '';
+    renderTable(card, null);
+    return;
+  }
+
+  plot.querySelectorAll(':scope > .empty').forEach((note) => note.remove());
+  if (!showTable) Plotly.react(plot, figure.data, figure.layout, PLOT_CONFIG);
+  renderTable(card, figure.table);
+  caption.textContent = figure.caption || '';
+}
+
+function render() {
+  syncControls();
+  for (const card of CARDS) renderCard(card);
+  writeHash();
+}
+
+/* --------------------------------------------------------------- controls */
+
+function syncControls() {
+  for (const button of document.querySelectorAll('[data-set]')) {
+    const [key, value] = button.dataset.set.split(':');
+    const current = String(state[key]);
+    button.setAttribute('aria-pressed', current === value ? 'true' : 'false');
+  }
+  // Latency is only a latency when exactly one request is in flight.
+  const latency = document.querySelector('[data-set="metric:lat"]');
+  if (latency) {
+    const allowed = state.mode === 'sync';
+    latency.disabled = !allowed;
+    latency.title = allowed ? 'Microseconds per operation'
+      : 'Only meaningful in sync mode — async pipelines 32 requests, so the reciprocal is not a round trip.';
+    if (!allowed && state.metric === 'lat') state.metric = 'ops';
+  }
+  const whisker = document.querySelector('[data-toggle="whiskers"]');
+  if (whisker) whisker.setAttribute('aria-pressed', state.whiskers ? 'true' : 'false');
+  for (const chip of document.querySelectorAll('[data-pair]')) {
+    const shown = !state.hidden.includes(chip.dataset.pair);
+    chip.setAttribute('aria-pressed', shown ? 'true' : 'false');
+    chip.querySelector('.sw').style.background = shown ? hue(chip.dataset.pair) : 'transparent';
+  }
+  for (const [key, spec] of Object.entries(RATIO_SPECS)) {
+    const button = document.querySelector('[data-set="ratio:' + key + '"]');
+    if (button) button.disabled = !spec.need();
+  }
+}
+
+function wire() {
+  document.addEventListener('click', (event) => {
+    const setter = event.target.closest('[data-set]');
+    if (setter && !setter.disabled) {
+      const [key, value] = setter.dataset.set.split(':');
+      state[key] = key === 'n' ? parseInt(value, 10) : value;
+      render();
+      return;
+    }
+    const toggle = event.target.closest('[data-toggle]');
+    if (toggle) {
+      state[toggle.dataset.toggle] = !state[toggle.dataset.toggle];
+      render();
+      return;
+    }
+    const chip = event.target.closest('[data-pair]');
+    if (chip) {
+      const pair = chip.dataset.pair;
+      const position = state.hidden.indexOf(pair);
+      if (position >= 0) state.hidden.splice(position, 1); else state.hidden.push(pair);
+      render();
+      return;
+    }
+    const preset = event.target.closest('[data-preset]');
+    if (preset) {
+      const keep = {
+        all: () => SERIES.map((s) => s.pair),
+        self: () => SERIES.filter((s) => s.client === s.server).map((s) => s.pair),
+        client: () => SERIES.filter((s) => s.server === 'open62541').map((s) => s.pair),
+        server: () => SERIES.filter((s) => s.client === 'open62541').map((s) => s.pair),
+      }[preset.dataset.preset]();
+      state.hidden = SERIES.map((s) => s.pair).filter((p) => !keep.includes(p));
+      render();
+      return;
+    }
+    const tableButton = event.target.closest('[data-table]');
+    if (tableButton) {
+      const id = tableButton.dataset.table;
+      if (tableOpen.has(id)) tableOpen.delete(id); else tableOpen.add(id);
+      tableButton.setAttribute('aria-pressed', tableOpen.has(id) ? 'true' : 'false');
+      renderCard(CARDS.find((c) => c.id === id));
+      return;
+    }
+    const themeButton = event.target.closest('[data-themetoggle]');
+    if (themeButton) {
+      const next = activeTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      themeButton.textContent = next === 'dark' ? 'Light theme' : 'Dark theme';
+      render();
+    }
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!document.documentElement.getAttribute('data-theme')) render();
+  });
+}
+
+readHash();
+wire();
+render();
+</script>
+</body>
+</html>
