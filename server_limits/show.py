@@ -727,7 +727,12 @@ CONTROLLER = r"""
         // apart, so "280,805" claims five digits of precision the measurement
         // does not have; three is already generous. The hover keeps the figure
         // the rest of the report uses.
-        text: rows.map((r) => roughly(r.peakOpsPerSecond)),
+        // and how many times slower than the best of the run each server is.
+        text: rows.map((r) => {
+          const best = Math.max(...rows.map((x) => x.peakOpsPerSecond));
+          const times = best / r.peakOpsPerSecond;
+          return roughly(r.peakOpsPerSecond) + (times >= 1.05 ? "  ·  ×" + times.toFixed(1) + " slower" : "");
+        }),
         textposition: "outside", cliponaxis: false,
         outsidetextfont: { color: t.primary, size: 15 },
         customdata: rows.map((r) => [
@@ -739,7 +744,7 @@ CONTROLLER = r"""
           + "<extra></extra>",
       }],
       layout: Object.assign(base(), {
-        margin: { l: 12, r: 120, t: 6, b: 46 },
+        margin: { l: 12, r: 210, t: 6, b: 46 },
         // tozero so the bars start at nothing and their lengths can be compared
         // by eye, which is the entire job of this card.
         xaxis: axis({ rangemode: "tozero", tickformat: ",",

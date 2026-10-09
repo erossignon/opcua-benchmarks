@@ -812,7 +812,12 @@ function chartRanking() {
 
     },
     width: rows.map(() => 0.5),
-    text: values.map(fmtValue),
+    // Each bar also says how many times slower than the fastest of the slice it is.
+    text: values.map((value) => {
+      const best = isLatency() ? Math.min(...values) : Math.max(...values);
+      const times = isLatency() ? value / best : best / value;
+      return best > 0 && value > 0 && times >= 1.05 ? fmtValue(value) + '  ·  ×' + times.toFixed(1) + ' slower' : fmtValue(value);
+    }),
     textposition: 'outside',
     cliponaxis: false,
     textfont: { color: tokens().secondary, size: 11.5 },
@@ -836,13 +841,13 @@ function chartRanking() {
   const top = Math.max(...bands.map((b) => b[2]));
   const layout = layoutFor({
     height: rows.length * 46 + 74,
-    margin: { l: 8, r: 96, t: 10, b: 42 },
+    margin: { l: 8, r: 150, t: 10, b: 42 },
     xaxis: {
       type: log ? 'log' : 'linear',
       title: { text: unitLabel() + (log ? ' (log scale — bar length is not proportional)' : '') },
       tickformat: state.scale === 'rel' ? '' : '~s',
       rangemode: 'tozero',
-      range: log ? undefined : [0, top * 1.16],
+      range: log ? undefined : [0, top * 1.3],
     },
     yaxis: { showgrid: false, ticksuffix: '  ', automargin: true },
   });
