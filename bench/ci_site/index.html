@@ -48,6 +48,7 @@
   before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
 
   <div class="controls">
+    <label>Machine <select id="machine"></select></label>
     <label>Profile <select id="profile"></select></label>
     <label>Suite <select id="suite"></select></label>
     <label>Case <select id="case"></select></label>
@@ -76,8 +77,11 @@ function options(select, values, keep) {
   if (values.includes(previous)) select.value = previous;
 }
 
+// Trends only compare runs of one machine (the runner label): hosted runs change hardware.
+const machine = (run) => run.runner?.label || "unknown";
+
 function runsOfProfile() {
-  return history.filter((run) => run.profile === $("profile").value);
+  return history.filter((run) => run.profile === $("profile").value && machine(run) === $("machine").value);
 }
 
 function value(run, suite, kase, server) {
@@ -161,7 +165,7 @@ function drawLatest(runs, suite, kase, servers, metric) {
 
 function drawRuns() {
   const rows = [...history].reverse().map((run, index, all) => {
-    const older = all.slice(index + 1).find((r) => r.profile === run.profile);
+    const older = all.slice(index + 1).find((r) => r.profile === run.profile && machine(r) === machine(run));
     const changed = Object.entries(run.versions ?? {})
       .filter(([sdk, v]) => older && older.versions?.[sdk] !== v)
       .map(([sdk, v]) => `${escape(sdk)} ${escape(v)}`).join(", ");
@@ -184,9 +188,12 @@ async function main() {
     $("chart").innerHTML = '<div class="empty">No published run yet.</div>';
     return;
   }
-  options($("profile"), [...new Set(history.map((r) => r.profile))].sort(), history[history.length - 1].profile);
+  const last = history[history.length - 1];
+  options($("machine"), [...new Set(history.map(machine))].sort(), machine(last));
+  options($("profile"), [...new Set(history.map((r) => r.profile))].sort(), last.profile);
   refreshSelectors();
   $("profile").onchange = () => { refreshSelectors(); draw(); };
+  $("machine").onchange = () => { refreshSelectors(); draw(); };
   $("suite").onchange = () => { refreshSelectors(); draw(); };
   $("case").onchange = draw;
   $("relative").onchange = draw;

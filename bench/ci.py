@@ -223,10 +223,15 @@ def compare(entry: dict, history: list[dict], threshold: float = 0.10) -> str:
     Ratios to the open62541 server of the same run are shown too: on shared
     runners they move less than raw numbers when the machine changes.
     """
-    previous = next((run for run in reversed(history) if run.get("profile") == entry["profile"]), None)
+    # Same profile and same machine (runner label): hosted runners change hardware between runs.
+    label = entry["runner"].get("label")
+    previous = next(
+        (run for run in reversed(history) if run.get("profile") == entry["profile"] and run["runner"].get("label") == label),
+        None,
+    )
     lines = [f"### Benchmarks: {entry['profile']} profile, {len(entry['metrics'])} measurements, {entry['failures']} failures", ""]
     if previous is None:
-        lines.append("No published run of this profile yet: nothing to compare with.")
+        lines.append(f"No published run of this profile on {label} yet: nothing to compare with.")
     else:
         lines.append(f"Compared with [{previous['id']}]({previous.get('url') or ''}) on {previous['runner'].get('cpu')}.")
     lines += ["", "| suite | case | server | version | value | previous | change | vs open62541 | previous |", "|" + " --- |" * 9]
