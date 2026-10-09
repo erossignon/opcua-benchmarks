@@ -50,5 +50,10 @@
   "node-opcua-fronts": {
     "sdk": "node-opcua FrontThreadEngine, the package of common/node/toolchain.json",
     "runtime": "node, as common/node/toolchain.json"
+  },
+  "node-opcua-fronts-2": {
+    "sdk": "node-opcua FrontThreadEngine, the package of common/node/toolchain.json",
+    "runtime": "node, as common/node/toolchain.json",
+    "fronts": 2
   }
 }

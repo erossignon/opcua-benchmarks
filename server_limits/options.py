@@ -18,7 +18,8 @@ from common.suites import (
 
 
 _IMPLEMENTATIONS: tuple[str, ...] = (
-    "open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "milo", "s2opc", "gopcua", "node-opcua-fronts"
+    "open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "milo", "s2opc", "gopcua", "node-opcua-fronts",
+    "node-opcua-fronts-2",
 )
 _MIN_SAMPLES = 7
 _SAMPLES_DEFAULT = 7

@@ -56,6 +56,8 @@ SDKS: dict[str, Sdk] = {
         # The stock node-opcua package served by FrontThreadEngine: one front thread per CPU
         # of the server's share but one, left to the engine (common/node-fronts/server.mjs).
         Sdk("node-opcua-fronts", "node-opcua fronts (Node.js, CPU-1 threads)", ROOT / "common/node-fronts", True),
+        # The same with exactly 2 fronts, whatever the share: compares the front count.
+        Sdk("node-opcua-fronts-2", "node-opcua fronts (Node.js, 2 threads)", ROOT / "common/node-fronts", True),
     )
 }
 NAMES: tuple[str, ...] = tuple(SDKS)
@@ -67,7 +69,10 @@ COLORS: dict[str, tuple[str, str]] = {
     "s2opc": ("#eda100", "#c98500"),
     "gopcua": ("#4a3aa7", "#9085e9"),
     "node-opcua-fronts": ("#008300", "#5fb85f"),
+    "node-opcua-fronts-2": ("#7a5c00", "#c9a640"),
 }
+# Fixed front counts of the node-opcua-fronts flavours; absent: CPU-1.
+NODE_FRONTS = {"node-opcua-fronts-2": 2}
 
 
 def _memory_share(memory_bytes: int) -> int:
@@ -78,10 +83,13 @@ def _memory_share(memory_bytes: int) -> int:
 
 def environment(name: str, memory_bytes: int = 0, base: dict[str, str] | None = None) -> dict[str, str]:
     """Remove ambient runtime tuning and point each toolchain at its pinned state."""
-    if name == "node-opcua-fronts":
+    if name.startswith("node-opcua-fronts"):
         from common import node_workers
 
         env = node_workers.environment(base)
+        env.pop("O6_NODE_FRONTS", None)
+        if name in NODE_FRONTS:
+            env["O6_NODE_FRONTS"] = str(NODE_FRONTS[name])
         # The stock worker's security module wants a runner-owned PKI root; not every suite sets one.
         env.setdefault("O6_BENCHMARK_PKI_ROOT", tempfile.mkdtemp(prefix="o6-node-fronts-pki-"))
         return env
@@ -108,7 +116,7 @@ def command(name: str, memory_bytes: int = 0) -> list[str]:
             f"{sdk.output / 'server.jar'}{os.pathsep}{sdk.output / 'lib'}/*",
             "o6.benchmark.BenchmarkServer",
         ]
-    if name == "node-opcua-fronts":
+    if name.startswith("node-opcua-fronts"):
         from common import node_workers
 
         heap = [f"--max-old-space-size={max(256, _memory_share(memory_bytes) // 2 // 1024**2)}"] if memory_bytes else []
@@ -133,7 +141,7 @@ def input_fingerprint(name: str) -> str:
     sdk = SDKS[name]
     digest = hashlib.sha256(json.dumps(PINS[name], sort_keys=True).encode())
     files = [Path(__file__), ROOT / "bench/build_sdks.py", ROOT / "common/contract.h"]
-    if name == "node-opcua-fronts":
+    if name.startswith("node-opcua-fronts"):
         # it runs on the stock worker's helper modules and locked package
         files += list((ROOT / "common/node").glob("*.mjs")) + [ROOT / "common/node/package-lock.json"]
     files += [

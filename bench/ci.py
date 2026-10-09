@@ -23,10 +23,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ALL_SERVERS = (
-    "open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "node-opcua-fronts", "milo", "s2opc", "gopcua"
+    "open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "node-opcua-fronts", "node-opcua-fronts-2", "milo", "s2opc", "gopcua"
 )
 # Flavours of one SDK: same package, so same version as the SDK they run.
-FLAVOURS = {"node-opcua-fronts": "node-opcua"}
+FLAVOURS = {"node-opcua-fronts": "node-opcua", "node-opcua-fronts-2": "node-opcua"}
 # The subscription suite needs a client in the SDK, which the server-only workers lack.
 SUBSCRIPTION_SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet")
 
@@ -41,7 +41,8 @@ PROFILES: dict[str, dict[str, tuple[dict[str, list[str]], list[str]]]] = {
             {
                 "operation": ["read", "write"],
                 "mode": ["sync", "async"],
-                "clients": ["1"],
+                # 3 clients too: one connection uses one front, so only several show the fronts.
+                "clients": ["1", "3"],
                 "payload": ["scalar", "batch:100"],
                 "security": ["None"],
                 "warmup": ["20000"],

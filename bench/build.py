@@ -48,6 +48,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         ("s2opc", "S2OPC (pinned mbedtls and expat)"),
         ("gopcua", "gopcua (pinned Go)"),
         ("node-opcua-fronts", "node-opcua with CPU-1 front threads (needs --node)"),
+        ("node-opcua-fronts-2", "node-opcua with 2 front threads (needs --node)"),
     ):
         parser.add_argument(f"--{name}", action="store_true", help=f"also build the optional {label} server")
     return parser.parse_args(argv)
