@@ -7,8 +7,6 @@ name: benchmarks
 # - on demand, on any branch (sdk-watch dispatches its bump branches here).
 
 on:
-  push:  # TEMPORARY: development on the fork, removed before the PR
-    branches: [ci/benchmarks]
   workflow_dispatch:
     inputs:
       profile:
@@ -30,18 +28,17 @@ on:
         default: true
   schedule:
     - cron: "23 2 * * 0"
-  # TODO before the PR: restore the push trigger below (default branch, pinned SDK versions).
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - requirements.txt
-  #     - common/node/package.json
-  #     - common/milo/pom.xml
-  #     - common/gopcua/go.mod
-  #     - common/sdk_toolchains.json
-  #     - common/dotnet/toolchain.json
-  #     - deps/open62541
-  #     - deps/ua-dotnet
+  push:
+    branches: [main]
+    paths:
+      - requirements.txt
+      - common/node/package.json
+      - common/milo/pom.xml
+      - common/gopcua/go.mod
+      - common/sdk_toolchains.json
+      - common/dotnet/toolchain.json
+      - deps/open62541
+      - deps/ua-dotnet
 
 permissions:
   contents: read
@@ -61,8 +58,7 @@ jobs:
     env:
       PROFILE: ${{ inputs.profile || (github.event_name == 'schedule' && 'standard') || 'quick' }}
       BENCH_SERVERS: ${{ inputs.servers }}
-      # TEMPORARY: the ci/benchmarks clause publishes the development runs on the fork.
-      PUBLISH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish) || (github.event_name != 'workflow_dispatch' && (github.ref_name == github.event.repository.default_branch || github.ref_name == 'ci/benchmarks')) }}
+      PUBLISH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish) || (github.event_name != 'workflow_dispatch' && github.ref_name == github.event.repository.default_branch) }}
       RUNNER_LABEL: ${{ inputs.runner || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
