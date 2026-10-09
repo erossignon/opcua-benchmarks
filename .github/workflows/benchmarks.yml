@@ -22,9 +22,9 @@ on:
         type: string
         default: ""
       runner:
-        description: "runs-on label: a GitHub-hosted image, or self-hosted for a dedicated machine"
+        description: "runs-on label (empty: the BENCH_RUNNER repository variable, else ubuntu-24.04)"
         type: string
-        default: ubuntu-24.04
+        default: ""
       publish:
         description: "Publish the report and add the run to the history on GitHub Pages"
         type: boolean
@@ -76,27 +76,35 @@ jobs:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.plan.outputs.suites) }}
-    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
+    # A repository variable picks the machine of scheduled and push runs: a dedicated
+    # self-hosted runner gives numbers comparable from one run to the next.
+    runs-on: ${{ inputs.runner || vars.BENCH_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 350
     env:
       BENCH_SERVERS: ${{ inputs.servers }}
-      RUNNER_LABEL: ${{ inputs.runner || 'ubuntu-24.04' }}
+      RUNNER_LABEL: ${{ inputs.runner || vars.BENCH_RUNNER || 'ubuntu-24.04' }}
       OUT: results/${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          # A self-hosted machine keeps its pinned toolchains and builds (ignored files)
+          # between runs; the build's preflight rebuilds whatever a pin change made stale.
+          clean: ${{ runner.environment == 'github-hosted' }}
 
+      # A self-hosted machine brings its own Python 3.11+ and build tools (docs/self-hosted-runner.md).
       - uses: actions/setup-python@v5
+        if: runner.environment == 'github-hosted'
         with:
           python-version: "3.12"
 
       - name: System packages
+        if: runner.environment == 'github-hosted'
         run: sudo apt-get update -q && sudo apt-get install -yq build-essential cmake libssl-dev
 
       - name: Python environment
         run: |
-          python -m venv .venv
+          python3 -m venv --clear .venv
           .venv/bin/python -m pip install -q -r requirements.txt
 
       - name: Build workers
@@ -104,6 +112,7 @@ jobs:
 
       - name: Run ${{ matrix.suite }}
         run: |
+          rm -rf "$OUT"  # a self-hosted machine keeps the previous run's results
           servers=${BENCH_SERVERS:-}
           .venv/bin/python -m bench.ci run "$OUT/bench.db" --profile "$PROFILE" --suite "${{ matrix.suite }}" ${servers:+--servers "$servers"}
 

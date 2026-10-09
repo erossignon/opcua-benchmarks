@@ -112,7 +112,8 @@ The `quick` profile measures scalar and batch:100 Read/Write and server capacity
 `standard` adds encryption, three clients, larger payloads, server limits and
 subscriptions. GitHub-hosted runners change from one run to the next (CPU model, shared host):
 read changes relative to the open62541 server of the same run, or point the
-`runner` input at a dedicated self-hosted machine for numbers comparable across runs.
+`runner` input (or the `BENCH_RUNNER` repository variable) at a dedicated self-hosted
+machine for numbers comparable across runs: see [docs/self-hosted-runner.md](docs/self-hosted-runner.md).
 
 ## Copyright
 

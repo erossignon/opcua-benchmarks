@@ -44,7 +44,8 @@ class Sdk:
 
     @property
     def output(self) -> Path:
-        return self.source / "build"
+        # Flavours sharing one source folder each keep their own build and provenance.
+        return self.source / "build" if self.source.name == self.name else self.source / "build" / self.name
 
 
 SDKS: dict[str, Sdk] = {
