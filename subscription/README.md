@@ -19,6 +19,10 @@ or narrow the implementation list. Use `config bench.db --help` for all settings
 
 ## Measurement
 
+The client runs on one physical core (its hyperthread siblings stay idle) and the
+server on every other CPU, for every SDK: a server that uses several threads (the
+node-opcua fronts, .NET, the JVM) can use them, a single-threaded one cannot.
+
 The `client` observer measures the latest counter delivered to the client.
 The `server` observer counts read-callback increments (completed application
 updates for asyncua). These observers run as separate searches. Callback-driven

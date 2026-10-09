@@ -144,7 +144,13 @@ def commands(case, port):
 
 
 def affinity():
-    """Select two different physical cores, retaining explicit inherited evidence if unavailable."""
+    """The client on one physical core, the server on every other CPU.
+
+    The client keeps a whole physical core (its hyperthread siblings stay idle) so that
+    nothing of the server shares its execution units; the server gets the rest, so an SDK
+    that runs on several threads can use them. Without topology, or with one core, both
+    keep the inherited set.
+    """
     allowed = sorted(os.sched_getaffinity(0))
     cores = {}
     for cpu in allowed:
@@ -153,11 +159,11 @@ def affinity():
             key = ((path / "physical_package_id").read_text(), (path / "core_id").read_text())
         except OSError:
             return allowed, allowed
-        cores.setdefault(key, cpu)
+        cores.setdefault(key, []).append(cpu)
     if len(cores) < 2:
         return allowed, allowed
-    first, second = list(cores.values())[:2]
-    return [first], [second]
+    client_core = list(cores.values())[-1]
+    return [cpu for cpu in allowed if cpu not in client_core], [client_core[0]]
 
 
 def fingerprint():
