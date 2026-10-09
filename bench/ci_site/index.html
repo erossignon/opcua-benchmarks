@@ -46,7 +46,7 @@
   <h1>OPC UA benchmark history</h1>
   <p class="lede">Every published CI run of the benchmark suites, one point per run, per machine.
   Hosted runners change hardware from run to run, which moves every SDK at once: compare SDKs within a
-  run (the standing table: rank, share of the fastest, ×slower) or with <em>relative to open62541</em>
+  run (the standing table: rank, share of the fastest, ×slower) or with <em>Relative to</em> an SDK of the same run
   before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
 
   <div class="controls">
@@ -54,7 +54,7 @@
     <label>Profile <select id="profile"></select></label>
     <label>Suite <select id="suite"></select></label>
     <label>Case <select id="case"></select></label>
-    <label class="check"><input type="checkbox" id="relative"> relative to open62541</label>
+    <label>Relative to <select id="relative"></select></label>
   </div>
   <div id="chart"></div>
 
@@ -65,7 +65,9 @@
   <div class="scroll"><table id="runs"></table></div>
 </main>
 <script>
-const REFERENCE = "open62541";
+// "×1.2" for 1.2 times the reference SDK, "1/2.3" for 2.3 times less (higher is better).
+const short = (x) => x.toFixed(x >= 10 ? 0 : 1).replace(/\.0$/, "");
+const fmtRatio = (r) => r == null ? "–" : r >= 1 ? `×${short(r)}` : `1/${short(1 / r)}`;
 const THRESHOLD = 0.10;
 const $ = (id) => document.getElementById(id);
 const fmt = (v) => v == null ? "–" : (Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : v.toPrecision(3));
@@ -89,9 +91,12 @@ function runsOfProfile() {
 function value(run, suite, kase, server) {
   const m = run.metrics.find((x) => x.suite === suite && x.case === kase && x.server === server);
   if (!m) return null;
-  if (!$("relative").checked) return m.value;
-  const ref = run.metrics.find((x) => x.suite === suite && x.case === kase && x.server === REFERENCE);
-  return ref && ref.value ? m.value / ref.value : null;
+  const reference = $("relative").value;
+  if (!reference) return m.value;
+  const ref = run.metrics.find((x) => x.suite === suite && x.case === kase && x.server === reference);
+  if (!ref || !ref.value || !m.value) return null;
+  // Above 1: better than the reference, whichever way the metric goes.
+  return m.higher_is_better === false ? ref.value / m.value : m.value / ref.value;
 }
 
 function refreshSelectors() {
@@ -100,6 +105,10 @@ function refreshSelectors() {
   options($("suite"), suites);
   const cases = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === $("suite").value).map((m) => m.case)))].sort();
   options($("case"), cases);
+  const servers = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === $("suite").value && m.case === $("case").value).map((m) => m.server)))].sort();
+  const relative = $("relative"), keep = relative.value;
+  relative.innerHTML = `<option value="">nothing (absolute values)</option>` + servers.map((s) => `<option>${escape(s)}</option>`).join("");
+  relative.value = servers.includes(keep) ? keep : "";
 }
 
 function draw() {
@@ -108,6 +117,7 @@ function draw() {
   const metric = runs.flatMap((r) => r.metrics).find((m) => m.suite === suite && m.case === kase);
   const servers = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === suite && m.case === kase).map((m) => m.server)))].sort();
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const reference = $("relative").value;
   const traces = servers.map((server) => {
     let lastVersion;
     const points = runs.map((run) => {
@@ -120,24 +130,33 @@ function draw() {
       name: server, mode: "lines+markers", type: "scatter", connectgaps: false,
       x: points.map((p) => p.x), y: points.map((p) => p.y),
       marker: { size: points.map((p) => (p.changed ? 12 : 6)), symbol: points.map((p) => (p.changed ? "diamond" : "circle")) },
-      text: points.map((p) => `${server} ${p.version ?? ""}<br>${p.id}`),
-      hovertemplate: "%{text}<br>%{y:.4~s}<extra></extra>",
+      text: points.map((p) => `${server} ${p.version ?? ""}<br>${p.id}<br>${reference ? `${fmtRatio(p.y)} ${escape(reference)}` : fmt(p.y)}`),
+      hovertemplate: "%{text}<extra></extra>",
     };
   });
-  const unit = $("relative").checked ? `× ${REFERENCE}` : (metric?.unit ?? "");
+  const unit = reference ? `relative to ${reference}` : (metric?.unit ?? "");
   const fg = dark ? "#ecebe6" : "#1d1d1b", grid = dark ? "#2f2f2c" : "#e2e1dc";
   const layout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: fg },
     margin: { l: 64, r: 16, t: 16, b: 48 }, legend: { orientation: "h", y: -0.18 },
     xaxis: { gridcolor: grid }, yaxis: { title: unit, gridcolor: grid, rangemode: "tozero" },
   };
+  if (reference) {
+    // Log scale: ×2 and 1/2 sit at the same distance from the reference line.
+    const ys = traces.flatMap((t) => t.y).filter((y) => y > 0);
+    const lo = Math.floor(Math.log2(Math.min(1, ...ys))), hi = Math.ceil(Math.log2(Math.max(1, ...ys)));
+    const ticks = Array.from({ length: hi - lo + 1 }, (_, i) => 2 ** (lo + i));
+    layout.yaxis = { title: unit, gridcolor: grid, type: "log", tickvals: ticks, ticktext: ticks.map(fmtRatio),
+      range: [Math.log10(2 ** lo) - 0.05, Math.log10(2 ** hi) + 0.05] };
+    layout.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 1, y1: 1, line: { color: fg, width: 1, dash: "dot" } }];
+  }
   if (runs.length < 2) {
     // One run is no trend yet: show it as bars, fastest first.
     const ranked = traces.map((t) => ({ name: t.name, y: t.y[0], text: t.text[0] }))
       .filter((t) => t.y != null).sort((a, b) => b.y - a.y);
     Plotly.react("chart", [{
       type: "bar", x: ranked.map((t) => t.name), y: ranked.map((t) => t.y), hovertext: ranked.map((t) => t.text),
-      hovertemplate: "%{hovertext}<br>%{y:.4~s}<extra></extra>", marker: { color: dark ? "#7aa2f7" : "#2457c5" },
+      hovertemplate: "%{hovertext}<extra></extra>", marker: { color: dark ? "#7aa2f7" : "#2457c5" },
     }], { ...layout, showlegend: false, xaxis: { gridcolor: grid, title: `${runs[0]?.id ?? ""}: one run, no trend yet` } },
     { responsive: true, displaylogo: false });
   } else {
@@ -222,8 +241,8 @@ async function main() {
   $("profile").onchange = () => { refreshSelectors(); draw(); };
   $("machine").onchange = () => { refreshSelectors(); draw(); };
   $("suite").onchange = () => { refreshSelectors(); draw(); };
-  $("case").onchange = draw;
   $("relative").onchange = draw;
+  $("case").onchange = () => { refreshSelectors(); draw(); };
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
   draw();
   drawRuns();
