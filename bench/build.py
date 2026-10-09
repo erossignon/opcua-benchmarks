@@ -42,11 +42,12 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         "--dotnet", action="store_true", help="also bootstrap the local pinned SDK and build .NET workers in Release"
     )
     parser.add_argument("--node", action="store_true", help="also bootstrap pinned Node.js and the public node-opcua package")
-    parser.add_argument("--sdks", action="store_true", help="also build all four optional servers below")
+    parser.add_argument("--sdks", action="store_true", help="also build all the optional servers below")
     for name, label in (
         ("milo", "Eclipse Milo (pinned JDK and Maven)"),
         ("s2opc", "S2OPC (pinned mbedtls and expat)"),
         ("gopcua", "gopcua (pinned Go)"),
+        ("node-opcua-fronts", "node-opcua with CPU-1 front threads (needs --node)"),
     ):
         parser.add_argument(f"--{name}", action="store_true", help=f"also build the optional {label} server")
     return parser.parse_args(argv)

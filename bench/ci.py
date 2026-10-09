@@ -22,13 +22,19 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-ALL_SERVERS = ("open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "milo", "s2opc", "gopcua")
+ALL_SERVERS = (
+    "open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua", "node-opcua-fronts", "milo", "s2opc", "gopcua"
+)
+# Flavours of one SDK: same package, so same version as the SDK they run.
+FLAVOURS = {"node-opcua-fronts": "node-opcua"}
 # The subscription suite needs a client in the SDK, which the server-only workers lack.
 SUBSCRIPTION_SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet")
 
 # Each profile: suite -> (option settings, sample command arguments).
-# JIT servers (node-opcua, .NET, Java) need thousands of calls to reach a
-# steady state, so warmup stays high even in the quick profile.
+# JIT servers (node-opcua, .NET, Java) need thousands of calls to reach a steady
+# state: from cold, node-opcua 2.187 single thread plateaus after about 15,000
+# synchronous Reads and with fronts after about 7,000 (Node.js client, so an upper
+# bound). Every SDK gets the same warmup, in both profiles.
 PROFILES: dict[str, dict[str, tuple[dict[str, list[str]], list[str]]]] = {
     "quick": {
         "throughput": (
@@ -38,14 +44,14 @@ PROFILES: dict[str, dict[str, tuple[dict[str, list[str]], list[str]]]] = {
                 "clients": ["1"],
                 "payload": ["scalar", "batch:100"],
                 "security": ["None"],
-                "warmup": ["3000"],
+                "warmup": ["20000"],
                 "iterations": ["5000"],
                 "max_values": ["300000"],
             },
             ["1"],
         ),
-        # The default 90 s budget: node-opcua needed more than 45 s on a hosted runner.
-        "server_capacity": ({"budget_seconds": ["90"], "max_clients": ["8"]}, ["3"]),
+        # 2 s of warmup per probe; the budget pays for it (node-opcua needed more than 45 s at 0.5 s).
+        "server_capacity": ({"warmup_ms": ["2000"], "budget_seconds": ["120"], "max_clients": ["8"]}, ["3"]),
     },
     "standard": {
         "throughput": (
@@ -55,15 +61,15 @@ PROFILES: dict[str, dict[str, tuple[dict[str, list[str]], list[str]]]] = {
                 "clients": ["1", "3"],
                 "payload": ["scalar", "batch:100", "batch:1000", "array:1000"],
                 "security": ["None", "Basic256Sha256"],
-                "warmup": ["3000"],
+                "warmup": ["20000"],
                 "iterations": ["5000"],
                 "max_values": ["2000000"],
             },
             ["1"],
         ),
-        "server_capacity": ({"budget_seconds": ["90"], "max_clients": ["16"]}, ["3"]),
+        "server_capacity": ({"warmup_ms": ["2000"], "budget_seconds": ["120"], "max_clients": ["16"]}, ["3"]),
         "server_limits": (
-            {"step_seconds": ["5"], "max_clients": ["32"], "max_outstanding": ["64"]},
+            {"step_seconds": ["5"], "warmup_seconds": ["3"], "max_clients": ["32"], "max_outstanding": ["64"]},
             ["7"],
         ),
         "subscription": (
@@ -201,7 +207,10 @@ def summary(database: Path, profile: str, name: str) -> dict:
             cores=os.cpu_count(),
             memory_gb=round(memory / 2**30, 1) if memory else None,
         ),
-        versions={sdk_name: sdk.pinned() for sdk_name, sdk in SDKS.items()},
+        versions={
+            **{sdk_name: sdk.pinned() for sdk_name, sdk in SDKS.items()},
+            **{flavour: SDKS[sdk].pinned() for flavour, sdk in FLAVOURS.items()},
+        },
         failures=failures,
         metrics=sorted(metrics, key=lambda m: (m["suite"], m["case"], m["server"])),
     )

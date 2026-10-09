@@ -4,7 +4,7 @@ from common.suites import ConfigOption, one_of, uniform, varying, whole_number
 
 DEFAULT_IMPLEMENTATIONS = ("open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua")
 # The optional server-only SDKs (common/sdk_workers.py) are opt-in.
-IMPLEMENTATIONS = DEFAULT_IMPLEMENTATIONS + ("milo", "s2opc", "gopcua")
+IMPLEMENTATIONS = DEFAULT_IMPLEMENTATIONS + ("milo", "s2opc", "gopcua", "node-opcua-fronts")
 
 OPTIONS = {
     "implementation": ConfigOption(
