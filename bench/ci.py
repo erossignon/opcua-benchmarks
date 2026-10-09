@@ -279,11 +279,11 @@ def compare(entry: dict, history: list[dict], threshold: float = 0.10) -> str:
                 + (f"#{old_rank} → " if old_rank else "")
                 + f"**#{rank}** | {move} | "
                 + (f"{old_share:.0%} → " if old_share is not None else "")
-                + f"{share:.0%}{flag} | {metrics[server]['value']:,.0f} |"
+                + f"{share:.0%}{flag} (×{1 / share:.1f}) | {metrics[server]['value']:,.0f} |"
             )
     if previous is not None:
         lines += ["", "**Places changed:** " + ("; ".join(moves) if moves else "none.")]
-    lines += ["", "| suite | case | server | version | rank | places | share of the fastest | value |", "|" + " --- |" * 8]
+    lines += ["", "| suite | case | server | version | rank | places | share of the fastest (×slower) | value |", "|" + " --- |" * 8]
     return "\n".join(lines + rows) + "\n"
 
 

@@ -44,9 +44,9 @@
 <body>
 <main>
   <h1>OPC UA benchmark history</h1>
-  <p class="lede">Every published CI run of the benchmark suites, one point per run. Runs on shared
-  GitHub-hosted machines change from one run to the next: compare against the
-  <em>relative to open62541</em> view, which divides by the open62541 server measured in the same run,
+  <p class="lede">Every published CI run of the benchmark suites, one point per run, per machine.
+  Hosted runners change hardware from run to run, which moves every SDK at once: compare SDKs within a
+  run (the standing table: rank, share of the fastest, ×slower) or with <em>relative to open62541</em>
   before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
 
   <div class="controls">
@@ -181,13 +181,13 @@ function drawLatest(runs, suite, kase, servers, metric) {
     const shareClass = shareDelta == null ? "" : shareDelta > THRESHOLD ? "up" : shareDelta < -THRESHOLD ? "down" : "";
     return `<tr><td>${escape(server)}</td><td>${versionCell}</td>
       <td class="num">${b ? `#${b.rank}` : "–"} → <strong>#${n?.rank ?? "–"}</strong></td><td class="num">${move}</td>
-      <td class="num">${pct(b?.share)} → <span class="${shareClass}">${pct(n?.share)}</span></td>
+      <td class="num">${pct(b?.share)} → <span class="${shareClass}">${pct(n?.share)}</span> <span class="muted">${n?.share ? `(×${(1 / n.share).toFixed(1)})` : ""}</span></td>
       <td class="num muted">${fmt(n?.value)}</td></tr>`;
   });
   const cpu = (run) => run?.suites?.[suite]?.runner?.cpu ?? run?.runner?.cpu;
   const note = prev && cpu(prev) !== cpu(last)
     ? `<caption>Different CPUs (${escape(cpu(prev))} → ${escape(cpu(last))}): read ranks and shares, not raw values.</caption>` : "";
-  table.innerHTML = `${note}<tr><th>Server</th><th>Version</th><th>Rank</th><th>Places</th><th>Share of the fastest</th><th>Latest value</th></tr>${rows.join("")}`;
+  table.innerHTML = `${note}<tr><th>Server</th><th>Version</th><th>Rank</th><th>Places</th><th>Share of the fastest (×slower)</th><th>Latest value</th></tr>${rows.join("")}`;
 }
 
 function drawRuns() {
