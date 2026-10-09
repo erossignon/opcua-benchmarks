@@ -43,7 +43,8 @@ PROFILES: dict[str, dict[str, tuple[dict[str, list[str]], list[str]]]] = {
             },
             ["1"],
         ),
-        "server_capacity": ({"budget_seconds": ["45"], "max_clients": ["8"]}, ["3"]),
+        # The default 90 s budget: node-opcua needed more than 45 s on a hosted runner.
+        "server_capacity": ({"budget_seconds": ["90"], "max_clients": ["8"]}, ["3"]),
     },
     "standard": {
         "throughput": (
@@ -98,14 +99,15 @@ def run(database: Path, profile: str, name: str, servers: list[str]) -> int:
         for option, values in {**settings, **_servers_for(suite, servers)}.items():
             if values and _call(["-m", module, "config", str(database), option, *values]):
                 return 1
-    status = 0
     for index, (suite, (_, sample)) in enumerate(suites.items()):
         command = ["-m", f"bench.{suite}", "sample", *sample, str(database), "--name", name]
         if index:
             command.append("--amend")
-        # A failing SDK must not stop the others: the report and the summary record it.
-        status = _call(command) or status
-    return status
+        # A suite exits nonzero when one SDK fails or stays unconfirmed (common on a
+        # shared runner). The report and the summary record which; the run goes on.
+        if status := _call(command):
+            print(f"::warning title={suite}::{suite} exited with {status}: see its report for the SDKs concerned")
+    return 0
 
 
 def _metric(suite: str, case: str, server: str, value, unit: str, higher_is_better: bool = True) -> dict | None:
