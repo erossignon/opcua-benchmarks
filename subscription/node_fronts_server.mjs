@@ -94,5 +94,9 @@ try {
   process.exitCode = 2;
 } finally {
   process.stdin.destroy();
-  if (engine) await engine.shutdown();
+  // The coordinator gives a worker a few seconds to exit after "quit" and records a kill as an
+  // error. Stopping the front and session threads can take longer, and the measurement is over:
+  // allow the engine 2 s, then leave.
+  if (engine) await Promise.race([engine.shutdown().catch(() => {}), sleep(2_000_000_000n)]);
+  process.exit(process.exitCode ?? 0);
 }
