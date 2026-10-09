@@ -187,8 +187,11 @@ on_hammer_write(UA_Client *client, void *userdata, UA_UInt32 request_id,
     }
     status = response->responseHeader.serviceResult;
     if(status == UA_STATUSCODE_GOOD &&
-       (response->resultsSize == 0 || response->results[0] != UA_STATUSCODE_GOOD))
+       response->resultsSize == 0)
         status = UA_STATUSCODE_BADUNEXPECTEDERROR;
+    for(size_t i = 0; status == UA_STATUSCODE_GOOD && i < response->resultsSize; ++i)
+        if(response->results[i] != UA_STATUSCODE_GOOD)
+            status = UA_STATUSCODE_BADUNEXPECTEDERROR;
     account(context, status, pending->issue_ns);
     context->retired++;
     free(pending);
@@ -266,6 +269,37 @@ issue_one(ClientContext *context, uint64_t issue_ns) {
          * values the rest of the rig produces). */
         UA_Variant variant;
         UA_Int32 value;
+        if(context->batch_size > 1) {
+            /* Batched write: batch_size WriteValues on consecutive nodes
+             * first_node_id.., Int32 value equal to the node id, built once. */
+            UA_WriteRequest request;
+            if(!context->batch_write_values) {
+                context->batch_write_values = (UA_WriteValue *)calloc(
+                    context->batch_size, sizeof(UA_WriteValue));
+                if(!context->batch_write_values) {
+                    free(pending);
+                    context->connection_broken = true;
+                    return;
+                }
+                for(size_t i = 0; i < context->batch_size; ++i) {
+                    UA_WriteValue *wv = &context->batch_write_values[i];
+                    UA_Int32 *v = (UA_Int32 *)UA_new(&UA_TYPES[UA_TYPES_INT32]);
+                    UA_WriteValue_init(wv);
+                    wv->nodeId = UA_NODEID_NUMERIC(
+                        1, context->first_node_id + (uint32_t)(i % context->node_count));
+                    wv->attributeId = UA_ATTRIBUTEID_VALUE;
+                    wv->value.hasValue = true;
+                    *v = (UA_Int32)wv->nodeId.identifier.numeric;
+                    UA_Variant_setScalar(&wv->value.value, v, &UA_TYPES[UA_TYPES_INT32]);
+                }
+            }
+            UA_WriteRequest_init(&request);
+            request.nodesToWrite = context->batch_write_values;
+            request.nodesToWriteSize = context->batch_size;
+            sent = UA_Client_sendAsyncWriteRequest(
+                context->client, &request, on_hammer_write, pending, NULL);
+            goto sent_done;
+        }
         node_id = next_node_id(context);
         value = (UA_Int32)node_id.identifier.numeric;
         UA_Variant_init(&variant);
@@ -302,6 +336,7 @@ issue_one(ClientContext *context, uint64_t issue_ns) {
             context->client, node_id, on_hammer_read, pending, NULL);
     }
 
+sent_done:
     if(sent != UA_STATUSCODE_GOOD) {
         free(pending);
         if(is_connection_status(sent)) {
