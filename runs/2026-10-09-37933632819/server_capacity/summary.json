@@ -1,0 +1,111 @@
+{
+ "id": "2026-10-09-37933632819",
+ "date": "2026-10-09T13:14:20Z",
+ "profile": "quick",
+ "trigger": "push",
+ "ref": "main",
+ "commit": "d03b5069ce421217f4684e029a1ac8d829797122",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/37933632819",
+ "runner": {
+  "label": "bench-minipc",
+  "cpu": "Intel(R) Celeron(R) J4125 CPU @ 2.00GHz",
+  "cores": 4,
+  "memory_gb": 3.7
+ },
+ "versions": {
+  "node-opcua": "2.187.1",
+  "asyncua": "2.1.0",
+  "o6-python": "2.0.1",
+  "milo": "1.1.8",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176",
+  "node-opcua-fronts": "2.187.1",
+  "node-opcua-fronts-2": "2.187.1"
+ },
+ "failures": 0,
+ "metrics": [
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "asyncua",
+   "value": 3974.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "gopcua",
+   "value": 12081.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "milo",
+   "value": 23083.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua",
+   "value": 29345.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua-fronts",
+   "value": 44603.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua-fronts-2",
+   "value": 70351.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "o6-python",
+   "value": 21658.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "open62541",
+   "value": 53437.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "s2opc",
+   "value": 27006.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "ua-dotnet",
+   "value": 18648.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}
