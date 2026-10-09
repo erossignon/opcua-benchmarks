@@ -1,0 +1,72 @@
+name: sdk-watch
+
+# Daily: compare every pinned server SDK with its latest upstream release.
+# Each new release of an SDK that can be bumped automatically gets its own
+# branch and pull request, and a quick benchmark of that SDK runs on it.
+# Merging the pull request runs the benchmarks on main, which adds the new
+# version to the published history.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Compare pins with upstream releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python -m bench.sdk_versions check --json > "$RUNNER_TEMP/versions.json"
+          {
+            echo '| SDK | pinned | latest | state |'
+            echo '| --- | --- | --- | --- |'
+            jq -r '.[] | "| \(.sdk) | \(.pinned) | \(.latest // "?") | \(if .error then "error: \(.error)" elif .outdated then (if .automatic then "**new**" else "**new** (\(.note))" end) else "up to date" end) |"' "$RUNNER_TEMP/versions.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open a pull request per new release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          base=${{ github.event.repository.default_branch }}
+          jq -r '.[] | select(.outdated and .automatic) | "\(.sdk) \(.pinned) \(.latest)"' "$RUNNER_TEMP/versions.json" |
+          while read -r sdk pinned latest; do
+            branch="sdk/$sdk-$latest"
+            if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+              echo "$branch already proposed"
+              continue
+            fi
+            git switch -q -C "$branch" "origin/$base"
+            python -m bench.sdk_versions bump "$sdk" "$latest"
+            git add -A
+            git commit -q -m "Bump $sdk from $pinned to $latest"
+            git push -q origin "$branch"
+            gh pr create --base "$base" --head "$branch" \
+              --title "Bump $sdk from $pinned to $latest" \
+              --body "New upstream release of $sdk, found by the sdk-watch workflow. A quick benchmark of $sdk (with open62541 as the reference server) runs on this branch; merging adds $latest to the published history."
+            gh workflow run benchmarks.yml --ref "$branch" -f profile=quick -f servers="open62541,$sdk" -f publish=false
+          done

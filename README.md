@@ -89,6 +89,31 @@ adds the Milo, S2OPC and gopcua servers (eight in all). The runner's
 Workers rebuilt since a saved run can change its fingerprint; start a new
 named run instead of amending incompatible measurements.
 
+## Continuous benchmarking
+
+Two GitHub Actions workflows track the SDKs over time and publish to GitHub Pages
+(enable Pages on the `gh-pages` branch once it exists):
+
+- **sdk-watch** (daily) compares each pinned server SDK with its latest upstream
+  release (`python -m bench.sdk_versions check`). Each new release of node-opcua,
+  asyncua, o6, Milo, gopcua or S2OPC gets a pull request that bumps the pin
+  (`python -m bench.sdk_versions bump <sdk>`) and a quick benchmark of that SDK
+  on its branch, with a comparison in the job summary. open62541 and
+  UA-.NETStandard are reported only: the open62541 submodule also builds the
+  client every suite measures with, and a .NET bump needs its NuGet locks
+  regenerated.
+- **benchmarks** builds every worker, runs a profile of all suites
+  (`python -m bench.ci run`), and publishes the report under `runs/<date>-<run>/`
+  plus one entry in `data/history.json`. The Pages root shows the history as
+  trends per case and SDK. It runs when a pin changes on the default branch
+  (quick profile), weekly (standard profile), and on demand.
+
+The `quick` profile measures scalar and batch:100 Read/Write and server capacity;
+`standard` adds encryption, three clients, larger payloads, server limits and
+subscriptions. GitHub-hosted runners change from one run to the next (CPU model, shared host):
+read changes relative to the open62541 server of the same run, or point the
+`runner` input at a dedicated self-hosted machine for numbers comparable across runs.
+
 ## Copyright
 
 [Copyright (c) 2026 o6 Automation GmbH. All rights reserved.](LICENSE)
