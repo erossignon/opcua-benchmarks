@@ -34,6 +34,8 @@
   td.num { text-align: right; }
   .up { color: var(--up); font-weight: 600; }
   .down { color: var(--down); font-weight: 600; }
+  .muted { color: var(--muted); }
+  caption { caption-side: top; text-align: left; color: var(--muted); font-size: .85rem; padding: 0 0 6px; }
   .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--muted); }
   a { color: var(--accent); }
   .empty { padding: 40px; text-align: center; color: var(--muted); }
@@ -56,7 +58,7 @@
   </div>
   <div id="chart"></div>
 
-  <h2>Latest run against the previous one</h2>
+  <h2>Latest run against the previous one: standing within each run</h2>
   <div class="scroll"><table id="latest"></table></div>
 
   <h2>Runs</h2>
@@ -144,23 +146,48 @@ function draw() {
   drawLatest(runs, suite, kase, servers, metric);
 }
 
+function rawValue(run, suite, kase, server) {
+  return run?.metrics.find((x) => x.suite === suite && x.case === kase && x.server === server)?.value ?? null;
+}
+
+// Rank and share of the fastest within each run: every SDK of a run shares its machine, so
+// these compare across runs even when the hardware changed; raw values do not.
+function standing(run, suite, kase, servers, higherIsBetter) {
+  const values = servers.map((server) => [server, rawValue(run, suite, kase, server)]).filter(([, v]) => v != null);
+  values.sort((a, b) => (higherIsBetter ? b[1] - a[1] : a[1] - b[1]));
+  const best = values[0]?.[1];
+  return Object.fromEntries(values.map(([server, v], i) => [server, { rank: i + 1, value: v,
+    share: best ? (higherIsBetter ? v / best : best / v) : null }]));
+}
+
 function drawLatest(runs, suite, kase, servers, metric) {
   const table = $("latest");
   if (runs.length < 1) { table.innerHTML = ""; return; }
   const last = runs[runs.length - 1], prev = runs[runs.length - 2];
   const higherIsBetter = metric?.higher_is_better !== false;
-  const rows = servers.map((server) => {
-    const now = value(last, suite, kase, server), before = prev ? value(prev, suite, kase, server) : null;
-    const delta = now != null && before ? now / before - 1 : null;
-    const good = delta != null && (higherIsBetter ? delta : -delta) > THRESHOLD;
-    const bad = delta != null && (higherIsBetter ? -delta : delta) > THRESHOLD;
+  // Rank only the servers both runs measured, so a newly added SDK moves nobody.
+  const common = prev ? servers.filter((s) => rawValue(last, suite, kase, s) != null && rawValue(prev, suite, kase, s) != null) : servers;
+  const now = standing(last, suite, kase, common, higherIsBetter);
+  const before = prev ? standing(prev, suite, kase, common, higherIsBetter) : {};
+  const pct = (x) => (x == null ? "–" : `${Math.round(x * 100)}%`);
+  const rows = common.slice().sort((a, b) => (now[a]?.rank ?? 99) - (now[b]?.rank ?? 99)).map((server) => {
+    const n = now[server], b = before[server];
+    const moved = n && b ? b.rank - n.rank : 0;
+    const move = !b ? "" : moved > 0 ? `<span class="up">▲ ${moved}</span>` : moved < 0 ? `<span class="down">▼ ${-moved}</span>` : "=";
     const version = last.versions?.[server], oldVersion = prev?.versions?.[server];
     const versionCell = version && oldVersion && version !== oldVersion
       ? `${escape(oldVersion)} → <strong>${escape(version)}</strong>` : escape(version ?? "");
-    return `<tr><td>${escape(server)}</td><td>${versionCell}</td><td class="num">${fmt(before)}</td>
-      <td class="num">${fmt(now)}</td><td class="num ${good ? "up" : bad ? "down" : ""}">${delta == null ? "–" : (delta * 100).toFixed(1) + "%"}</td></tr>`;
+    const shareDelta = n?.share != null && b?.share != null ? n.share - b.share : null;
+    const shareClass = shareDelta == null ? "" : shareDelta > THRESHOLD ? "up" : shareDelta < -THRESHOLD ? "down" : "";
+    return `<tr><td>${escape(server)}</td><td>${versionCell}</td>
+      <td class="num">${b ? `#${b.rank}` : "–"} → <strong>#${n?.rank ?? "–"}</strong></td><td class="num">${move}</td>
+      <td class="num">${pct(b?.share)} → <span class="${shareClass}">${pct(n?.share)}</span></td>
+      <td class="num muted">${fmt(n?.value)}</td></tr>`;
   });
-  table.innerHTML = `<tr><th>Server</th><th>Version</th><th>Previous</th><th>Latest</th><th>Change</th></tr>${rows.join("")}`;
+  const cpu = (run) => run?.suites?.[suite]?.runner?.cpu ?? run?.runner?.cpu;
+  const note = prev && cpu(prev) !== cpu(last)
+    ? `<caption>Different CPUs (${escape(cpu(prev))} → ${escape(cpu(last))}): read ranks and shares, not raw values.</caption>` : "";
+  table.innerHTML = `${note}<tr><th>Server</th><th>Version</th><th>Rank</th><th>Places</th><th>Share of the fastest</th><th>Latest value</th></tr>${rows.join("")}`;
 }
 
 function drawRuns() {

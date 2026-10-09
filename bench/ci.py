@@ -218,11 +218,8 @@ def summary(database: Path, profile: str, name: str) -> dict:
 
 
 def compare(entry: dict, history: list[dict], threshold: float = 0.10) -> str:
-    """Markdown: this run against the latest published run of the same profile.
-
-    Ratios to the open62541 server of the same run are shown too: on shared
-    runners they move less than raw numbers when the machine changes.
-    """
+    """Markdown: each SDK's standing in this run against the latest published run of the same
+    profile on the same runner: rank and share of the fastest per case, places gained or lost."""
     # Same profile and same machine (runner label): hosted runners change hardware between runs.
     label = entry["runner"].get("label")
     previous = next(
@@ -234,35 +231,60 @@ def compare(entry: dict, history: list[dict], threshold: float = 0.10) -> str:
         lines.append(f"No published run of this profile on {label} yet: nothing to compare with.")
     else:
         lines.append(f"Compared with [{previous['id']}]({previous.get('url') or ''}) on {previous['runner'].get('cpu')}.")
-    lines += ["", "| suite | case | server | version | value | previous | change | vs open62541 | previous |", "|" + " --- |" * 9]
+    lines += [
+        "",
+        "Standing within each run: every SDK of a run shares its machine, so ranks and shares of the fastest "
+        "compare across runs even when the hardware changed; raw values do not.",
+    ]
 
-    def index(run):
-        return {(m["suite"], m["case"], m["server"]): m["value"] for m in run["metrics"]} if run else {}
+    def group(run):
+        cases: dict[tuple[str, str], dict[str, dict]] = {}
+        for metric in run["metrics"] if run else []:
+            cases.setdefault((metric["suite"], metric["case"]), {})[metric["server"]] = metric
+        return cases
 
-    now, before = index(entry), index(previous)
-    for metric in entry["metrics"]:
-        key = (metric["suite"], metric["case"], metric["server"])
-        old = before.get(key)
-        change = metric["value"] / old - 1 if old else None
-        flag = ""
-        if change is not None and abs(change) > threshold:
-            better = (change > 0) == metric.get("higher_is_better", True)
-            flag = " :green_circle:" if better else " :red_circle:"
-        reference_key = (metric["suite"], metric["case"], "open62541")
-        ratio = metric["value"] / now[reference_key] if now.get(reference_key) else None
-        old_ratio = old / before[reference_key] if old and before.get(reference_key) else None
-        version = entry["versions"].get(metric["server"], "")
-        old_version = (previous or {}).get("versions", {}).get(metric["server"])
-        if old_version and old_version != version:
-            version = f"{old_version} → **{version}**"
-        lines.append(
-            f"| {metric['suite']} | {metric['case']} | {metric['server']} | {version} | {metric['value']:,.0f} | "
-            + (f"{old:,.0f}" if old else "–")
-            + f" | {f'{change:+.1%}' if change is not None else '–'}{flag} | "
-            + (f"{ratio:.2f}" if ratio else "–")
-            + f" | {f'{old_ratio:.2f}' if old_ratio else '–'} |"
-        )
-    return "\n".join(lines) + "\n"
+    def standing(metrics: dict[str, dict], servers: list[str]) -> dict[str, tuple[int, float]]:
+        higher = next(iter(metrics.values())).get("higher_is_better", True)
+        ranked = sorted(servers, key=lambda server: metrics[server]["value"], reverse=higher)
+        best = metrics[ranked[0]]["value"] if ranked else 0
+        return {
+            server: (rank, (metrics[server]["value"] / best if higher else best / metrics[server]["value"]) if best else 0.0)
+            for rank, server in enumerate(ranked, 1)
+        }
+
+    now_cases, before_cases = group(entry), group(previous)
+    moves, rows = [], []
+    for (suite, case), metrics in sorted(now_cases.items()):
+        old_metrics = before_cases.get((suite, case), {})
+        # Rank only the servers both runs measured, so a newly added SDK moves nobody.
+        common = [server for server in metrics if server in old_metrics] if old_metrics else list(metrics)
+        now = standing(metrics, common)
+        before = standing(old_metrics, common) if old_metrics else {}
+        for server in sorted(common, key=lambda server: now[server][0]):
+            rank, share = now[server]
+            old_rank, old_share = before.get(server, (None, None))
+            places = old_rank - rank if old_rank else 0
+            move = f"▲ {places}" if places > 0 else f"▼ {-places}" if places < 0 else ("=" if old_rank else "")
+            if places:
+                moves.append(f"{server} {move} in {suite} {case}")
+            flag = ""
+            if old_share is not None and abs(share - old_share) > threshold:
+                flag = " :green_circle:" if share > old_share else " :red_circle:"
+            version = entry["versions"].get(server, "")
+            old_version = (previous or {}).get("versions", {}).get(server)
+            if old_version and old_version != version:
+                version = f"{old_version} → **{version}**"
+            rows.append(
+                f"| {suite} | {case} | {server} | {version} | "
+                + (f"#{old_rank} → " if old_rank else "")
+                + f"**#{rank}** | {move} | "
+                + (f"{old_share:.0%} → " if old_share is not None else "")
+                + f"{share:.0%}{flag} | {metrics[server]['value']:,.0f} |"
+            )
+    if previous is not None:
+        lines += ["", "**Places changed:** " + ("; ".join(moves) if moves else "none.")]
+    lines += ["", "| suite | case | server | version | rank | places | share of the fastest | value |", "|" + " --- |" * 8]
+    return "\n".join(lines + rows) + "\n"
 
 
 def merge(parts: dict[str, dict], run_id: str, site: Path) -> dict:
