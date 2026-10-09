@@ -1,0 +1,1335 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Server capacity</title><!-- server-capacity-report:v8 --><body>
+<h1>Server capacity — ci</h1><p>Search finished</p>
+<div style="height:600px; width:100%;">                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.7.0.min.js" integrity="sha256-jvTGqxNp8AGWEcvNLVuKr+8j5dGe9Yw51LQkmDH+IYA=" crossorigin="anonymous"></script>                <div id="81323f77-e16e-47ff-8546-5bd9746b48da" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("81323f77-e16e-47ff-8546-5bd9746b48da")) {                    Plotly.newPlot(                        "81323f77-e16e-47ff-8546-5bd9746b48da",                        [{"customdata":[[16,0],[16,0],[12,4],[8,4],[16,0],[16,0],[16,0],[16,0]],"hovertemplate":"%{y}\u003cbr\u003eSearch-space mean: %{x:,.1f} requests\u002fs\u003cbr\u003eSuccessful load configurations: %{customdata[0]}\u003cbr\u003eExcluded probes: %{customdata[1]}\u003cbr\u003e*Some loads may leave the server unsaturated.\u003cextra\u003e\u003c\u002fextra\u003e","insidetextanchor":"middle","marker":{"color":"#94a3b8"},"name":"Search-space mean*","orientation":"h","text":["197,267","80,550","9,207","46,153","14,826","44,025","62,221","22,652"],"textposition":"inside","x":[197266.9375,80550.375,9206.916666666666,46153.375,14826.0625,44025.0625,62221.1875,22651.625],"y":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua"],"type":"bar"},{"customdata":[[5,2,"1,492.0","2,226,093.4",1],[6,2,"905.9","820,706.6",0],[6,2,"64.0","4,091.2",0],[3,1,"305.4","93,263.6",0],[6,2,"343.8","118,186.1",0],[6,2,"606.4","367,777.6",0],[6,2,"3,191.9","10,188,421.1",0],[6,2,"350.0","122,508.2",0]],"error_x":{"array":[1492.0098441364253,905.9285659844636,63.962489007229856,305.39086976092347,343.782004570726,606.4466725662419,3191.9306174581343,350.0117140896859],"color":"#172554","symmetric":true,"thickness":2,"type":"data","width":6},"hovertemplate":"%{y}\u003cbr\u003eConfirmation mean: %{x:,.1f} requests\u002fs\u003cbr\u003eSuccessful repeats: %{customdata[0]}\u003cbr\u003eSelected load configurations: %{customdata[1]}\u003cbr\u003eSample SD: %{customdata[2]} requests\u002fs\u003cbr\u003eSample variance: %{customdata[3]} (requests\u002fs)\u00b2\u003cbr\u003eExcluded repeats: %{customdata[4]}\u003cextra\u003e\u003c\u002fextra\u003e","insidetextanchor":"middle","marker":{"color":"#2878b5"},"name":"Confirmation mean \u00b11 SD","orientation":"h","text":["234,088","100,118","9,246","69,452","15,444","55,360","61,549","23,948"],"textposition":"inside","x":[234087.5,100118.33333333333,9246.5,69452.33333333333,15443.666666666666,55359.833333333336,61548.666666666664,23948.5],"y":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua"],"type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"yaxis":{"title":{"text":"Server SDK"},"type":"category","categoryorder":"array","categoryarray":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua"],"autorange":"reversed"},"xaxis":{"title":{"text":"Throughput (requests\u002fs)"},"rangemode":"tozero","tickformat":","},"legend":{"orientation":"h","y":1.1},"margin":{"r":50,"b":105},"title":{"text":"Observed throughput by SDK"},"barmode":"group","bargap":0.25,"bargroupgap":0.08,"height":600,"annotations":[{"align":"left","showarrow":false,"text":"*Tested successful loads only; some may leave the server unsaturated.\u003cbr\u003eSearch-space mean depends on the explored configurations.","x":0,"xanchor":"left","xref":"paper","y":-0.19,"yref":"paper"}]},                        {"responsive": true}                    )                };            </script>        </div>
+<p><strong>*Search-space mean:</strong> each successfully tested load configuration has equal weight,
+using discovery measurements only. Some loads may offer insufficient work to saturate the server,
+leaving capacity unused. This average depends on the configurations explored; it is neither maximum
+capacity nor typical production performance.</p>
+<p><strong>Confirmation mean:</strong> combines fresh successful repeats across all selected top-decile
+load configurations. Discovery measurements do not contribute. Whiskers show ±1 sample standard
+ deviation across these repeats, reflecting both differences between selected loads and variation
+between repeats; they are not a confidence interval or a maximum. Hover shows sample counts,
+excluded failures and sample variance. Slow successful repeats remain included.
+Fewer than two successful repeats means variability is unknown, not zero.</p>
+<p>Failed and invalid probes are excluded from both means and retained in the evidence below.
+Named runs are kept separate.</p>
+<details><summary>All measured load configurations (requests/s)</summary>
+<table><tr><th>SDK</th><th>Load</th><th>Maximum</th><th>Mean</th><th>Sample SD</th><th>Successful probes</th><th>Failed probes</th></tr><tr><td>asyncua</td><td>1c × 32o</td><td>9,337</td><td>9,291</td><td>40</td><td>3</td><td>0</td></tr><tr><td>asyncua</td><td>8c × 32o</td><td>9,288</td><td>9,202</td><td>51</td><td>3</td><td>0</td></tr><tr><td>asyncua</td><td>4c × 32o</td><td>9,269</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>1c × 128o</td><td>9,239</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>8c × 8o</td><td>9,234</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>4c × 8o</td><td>9,231</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>4c × 128o</td><td>9,209</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>2c × 32o</td><td>9,202</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>8c × 128o</td><td>9,199</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>2c × 128o</td><td>9,146</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>2c × 8o</td><td>9,093</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>asyncua</td><td>1c × 8o</td><td>9,089</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>8c × 512o</td><td>24,456</td><td>23,865</td><td>517</td><td>3</td><td>0</td></tr><tr><td>gopcua</td><td>8c × 128o</td><td>24,184</td><td>24,032</td><td>136</td><td>3</td><td>0</td></tr><tr><td>gopcua</td><td>8c × 8o</td><td>23,712</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>8c × 32o</td><td>23,575</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>4c × 8o</td><td>23,075</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>4c × 512o</td><td>23,061</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>4c × 32o</td><td>22,983</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>2c × 8o</td><td>22,902</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>4c × 128o</td><td>22,718</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>2c × 128o</td><td>22,596</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>2c × 512o</td><td>22,559</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>2c × 32o</td><td>21,829</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>1c × 128o</td><td>21,476</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>1c × 32o</td><td>21,352</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>1c × 512o</td><td>21,285</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>gopcua</td><td>1c × 8o</td><td>21,192</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>2c × 512o</td><td>55,998</td><td>55,820</td><td>189</td><td>3</td><td>0</td></tr><tr><td>milo</td><td>8c × 512o</td><td>55,264</td><td>54,900</td><td>499</td><td>3</td><td>0</td></tr><tr><td>milo</td><td>2c × 128o</td><td>54,390</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>4c × 512o</td><td>54,021</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>8c × 32o</td><td>53,946</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>4c × 32o</td><td>53,779</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>4c × 128o</td><td>53,080</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>8c × 128o</td><td>52,971</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>8c × 8o</td><td>52,903</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>4c × 8o</td><td>48,333</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>2c × 32o</td><td>45,812</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>1c × 512o</td><td>43,325</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>2c × 8o</td><td>42,991</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>1c × 128o</td><td>21,828</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>1c × 32o</td><td>13,149</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>milo</td><td>1c × 8o</td><td>4,091</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>4c × 32o</td><td>16,080</td><td>15,201</td><td>296</td><td>3</td><td>0</td></tr><tr><td>node-opcua</td><td>2c × 128o</td><td>15,958</td><td>15,686</td><td>177</td><td>3</td><td>0</td></tr><tr><td>node-opcua</td><td>1c × 128o</td><td>15,693</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>1c × 512o</td><td>15,633</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>8c × 32o</td><td>15,560</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>2c × 32o</td><td>15,452</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>2c × 512o</td><td>15,313</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>8c × 128o</td><td>15,308</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>4c × 128o</td><td>15,130</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>2c × 8o</td><td>15,114</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>4c × 512o</td><td>14,862</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>4c × 8o</td><td>14,576</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>8c × 8o</td><td>14,474</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>8c × 512o</td><td>14,341</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>1c × 32o</td><td>13,907</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>node-opcua</td><td>1c × 8o</td><td>9,816</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>1c × 512o</td><td>101,209</td><td>100,664</td><td>791</td><td>3</td><td>0</td></tr><tr><td>o6-python</td><td>2c × 512o</td><td>100,199</td><td>99,572</td><td>729</td><td>3</td><td>0</td></tr><tr><td>o6-python</td><td>4c × 512o</td><td>98,405</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>8c × 512o</td><td>96,612</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>2c × 128o</td><td>80,214</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>8c × 128o</td><td>79,652</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>4c × 128o</td><td>78,318</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>2c × 32o</td><td>77,629</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>8c × 32o</td><td>76,808</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>4c × 32o</td><td>76,079</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>1c × 128o</td><td>73,241</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>8c × 8o</td><td>72,540</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>2c × 8o</td><td>71,990</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>4c × 8o</td><td>71,576</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>1c × 32o</td><td>70,076</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>o6-python</td><td>1c × 8o</td><td>65,905</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>8c × 512o</td><td>237,749</td><td>235,707</td><td>44</td><td>2</td><td>1</td></tr><tr><td>open62541</td><td>4c × 512o</td><td>233,270</td><td>233,008</td><td>280</td><td>3</td><td>0</td></tr><tr><td>open62541</td><td>2c × 512o</td><td>210,320</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>8c × 128o</td><td>204,991</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>2c × 128o</td><td>200,977</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>4c × 128o</td><td>200,384</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>1c × 128o</td><td>199,240</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>4c × 32o</td><td>196,256</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>2c × 32o</td><td>195,757</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>8c × 32o</td><td>194,584</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>2c × 8o</td><td>192,577</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>1c × 32o</td><td>190,263</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>4c × 8o</td><td>187,082</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>8c × 8o</td><td>186,399</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>1c × 8o</td><td>174,250</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>open62541</td><td>1c × 512o</td><td>152,630</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>8c × 8o</td><td>92,141</td><td>64,431</td><td>707</td><td>3</td><td>0</td></tr><tr><td>s2opc</td><td>4c × 8o</td><td>88,414</td><td>58,667</td><td>230</td><td>3</td><td>0</td></tr><tr><td>s2opc</td><td>8c × 512o</td><td>78,770</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>4c × 512o</td><td>78,071</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>2c × 512o</td><td>74,025</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>8c × 128o</td><td>73,930</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>4c × 128o</td><td>65,279</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>8c × 32o</td><td>63,255</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>4c × 32o</td><td>55,238</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>2c × 8o</td><td>53,480</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>1c × 8o</td><td>53,179</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>1c × 512o</td><td>50,202</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>2c × 128o</td><td>48,946</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>2c × 32o</td><td>44,299</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>1c × 128o</td><td>39,831</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>s2opc</td><td>1c × 32o</td><td>36,479</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>4c × 32o</td><td>69,768</td><td>69,452</td><td>305</td><td>3</td><td>0</td></tr><tr><td>ua-dotnet</td><td>8c × 8o</td><td>63,930</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>2c × 32o</td><td>61,683</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>4c × 8o</td><td>57,224</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>2c × 8o</td><td>56,820</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>1c × 128o</td><td>36,919</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>1c × 32o</td><td>12,267</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr><tr><td>ua-dotnet</td><td>1c × 8o</td><td>11,735</td><td>awaiting confirmation</td><td>unknown (fewer than two probes)</td><td>0</td><td>0</td></tr></table></details>
+<details><summary>Stored search conclusions</summary>
+<table><tr><th>SDK</th><th>Status</th><th>Stored estimate (requests/s)</th><th>Evidence / limitation</th></tr><tr><td>open62541</td><td>confirmed</td><td>233,270</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>o6-python</td><td>confirmed</td><td>101,209</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>asyncua</td><td>confirmed</td><td>9,337</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>ua-dotnet</td><td>confirmed</td><td>69,768</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>node-opcua</td><td>confirmed</td><td>15,882</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>milo</td><td>confirmed</td><td>55,998</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>s2opc</td><td>confirmed</td><td>65,161</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr><tr><td>gopcua</td><td>confirmed</td><td>24,456</td><td>Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven</td></tr></table>
+<p>Stored estimates are retained for audit; the bars above show means of the stated measurement groups.</p></details>
+<p>Measurement method: ranked_candidates_v1. Explore client counts and pipeline depths on a bounded geometric grid; select the top 10% of successful discovery configurations (at least one), then repeat each selected configuration n times in rotated order. The selected list is saved before confirmation. Confirmation means and sample variances use only fresh confirmation measurements, never the discovery measurement that selected a candidate. Confirmed means the selected load completed its repeats successfully; it does not prove an absolute server maximum.</p>
+<div style="height:100%; width:100%;">                            <div id="98b60c3d-613f-4502-8e4d-b6700ab5fb03" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("98b60c3d-613f-4502-8e4d-b6700ab5fb03")) {                    Plotly.newPlot(                        "98b60c3d-613f-4502-8e4d-b6700ab5fb03",                        [{"marker":{"symbol":["circle","circle","x","circle","circle","circle","x","circle","circle","circle","x","circle","circle","circle","x","circle"]},"mode":"markers","name":"asyncua discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[9239.0,9284.0,0,9089.0,9146.0,9202.0,0,9093.0,9209.0,9269.0,0,9231.0,9199.0,9288.0,0,9234.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"asyncua confirmation","text":["1 clients \u00d7 32 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 32 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 32 outstanding"],"x":[32,32,32,256,256,256],"y":[9261.5,9337.0,9275.0,9256.5,9155.0,9194.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"gopcua discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[21476.0,21352.0,21285.0,21192.0,22596.0,21829.0,22559.0,22902.0,22718.0,22983.0,23061.0,23075.0,23764.0,23575.0,24347.0,23712.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"gopcua confirmation","text":["8 clients \u00d7 128 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding"],"x":[1024,1024,1024,4096,4096,4096],"y":[24184.5,23989.0,23923.0,23634.0,23504.0,24456.5],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"milo discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[21828.0,13149.0,43325.0,4091.0,54390.0,45812.0,55058.0,42991.0,53080.0,53779.0,54021.0,48333.0,52971.0,53946.0,54724.0,52903.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"milo confirmation","text":["2 clients \u00d7 512 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding"],"x":[1024,1024,1024,4096,4096,4096],"y":[55998.5,55622.5,55838.5,55104.5,54331.0,55264.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"node-opcua discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[15693.0,13907.0,15633.0,9816.0,15958.0,15452.0,15313.0,15114.0,15130.0,16080.0,14862.0,14576.0,15308.0,15560.0,14341.0,14474.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"node-opcua confirmation","text":["2 clients \u00d7 128 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 32 outstanding"],"x":[256,256,256,128,128,128],"y":[15882.5,15637.5,15538.5,14910.0,15502.0,15191.5],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"o6-python discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[73241.0,70076.0,99808.0,65905.0,80214.0,77629.0,99953.0,71990.0,78318.0,76079.0,98405.0,71576.0,79652.0,76808.0,96612.0,72540.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"o6-python confirmation","text":["1 clients \u00d7 512 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 512 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 512 outstanding"],"x":[512,512,512,1024,1024,1024],"y":[101027.0,101209.0,99756.5,100199.0,98772.0,99746.5],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"open62541 discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[199240.0,190263.0,152630.0,174250.0,200977.0,195757.0,210320.0,192577.0,200384.0,196256.0,232812.0,187082.0,204991.0,194584.0,237749.0,186399.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","x"]},"mode":"markers","name":"open62541 confirmation","text":["4 clients \u00d7 512 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 512 outstanding"],"x":[2048,2048,2048,4096,4096,4096],"y":[232712.0,233041.5,233269.5,235738.5,235676.0,239032.5],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"s2opc discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 512 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 512 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 128 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 512 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,1024,16,512,128,2048,32,1024,256,4096,64],"y":[39831.0,36479.0,50202.0,53179.0,48946.0,44299.0,74025.0,53480.0,65279.0,55238.0,78071.0,88414.0,73930.0,63255.0,78770.0,92141.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle","circle","circle","circle"]},"mode":"markers","name":"s2opc confirmation","text":["4 clients \u00d7 8 outstanding","4 clients \u00d7 8 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 8 outstanding","8 clients \u00d7 8 outstanding","8 clients \u00d7 8 outstanding"],"x":[32,32,32,64,64,64],"y":[58445.5,58904.0,58650.5,64382.5,63748.5,65161.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","x","circle","x","circle","circle","x","circle","circle","x","circle"]},"mode":"markers","name":"ua-dotnet discovery","text":["1 clients \u00d7 128 outstanding","1 clients \u00d7 32 outstanding","1 clients \u00d7 512 outstanding","1 clients \u00d7 8 outstanding","2 clients \u00d7 128 outstanding","2 clients \u00d7 32 outstanding","2 clients \u00d7 8 outstanding","4 clients \u00d7 128 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 8 outstanding","8 clients \u00d7 32 outstanding","8 clients \u00d7 8 outstanding"],"x":[128,32,512,8,256,64,16,512,128,32,256,64],"y":[36919.0,12267.0,48344.0,11735.0,51067.0,61683.0,56820.0,24542.0,68649.0,57224.0,50928.0,63930.0],"type":"scatter"},{"marker":{"symbol":["circle","circle","circle"]},"mode":"markers","name":"ua-dotnet confirmation","text":["4 clients \u00d7 32 outstanding","4 clients \u00d7 32 outstanding","4 clients \u00d7 32 outstanding"],"x":[128,128,128],"y":[69429.5,69768.5,69159.0],"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"title":{"text":"Total outstanding requests"},"type":"log"},"yaxis":{"title":{"text":"Successful requests\u002fs"}}},                        {"responsive": true}                    )                };            </script>        </div>
+<table><tr><th>SDK</th><th>Clients</th><th>Outstanding/client</th><th>Phase</th><th>Requests/s</th>
+<th>Error rate</th><th>p50 ms</th><th>p99 ms</th><th>Max client CPU</th><th>Min full-window wait</th><th>Error statuses</th><th>Probe failure</th></tr><tr><td>asyncua</td><td>1</td><td>128</td><td>discovery</td><td>9,239</td><td>0.00%</td><td>14.336</td><td>14.336</td><td>11.8%</td><td>87.8%</td><td></td><td></td></tr><tr><td>asyncua</td><td>1</td><td>32</td><td>confirmation</td><td>9,262</td><td>0.00%</td><td>3.456</td><td>3.712</td><td>11.4%</td><td>88.3%</td><td></td><td></td></tr><tr><td>asyncua</td><td>1</td><td>32</td><td>confirmation</td><td>9,337</td><td>0.00%</td><td>3.456</td><td>3.712</td><td>11.3%</td><td>88.3%</td><td></td><td></td></tr><tr><td>asyncua</td><td>1</td><td>32</td><td>confirmation</td><td>9,275</td><td>0.00%</td><td>3.456</td><td>3.712</td><td>11.5%</td><td>88.1%</td><td></td><td></td></tr><tr><td>asyncua</td><td>1</td><td>32</td><td>discovery</td><td>9,284</td><td>0.00%</td><td>3.456</td><td>3.712</td><td>11.3%</td><td>88.3%</td><td></td><td></td></tr><tr><td>asyncua</td><td>1</td><td>512</td><td>discovery</td><td>0</td><td>unmeasured</td><td>None</td><td>None</td><td>0.0%</td><td>0.0%</td><td></td><td>client 0 exited before &#x27;O6_CAPACITY_READY&#x27;:
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/channel[0m	TCP 8	| SC 9	| SecureChannel closed
+[2026-10-09 08:36:56.770 (UTC+0000)] [31merror/client[0m	SecureChannel must be connected to send request
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Created, ConnectStatus: Good
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/network[0m	TCP 9	| Opening a connection to &quot;127.0.0.1&quot; on port 4840
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/network[0m	TCP 8	| Socket closed
+warmup failed: active=0 broken=0 refused=BadServerNotConnected
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/channel[0m	TCP 9	| SC 0	| SecureChannel closed
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Closed, ConnectStatus: BadConnectionClosed
+[2026-10-09 08:36:56.770 (UTC+0000)] [32minfo/network[0m	TCP 9	| Socket closed
+</td></tr><tr><td>asyncua</td><td>1</td><td>8</td><td>discovery</td><td>9,089</td><td>0.00%</td><td>0.896</td><td>0.96</td><td>11.2%</td><td>88.4%</td><td></td><td></td></tr><tr><td>gopcua</td><td>1</td><td>128</td><td>discovery</td><td>21,476</td><td>0.00%</td><td>5.888</td><td>9.728</td><td>24.9%</td><td>74.4%</td><td></td><td></td></tr><tr><td>gopcua</td><td>1</td><td>32</td><td>discovery</td><td>21,352</td><td>0.00%</td><td>1.088</td><td>3.2</td><td>22.1%</td><td>77.3%</td><td></td><td></td></tr><tr><td>gopcua</td><td>1</td><td>512</td><td>discovery</td><td>21,285</td><td>0.00%</td><td>24.576</td><td>29.696</td><td>26.4%</td><td>73.1%</td><td></td><td></td></tr><tr><td>gopcua</td><td>1</td><td>8</td><td>discovery</td><td>21,192</td><td>0.00%</td><td>0.288</td><td>1.216</td><td>21.9%</td><td>77.5%</td><td></td><td></td></tr><tr><td>milo</td><td>1</td><td>128</td><td>discovery</td><td>21,828</td><td>0.00%</td><td>5.376</td><td>12.8</td><td>24.4%</td><td>74.9%</td><td></td><td></td></tr><tr><td>milo</td><td>1</td><td>32</td><td>discovery</td><td>13,149</td><td>0.00%</td><td>2.304</td><td>6.656</td><td>15.2%</td><td>84.3%</td><td></td><td></td></tr><tr><td>milo</td><td>1</td><td>512</td><td>discovery</td><td>43,325</td><td>0.00%</td><td>10.752</td><td>27.648</td><td>41.3%</td><td>58.1%</td><td></td><td></td></tr><tr><td>milo</td><td>1</td><td>8</td><td>discovery</td><td>4,091</td><td>0.00%</td><td>1.344</td><td>8.704</td><td>4.8%</td><td>95.0%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>1</td><td>128</td><td>discovery</td><td>15,693</td><td>0.00%</td><td>4.352</td><td>31.744</td><td>16.0%</td><td>83.5%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>1</td><td>32</td><td>discovery</td><td>13,907</td><td>0.00%</td><td>1.152</td><td>10.24</td><td>13.9%</td><td>85.7%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>1</td><td>512</td><td>discovery</td><td>15,633</td><td>0.00%</td><td>27.648</td><td>69.632</td><td>21.8%</td><td>77.9%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>1</td><td>8</td><td>discovery</td><td>9,816</td><td>0.00%</td><td>0.496</td><td>5.888</td><td>10.6%</td><td>89.0%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>128</td><td>discovery</td><td>73,241</td><td>0.00%</td><td>1.792</td><td>1.92</td><td>65.3%</td><td>33.4%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>32</td><td>discovery</td><td>70,076</td><td>0.00%</td><td>0.464</td><td>0.512</td><td>60.7%</td><td>37.8%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>512</td><td>confirmation</td><td>101,027</td><td>0.00%</td><td>5.12</td><td>5.632</td><td>95.6%</td><td>4.3%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>512</td><td>confirmation</td><td>101,209</td><td>0.00%</td><td>5.12</td><td>5.376</td><td>95.6%</td><td>4.3%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>512</td><td>confirmation</td><td>99,756</td><td>0.00%</td><td>5.376</td><td>5.632</td><td>94.6%</td><td>5.3%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>512</td><td>discovery</td><td>99,808</td><td>0.00%</td><td>5.12</td><td>5.632</td><td>94.9%</td><td>5.0%</td><td></td><td></td></tr><tr><td>o6-python</td><td>1</td><td>8</td><td>discovery</td><td>65,905</td><td>0.00%</td><td>0.124</td><td>0.16</td><td>57.4%</td><td>41.2%</td><td></td><td></td></tr><tr><td>open62541</td><td>1</td><td>128</td><td>discovery</td><td>199,240</td><td>0.00%</td><td>0.64</td><td>0.736</td><td>99.8%</td><td>0.2%</td><td></td><td></td></tr><tr><td>open62541</td><td>1</td><td>32</td><td>discovery</td><td>190,263</td><td>0.00%</td><td>0.168</td><td>0.192</td><td>100.0%</td><td>0.0%</td><td></td><td></td></tr><tr><td>open62541</td><td>1</td><td>512</td><td>discovery</td><td>152,630</td><td>0.00%</td><td>3.456</td><td>3.584</td><td>100.0%</td><td>0.0%</td><td></td><td></td></tr><tr><td>open62541</td><td>1</td><td>8</td><td>discovery</td><td>174,250</td><td>0.00%</td><td>0.046</td><td>0.068</td><td>99.6%</td><td>0.4%</td><td></td><td></td></tr><tr><td>s2opc</td><td>1</td><td>128</td><td>discovery</td><td>39,831</td><td>0.00%</td><td>3.2</td><td>5.888</td><td>24.5%</td><td>75.4%</td><td></td><td></td></tr><tr><td>s2opc</td><td>1</td><td>32</td><td>discovery</td><td>36,479</td><td>0.00%</td><td>0.896</td><td>1.6</td><td>22.6%</td><td>77.3%</td><td></td><td></td></tr><tr><td>s2opc</td><td>1</td><td>512</td><td>discovery</td><td>50,202</td><td>0.00%</td><td>10.24</td><td>16.384</td><td>37.1%</td><td>62.9%</td><td></td><td></td></tr><tr><td>s2opc</td><td>1</td><td>8</td><td>discovery</td><td>53,179</td><td>0.00%</td><td>0.152</td><td>0.224</td><td>34.4%</td><td>65.3%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>1</td><td>128</td><td>discovery</td><td>36,919</td><td>0.00%</td><td>3.328</td><td>8.704</td><td>45.1%</td><td>54.0%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>1</td><td>32</td><td>discovery</td><td>12,267</td><td>0.00%</td><td>1.984</td><td>12.288</td><td>17.0%</td><td>82.5%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>1</td><td>512</td><td>discovery</td><td>48,344</td><td>2.69%</td><td>10.752</td><td>14.336</td><td>60.4%</td><td>39.0%</td><td>0x80ee0000 Unknown StatusCode: 1349</td><td></td></tr><tr><td>ua-dotnet</td><td>1</td><td>8</td><td>discovery</td><td>11,735</td><td>0.00%</td><td>0.544</td><td>3.456</td><td>17.2%</td><td>82.4%</td><td></td><td></td></tr><tr><td>asyncua</td><td>2</td><td>128</td><td>discovery</td><td>9,146</td><td>0.00%</td><td>28.672</td><td>29.696</td><td>6.2%</td><td>93.6%</td><td></td><td></td></tr><tr><td>asyncua</td><td>2</td><td>32</td><td>discovery</td><td>9,202</td><td>0.00%</td><td>7.168</td><td>7.68</td><td>6.1%</td><td>93.7%</td><td></td><td></td></tr><tr><td>asyncua</td><td>2</td><td>512</td><td>discovery</td><td>0</td><td>unmeasured</td><td>None</td><td>None</td><td>0.0%</td><td>0.0%</td><td></td><td>client 0 exited before &#x27;O6_CAPACITY_READY&#x27;:
+[2026-10-09 08:37:04.454 (UTC+0000)] [32minfo/channel[0m	TCP 8	| SC 12	| SecureChannel closed
+[2026-10-09 08:37:04.454 (UTC+0000)] [31merror/client[0m	SecureChannel must be connected to send request
+[2026-10-09 08:37:04.454 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Created, ConnectStatus: Good
+[2026-10-09 08:37:04.455 (UTC+0000)] [32minfo/network[0m	TCP 9	| Opening a connection to &quot;127.0.0.1&quot; on port 4840
+[2026-10-09 08:37:04.455 (UTC+0000)] [32minfo/network[0m	TCP 8	| Socket closed
+warmup failed: active=0 broken=0 refused=BadServerNotConnected
+[2026-10-09 08:37:04.455 (UTC+0000)] [32minfo/channel[0m	TCP 9	| SC 0	| SecureChannel closed
+[2026-10-09 08:37:04.455 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Closed, ConnectStatus: BadConnectionClosed
+[2026-10-09 08:37:04.455 (UTC+0000)] [32minfo/network[0m	TCP 9	| Socket closed
+</td></tr><tr><td>asyncua</td><td>2</td><td>8</td><td>discovery</td><td>9,093</td><td>0.00%</td><td>1.792</td><td>1.92</td><td>5.5%</td><td>94.3%</td><td></td><td></td></tr><tr><td>gopcua</td><td>2</td><td>128</td><td>discovery</td><td>22,596</td><td>0.00%</td><td>10.752</td><td>23.552</td><td>15.6%</td><td>83.9%</td><td></td><td></td></tr><tr><td>gopcua</td><td>2</td><td>32</td><td>discovery</td><td>21,829</td><td>0.00%</td><td>2.176</td><td>10.752</td><td>15.1%</td><td>84.5%</td><td></td><td></td></tr><tr><td>gopcua</td><td>2</td><td>512</td><td>discovery</td><td>22,559</td><td>0.00%</td><td>45.056</td><td>69.632</td><td>17.8%</td><td>81.8%</td><td></td><td></td></tr><tr><td>gopcua</td><td>2</td><td>8</td><td>discovery</td><td>22,902</td><td>0.00%</td><td>0.416</td><td>8.704</td><td>15.9%</td><td>83.6%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>128</td><td>discovery</td><td>54,390</td><td>0.00%</td><td>4.352</td><td>11.776</td><td>30.7%</td><td>68.8%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>32</td><td>discovery</td><td>45,812</td><td>0.00%</td><td>1.088</td><td>5.376</td><td>27.1%</td><td>72.2%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>512</td><td>confirmation</td><td>55,998</td><td>0.00%</td><td>17.408</td><td>43.008</td><td>34.0%</td><td>65.4%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>512</td><td>confirmation</td><td>55,622</td><td>0.00%</td><td>17.408</td><td>38.912</td><td>34.3%</td><td>65.2%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>512</td><td>confirmation</td><td>55,838</td><td>0.00%</td><td>17.408</td><td>38.912</td><td>35.6%</td><td>63.9%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>512</td><td>discovery</td><td>55,058</td><td>0.00%</td><td>18.432</td><td>36.864</td><td>34.4%</td><td>65.2%</td><td></td><td></td></tr><tr><td>milo</td><td>2</td><td>8</td><td>discovery</td><td>42,991</td><td>0.00%</td><td>0.256</td><td>2.944</td><td>22.6%</td><td>76.9%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>128</td><td>confirmation</td><td>15,882</td><td>0.00%</td><td>10.752</td><td>43.008</td><td>8.4%</td><td>91.4%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>128</td><td>confirmation</td><td>15,638</td><td>0.00%</td><td>11.776</td><td>40.96</td><td>8.4%</td><td>91.3%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>128</td><td>confirmation</td><td>15,538</td><td>0.00%</td><td>9.728</td><td>43.008</td><td>8.2%</td><td>91.6%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>128</td><td>discovery</td><td>15,958</td><td>0.00%</td><td>10.24</td><td>43.008</td><td>8.4%</td><td>91.4%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>32</td><td>discovery</td><td>15,452</td><td>0.00%</td><td>2.048</td><td>15.36</td><td>7.9%</td><td>91.9%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>512</td><td>discovery</td><td>15,313</td><td>0.00%</td><td>77.824</td><td>86.016</td><td>9.4%</td><td>90.4%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>2</td><td>8</td><td>discovery</td><td>15,114</td><td>0.00%</td><td>0.544</td><td>5.888</td><td>9.2%</td><td>90.5%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>128</td><td>discovery</td><td>80,214</td><td>0.00%</td><td>3.2</td><td>3.456</td><td>33.9%</td><td>65.5%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>32</td><td>discovery</td><td>77,629</td><td>0.00%</td><td>0.832</td><td>0.928</td><td>31.3%</td><td>68.1%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>512</td><td>confirmation</td><td>100,199</td><td>0.00%</td><td>10.24</td><td>10.752</td><td>48.4%</td><td>51.6%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>512</td><td>confirmation</td><td>98,772</td><td>0.00%</td><td>10.752</td><td>14.336</td><td>48.2%</td><td>51.7%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>512</td><td>confirmation</td><td>99,746</td><td>0.00%</td><td>10.24</td><td>11.776</td><td>48.5%</td><td>51.4%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>512</td><td>discovery</td><td>99,953</td><td>0.00%</td><td>10.24</td><td>10.752</td><td>48.6%</td><td>51.4%</td><td></td><td></td></tr><tr><td>o6-python</td><td>2</td><td>8</td><td>discovery</td><td>71,990</td><td>0.00%</td><td>0.224</td><td>0.288</td><td>30.0%</td><td>69.4%</td><td></td><td></td></tr><tr><td>open62541</td><td>2</td><td>128</td><td>discovery</td><td>200,977</td><td>0.00%</td><td>1.28</td><td>1.344</td><td>55.7%</td><td>44.2%</td><td></td><td></td></tr><tr><td>open62541</td><td>2</td><td>32</td><td>discovery</td><td>195,757</td><td>0.00%</td><td>0.336</td><td>0.368</td><td>57.7%</td><td>42.2%</td><td></td><td></td></tr><tr><td>open62541</td><td>2</td><td>512</td><td>discovery</td><td>210,320</td><td>0.00%</td><td>4.864</td><td>7.168</td><td>88.1%</td><td>11.8%</td><td></td><td></td></tr><tr><td>open62541</td><td>2</td><td>8</td><td>discovery</td><td>192,577</td><td>0.00%</td><td>0.084</td><td>0.112</td><td>72.6%</td><td>26.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>2</td><td>128</td><td>discovery</td><td>48,946</td><td>0.00%</td><td>5.376</td><td>7.424</td><td>15.5%</td><td>84.4%</td><td></td><td></td></tr><tr><td>s2opc</td><td>2</td><td>32</td><td>discovery</td><td>44,299</td><td>0.00%</td><td>1.472</td><td>2.432</td><td>15.3%</td><td>84.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>2</td><td>512</td><td>discovery</td><td>74,025</td><td>0.00%</td><td>13.824</td><td>19.456</td><td>30.3%</td><td>69.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>2</td><td>8</td><td>discovery</td><td>53,480</td><td>0.00%</td><td>0.304</td><td>0.512</td><td>21.9%</td><td>77.8%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>2</td><td>128</td><td>discovery</td><td>51,067</td><td>28.96%</td><td>4.608</td><td>10.752</td><td>42.9%</td><td>56.2%</td><td>0x80ee0000 Unknown StatusCode: 20901</td><td></td></tr><tr><td>ua-dotnet</td><td>2</td><td>32</td><td>discovery</td><td>61,683</td><td>0.00%</td><td>0.96</td><td>2.944</td><td>37.9%</td><td>61.4%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>2</td><td>8</td><td>discovery</td><td>56,820</td><td>0.00%</td><td>0.232</td><td>0.96</td><td>37.4%</td><td>61.9%</td><td></td><td></td></tr><tr><td>asyncua</td><td>4</td><td>128</td><td>discovery</td><td>9,209</td><td>0.00%</td><td>57.344</td><td>57.344</td><td>3.4%</td><td>96.4%</td><td></td><td></td></tr><tr><td>asyncua</td><td>4</td><td>32</td><td>discovery</td><td>9,269</td><td>0.00%</td><td>13.824</td><td>15.872</td><td>3.3%</td><td>96.6%</td><td></td><td></td></tr><tr><td>asyncua</td><td>4</td><td>512</td><td>discovery</td><td>0</td><td>unmeasured</td><td>None</td><td>None</td><td>0.0%</td><td>0.0%</td><td></td><td>client 0 exited before &#x27;O6_CAPACITY_READY&#x27;:
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/channel[0m	TCP 8	| SC 18	| SecureChannel closed
+[2026-10-09 08:37:12.284 (UTC+0000)] [31merror/client[0m	SecureChannel must be connected to send request
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Created, ConnectStatus: Good
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/network[0m	TCP 9	| Opening a connection to &quot;127.0.0.1&quot; on port 4840
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/network[0m	TCP 8	| Socket closed
+warmup failed: active=0 broken=0 refused=BadServerNotConnected
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/channel[0m	TCP 9	| SC 0	| SecureChannel closed
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Closed, ConnectStatus: BadConnectionClosed
+[2026-10-09 08:37:12.284 (UTC+0000)] [32minfo/network[0m	TCP 9	| Socket closed
+</td></tr><tr><td>asyncua</td><td>4</td><td>8</td><td>discovery</td><td>9,231</td><td>0.00%</td><td>3.584</td><td>3.712</td><td>3.2%</td><td>96.6%</td><td></td><td></td></tr><tr><td>gopcua</td><td>4</td><td>128</td><td>discovery</td><td>22,718</td><td>0.00%</td><td>22.528</td><td>38.912</td><td>9.5%</td><td>90.1%</td><td></td><td></td></tr><tr><td>gopcua</td><td>4</td><td>32</td><td>discovery</td><td>22,983</td><td>0.00%</td><td>3.84</td><td>14.336</td><td>9.1%</td><td>90.6%</td><td></td><td></td></tr><tr><td>gopcua</td><td>4</td><td>512</td><td>discovery</td><td>23,061</td><td>0.00%</td><td>86.016</td><td>122.88</td><td>11.2%</td><td>88.5%</td><td></td><td></td></tr><tr><td>gopcua</td><td>4</td><td>8</td><td>discovery</td><td>23,075</td><td>0.00%</td><td>0.768</td><td>9.728</td><td>9.0%</td><td>90.7%</td><td></td><td></td></tr><tr><td>milo</td><td>4</td><td>128</td><td>discovery</td><td>53,080</td><td>0.00%</td><td>9.216</td><td>22.528</td><td>15.3%</td><td>84.5%</td><td></td><td></td></tr><tr><td>milo</td><td>4</td><td>32</td><td>discovery</td><td>53,779</td><td>0.00%</td><td>1.984</td><td>8.704</td><td>20.0%</td><td>79.6%</td><td></td><td></td></tr><tr><td>milo</td><td>4</td><td>512</td><td>discovery</td><td>54,021</td><td>0.00%</td><td>36.864</td><td>90.112</td><td>20.6%</td><td>78.6%</td><td></td><td></td></tr><tr><td>milo</td><td>4</td><td>8</td><td>discovery</td><td>48,333</td><td>0.00%</td><td>0.384</td><td>3.968</td><td>12.5%</td><td>87.2%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>128</td><td>discovery</td><td>15,130</td><td>0.00%</td><td>27.648</td><td>65.536</td><td>4.4%</td><td>95.5%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>32</td><td>confirmation</td><td>14,910</td><td>0.00%</td><td>4.352</td><td>31.744</td><td>4.1%</td><td>95.8%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>32</td><td>confirmation</td><td>15,502</td><td>0.00%</td><td>4.096</td><td>31.744</td><td>4.1%</td><td>95.7%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>32</td><td>confirmation</td><td>15,192</td><td>0.00%</td><td>4.352</td><td>30.72</td><td>4.1%</td><td>95.8%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>32</td><td>discovery</td><td>16,080</td><td>0.00%</td><td>4.352</td><td>29.696</td><td>4.4%</td><td>95.5%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>512</td><td>discovery</td><td>14,862</td><td>0.00%</td><td>139.264</td><td>163.84</td><td>5.3%</td><td>94.5%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>4</td><td>8</td><td>discovery</td><td>14,576</td><td>0.00%</td><td>1.088</td><td>9.728</td><td>3.9%</td><td>96.0%</td><td></td><td></td></tr><tr><td>o6-python</td><td>4</td><td>128</td><td>discovery</td><td>78,318</td><td>0.00%</td><td>6.656</td><td>6.912</td><td>17.5%</td><td>82.2%</td><td></td><td></td></tr><tr><td>o6-python</td><td>4</td><td>32</td><td>discovery</td><td>76,079</td><td>0.00%</td><td>1.728</td><td>1.856</td><td>16.4%</td><td>83.3%</td><td></td><td></td></tr><tr><td>o6-python</td><td>4</td><td>512</td><td>discovery</td><td>98,405</td><td>0.00%</td><td>21.504</td><td>21.504</td><td>25.1%</td><td>74.9%</td><td></td><td></td></tr><tr><td>o6-python</td><td>4</td><td>8</td><td>discovery</td><td>71,576</td><td>0.00%</td><td>0.448</td><td>0.544</td><td>15.3%</td><td>84.4%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>128</td><td>discovery</td><td>200,384</td><td>0.00%</td><td>2.56</td><td>2.688</td><td>29.7%</td><td>70.3%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>32</td><td>discovery</td><td>196,256</td><td>0.00%</td><td>0.672</td><td>0.736</td><td>29.9%</td><td>70.0%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>512</td><td>confirmation</td><td>232,712</td><td>0.00%</td><td>9.728</td><td>11.264</td><td>50.0%</td><td>45.1%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>512</td><td>confirmation</td><td>233,042</td><td>0.00%</td><td>9.216</td><td>15.872</td><td>53.9%</td><td>42.7%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>512</td><td>confirmation</td><td>233,270</td><td>0.00%</td><td>9.216</td><td>11.776</td><td>49.9%</td><td>45.5%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>512</td><td>discovery</td><td>232,812</td><td>0.00%</td><td>9.216</td><td>10.752</td><td>50.0%</td><td>44.8%</td><td></td><td></td></tr><tr><td>open62541</td><td>4</td><td>8</td><td>discovery</td><td>187,082</td><td>0.00%</td><td>0.168</td><td>0.32</td><td>35.7%</td><td>64.0%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>128</td><td>discovery</td><td>65,279</td><td>0.00%</td><td>7.936</td><td>10.752</td><td>10.8%</td><td>89.1%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>32</td><td>discovery</td><td>55,238</td><td>0.00%</td><td>2.304</td><td>3.456</td><td>9.9%</td><td>90.0%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>512</td><td>discovery</td><td>78,071</td><td>0.00%</td><td>27.648</td><td>34.816</td><td>19.1%</td><td>80.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>8</td><td>confirmation</td><td>58,446</td><td>0.00%</td><td>0.512</td><td>1.152</td><td>12.9%</td><td>86.9%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>8</td><td>confirmation</td><td>58,904</td><td>0.00%</td><td>0.512</td><td>1.088</td><td>13.3%</td><td>86.5%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>8</td><td>confirmation</td><td>58,650</td><td>0.00%</td><td>0.512</td><td>1.152</td><td>12.8%</td><td>87.0%</td><td></td><td></td></tr><tr><td>s2opc</td><td>4</td><td>8</td><td>discovery</td><td>88,414</td><td>0.00%</td><td>0.368</td><td>0.576</td><td>18.6%</td><td>81.2%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>128</td><td>discovery</td><td>24,542</td><td>67.56%</td><td>10.752</td><td>43.008</td><td>26.8%</td><td>72.4%</td><td>0x80ee0000 Unknown StatusCode: 51714</td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>32</td><td>confirmation</td><td>69,430</td><td>0.00%</td><td>1.536</td><td>6.656</td><td>20.6%</td><td>79.0%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>32</td><td>confirmation</td><td>69,768</td><td>0.00%</td><td>1.536</td><td>6.4</td><td>21.0%</td><td>78.6%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>32</td><td>confirmation</td><td>69,159</td><td>0.00%</td><td>1.6</td><td>6.656</td><td>19.9%</td><td>79.7%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>32</td><td>discovery</td><td>68,649</td><td>0.00%</td><td>1.536</td><td>6.656</td><td>21.5%</td><td>78.1%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>4</td><td>8</td><td>discovery</td><td>57,224</td><td>0.00%</td><td>0.432</td><td>2.56</td><td>20.5%</td><td>79.0%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>128</td><td>discovery</td><td>9,199</td><td>0.00%</td><td>114.688</td><td>114.688</td><td>2.1%</td><td>97.8%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>32</td><td>confirmation</td><td>9,256</td><td>0.00%</td><td>27.648</td><td>29.696</td><td>2.0%</td><td>97.8%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>32</td><td>confirmation</td><td>9,155</td><td>0.00%</td><td>28.672</td><td>38.912</td><td>2.1%</td><td>97.8%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>32</td><td>confirmation</td><td>9,194</td><td>0.00%</td><td>28.672</td><td>28.672</td><td>2.1%</td><td>97.8%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>32</td><td>discovery</td><td>9,288</td><td>0.00%</td><td>27.648</td><td>36.864</td><td>2.0%</td><td>97.9%</td><td></td><td></td></tr><tr><td>asyncua</td><td>8</td><td>512</td><td>discovery</td><td>0</td><td>unmeasured</td><td>None</td><td>None</td><td>0.0%</td><td>0.0%</td><td></td><td>client 0 exited before &#x27;O6_CAPACITY_READY&#x27;:
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/channel[0m	TCP 8	| SC 30	| SecureChannel closed
+[2026-10-09 08:37:20.236 (UTC+0000)] [31merror/client[0m	SecureChannel must be connected to send request
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Created, ConnectStatus: Good
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/network[0m	TCP 9	| Opening a connection to &quot;127.0.0.1&quot; on port 4840
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/network[0m	TCP 8	| Socket closed
+warmup failed: active=0 broken=0 refused=BadServerNotConnected
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/channel[0m	TCP 9	| SC 0	| SecureChannel closed
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/client[0m	Client Status: ChannelState: Closed, SessionState: Closed, ConnectStatus: BadConnectionClosed
+[2026-10-09 08:37:20.236 (UTC+0000)] [32minfo/network[0m	TCP 9	| Socket closed
+</td></tr><tr><td>asyncua</td><td>8</td><td>8</td><td>discovery</td><td>9,234</td><td>0.00%</td><td>6.912</td><td>7.68</td><td>2.0%</td><td>97.9%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>128</td><td>confirmation</td><td>24,184</td><td>0.00%</td><td>43.008</td><td>63.488</td><td>6.2%</td><td>93.6%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>128</td><td>confirmation</td><td>23,989</td><td>0.00%</td><td>45.056</td><td>63.488</td><td>5.9%</td><td>93.9%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>128</td><td>confirmation</td><td>23,923</td><td>0.00%</td><td>45.056</td><td>61.44</td><td>6.0%</td><td>93.8%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>128</td><td>discovery</td><td>23,764</td><td>0.00%</td><td>43.008</td><td>63.488</td><td>6.1%</td><td>93.7%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>32</td><td>discovery</td><td>23,575</td><td>0.00%</td><td>12.288</td><td>22.528</td><td>6.0%</td><td>93.8%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>512</td><td>confirmation</td><td>23,634</td><td>0.00%</td><td>172.032</td><td>221.184</td><td>6.8%</td><td>92.9%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>512</td><td>confirmation</td><td>23,504</td><td>0.00%</td><td>180.224</td><td>212.992</td><td>6.8%</td><td>92.9%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>512</td><td>confirmation</td><td>24,456</td><td>0.00%</td><td>172.032</td><td>212.992</td><td>7.0%</td><td>92.7%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>512</td><td>discovery</td><td>24,347</td><td>0.00%</td><td>172.032</td><td>221.184</td><td>7.2%</td><td>92.1%</td><td></td><td></td></tr><tr><td>gopcua</td><td>8</td><td>8</td><td>discovery</td><td>23,712</td><td>0.00%</td><td>1.472</td><td>10.752</td><td>6.2%</td><td>93.6%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>128</td><td>discovery</td><td>52,971</td><td>0.00%</td><td>19.456</td><td>45.056</td><td>9.1%</td><td>90.5%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>32</td><td>discovery</td><td>53,946</td><td>0.00%</td><td>4.608</td><td>12.8</td><td>8.0%</td><td>91.7%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>512</td><td>confirmation</td><td>55,104</td><td>0.00%</td><td>77.824</td><td>139.264</td><td>9.3%</td><td>90.2%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>512</td><td>confirmation</td><td>54,331</td><td>0.00%</td><td>81.92</td><td>147.456</td><td>8.3%</td><td>91.5%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>512</td><td>confirmation</td><td>55,264</td><td>0.00%</td><td>77.824</td><td>147.456</td><td>9.7%</td><td>89.4%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>512</td><td>discovery</td><td>54,724</td><td>0.00%</td><td>77.824</td><td>139.264</td><td>9.8%</td><td>89.6%</td><td></td><td></td></tr><tr><td>milo</td><td>8</td><td>8</td><td>discovery</td><td>52,903</td><td>0.00%</td><td>0.896</td><td>6.912</td><td>9.0%</td><td>90.7%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>8</td><td>128</td><td>discovery</td><td>15,308</td><td>0.00%</td><td>73.728</td><td>86.016</td><td>2.6%</td><td>97.3%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>8</td><td>32</td><td>discovery</td><td>15,560</td><td>0.00%</td><td>11.776</td><td>43.008</td><td>2.5%</td><td>97.3%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>8</td><td>512</td><td>discovery</td><td>14,341</td><td>0.00%</td><td>278.528</td><td>376.832</td><td>3.6%</td><td>96.3%</td><td></td><td></td></tr><tr><td>node-opcua</td><td>8</td><td>8</td><td>discovery</td><td>14,474</td><td>0.00%</td><td>2.304</td><td>18.432</td><td>2.4%</td><td>97.5%</td><td></td><td></td></tr><tr><td>o6-python</td><td>8</td><td>128</td><td>discovery</td><td>79,652</td><td>0.00%</td><td>13.312</td><td>14.336</td><td>9.4%</td><td>90.4%</td><td></td><td></td></tr><tr><td>o6-python</td><td>8</td><td>32</td><td>discovery</td><td>76,808</td><td>0.00%</td><td>3.328</td><td>3.712</td><td>8.8%</td><td>91.0%</td><td></td><td></td></tr><tr><td>o6-python</td><td>8</td><td>512</td><td>discovery</td><td>96,612</td><td>0.00%</td><td>43.008</td><td>55.296</td><td>13.3%</td><td>86.6%</td><td></td><td></td></tr><tr><td>o6-python</td><td>8</td><td>8</td><td>discovery</td><td>72,540</td><td>0.00%</td><td>0.896</td><td>1.024</td><td>7.9%</td><td>92.0%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>128</td><td>discovery</td><td>204,991</td><td>0.00%</td><td>5.12</td><td>6.912</td><td>16.2%</td><td>83.6%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>32</td><td>discovery</td><td>194,584</td><td>0.00%</td><td>1.344</td><td>1.408</td><td>16.1%</td><td>83.9%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>512</td><td>confirmation</td><td>235,738</td><td>0.00%</td><td>15.872</td><td>28.672</td><td>26.7%</td><td>70.7%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>512</td><td>confirmation</td><td>235,676</td><td>0.00%</td><td>13.824</td><td>23.552</td><td>25.6%</td><td>73.5%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>512</td><td>confirmation</td><td>239,032</td><td>0.00%</td><td>13.824</td><td>25.6</td><td>25.8%</td><td>72.2%</td><td></td><td>Client missed the shared start by 10.276ms (limit 10ms); generator scheduling invalidated this measurement</td></tr><tr><td>open62541</td><td>8</td><td>512</td><td>discovery</td><td>237,749</td><td>0.00%</td><td>13.824</td><td>23.552</td><td>25.2%</td><td>68.9%</td><td></td><td></td></tr><tr><td>open62541</td><td>8</td><td>8</td><td>discovery</td><td>186,399</td><td>0.00%</td><td>0.336</td><td>0.608</td><td>19.5%</td><td>80.3%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>128</td><td>discovery</td><td>73,930</td><td>0.00%</td><td>13.824</td><td>19.456</td><td>6.7%</td><td>93.2%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>32</td><td>discovery</td><td>63,255</td><td>0.00%</td><td>4.096</td><td>5.888</td><td>6.0%</td><td>93.9%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>512</td><td>discovery</td><td>78,770</td><td>0.00%</td><td>51.2</td><td>59.392</td><td>8.8%</td><td>90.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>8</td><td>confirmation</td><td>64,382</td><td>0.00%</td><td>0.96</td><td>2.048</td><td>7.4%</td><td>92.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>8</td><td>confirmation</td><td>63,748</td><td>0.00%</td><td>0.96</td><td>1.856</td><td>7.6%</td><td>92.3%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>8</td><td>confirmation</td><td>65,161</td><td>0.00%</td><td>0.928</td><td>1.792</td><td>7.3%</td><td>92.6%</td><td></td><td></td></tr><tr><td>s2opc</td><td>8</td><td>8</td><td>discovery</td><td>92,141</td><td>0.00%</td><td>0.704</td><td>1.088</td><td>10.5%</td><td>89.4%</td><td></td><td></td></tr><tr><td>ua-dotnet</td><td>8</td><td>32</td><td>discovery</td><td>50,928</td><td>26.77%</td><td>4.096</td><td>15.872</td><td>12.1%</td><td>87.5%</td><td>0x80ee0000 Unknown StatusCode: 18707</td><td></td></tr><tr><td>ua-dotnet</td><td>8</td><td>8</td><td>discovery</td><td>63,930</td><td>0.00%</td><td>0.864</td><td>4.096</td><td>10.8%</td><td>88.9%</td><td></td><td></td></tr></table>
+<details><summary>Confirmation evidence</summary><pre>{
+  &quot;open62541&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 237749.0,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 174250.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 190263.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 199240.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 152630.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 192577.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 195757.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 200977.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 210320.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 187082.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 196256.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 200384.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 232812.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 186399.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 194584.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 204991.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 237749.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 237749.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 232812.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: false,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 2,
+        &quot;rate&quot;: 235707.25,
+        &quot;mean&quot;: 235707.25,
+        &quot;maximum&quot;: 235738.5,
+        &quot;minimum&quot;: 235676.0,
+        &quot;variance&quot;: 1953.125,
+        &quot;stddev&quot;: 44.19417382415922,
+        &quot;spread&quot;: 0.00026515942975873674,
+        &quot;generator_headroom&quot;: false
+      },
+      {
+        &quot;clients&quot;: 4,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 233007.66666666666,
+        &quot;mean&quot;: 233007.66666666666,
+        &quot;maximum&quot;: 233269.5,
+        &quot;minimum&quot;: 232712.0,
+        &quot;variance&quot;: 78560.08333333333,
+        &quot;stddev&quot;: 280.2857173195476,
+        &quot;spread&quot;: 0.002392625135367506,
+        &quot;generator_headroom&quot;: false
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 233269.5,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 4,
+      &quot;outstanding&quot;: 512
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      232712.0,
+      233269.5
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;o6-python&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 101209.0,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 65905.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 70076.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 73241.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 99808.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 71990.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 77629.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 80214.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 99953.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 71576.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 76079.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 78318.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 98405.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 72540.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 76808.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 79652.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 96612.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 99953.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 99808.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 2,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 99572.5,
+        &quot;mean&quot;: 99572.5,
+        &quot;maximum&quot;: 100199.0,
+        &quot;minimum&quot;: 98772.0,
+        &quot;variance&quot;: 531789.25,
+        &quot;stddev&quot;: 729.2388154781669,
+        &quot;spread&quot;: 0.014331266162846168,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 1,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 100664.16666666667,
+        &quot;mean&quot;: 100664.16666666667,
+        &quot;maximum&quot;: 101209.0,
+        &quot;minimum&quot;: 99756.5,
+        &quot;variance&quot;: 626175.0833333334,
+        &quot;stddev&quot;: 791.3122540017521,
+        &quot;spread&quot;: 0.014429166287242232,
+        &quot;generator_headroom&quot;: false
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 101209.0,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 1,
+      &quot;outstanding&quot;: 512
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      99756.5,
+      101209.0
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;asyncua&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 9337.0,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9089.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9284.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9239.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9093.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9202.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9146.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9231.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9269.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9209.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9234.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9288.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9199.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9288.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9284.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 32,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 9201.833333333334,
+        &quot;mean&quot;: 9201.833333333334,
+        &quot;maximum&quot;: 9256.5,
+        &quot;minimum&quot;: 9155.0,
+        &quot;variance&quot;: 2621.5833333333335,
+        &quot;stddev&quot;: 51.201399720450354,
+        &quot;spread&quot;: 0.011030410606582022,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 1,
+        &quot;outstanding&quot;: 32,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 9291.166666666666,
+        &quot;mean&quot;: 9291.166666666666,
+        &quot;maximum&quot;: 9337.0,
+        &quot;minimum&quot;: 9261.5,
+        &quot;variance&quot;: 1621.0833333333333,
+        &quot;stddev&quot;: 40.26267916238726,
+        &quot;spread&quot;: 0.008125997811541429,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 9337.0,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 1,
+      &quot;outstanding&quot;: 32
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      9261.5,
+      9337.0
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;ua-dotnet&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 69768.5,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 11735.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 12267.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 36919.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 48344.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 56820.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 61683.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 51067.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 57224.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 68649.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 24542.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 63930.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: false,
+          &quot;requests_per_second&quot;: 50928.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 68649.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 4,
+        &quot;outstanding&quot;: 32,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 69452.33333333333,
+        &quot;mean&quot;: 69452.33333333333,
+        &quot;maximum&quot;: 69768.5,
+        &quot;minimum&quot;: 69159.0,
+        &quot;variance&quot;: 93263.58333333333,
+        &quot;stddev&quot;: 305.39086976092347,
+        &quot;spread&quot;: 0.008775803068771388,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 69768.5,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 4,
+      &quot;outstanding&quot;: 32
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      69159.0,
+      69768.5
+    ],
+    &quot;new_probes&quot;: 15
+  },
+  &quot;node-opcua&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 16080.0,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 9816.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 13907.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15693.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15633.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15114.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15452.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15958.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15313.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 14576.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 16080.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15130.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 14862.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 14474.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15560.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15308.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 14341.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 16080.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 15958.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 4,
+        &quot;outstanding&quot;: 32,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 15201.166666666666,
+        &quot;mean&quot;: 15201.166666666666,
+        &quot;maximum&quot;: 15502.0,
+        &quot;minimum&quot;: 14910.0,
+        &quot;variance&quot;: 87686.08333333333,
+        &quot;stddev&quot;: 296.1183603448684,
+        &quot;spread&quot;: 0.03894437926913505,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 2,
+        &quot;outstanding&quot;: 128,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 15686.166666666666,
+        &quot;mean&quot;: 15686.166666666666,
+        &quot;maximum&quot;: 15882.5,
+        &quot;minimum&quot;: 15538.5,
+        &quot;variance&quot;: 31360.333333333332,
+        &quot;stddev&quot;: 177.08849012099384,
+        &quot;spread&quot;: 0.021930150769786542,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 15882.5,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 2,
+      &quot;outstanding&quot;: 128
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      15538.5,
+      15882.5
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;milo&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 55998.5,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 4091.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 13149.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21828.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 43325.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 42991.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 45812.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 54390.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 55058.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 48333.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 53779.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 53080.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 54021.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 52903.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 53946.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 52971.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 54724.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 55058.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 54724.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 2,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 55819.833333333336,
+        &quot;mean&quot;: 55819.833333333336,
+        &quot;maximum&quot;: 55998.5,
+        &quot;minimum&quot;: 55622.5,
+        &quot;variance&quot;: 35605.333333333336,
+        &quot;stddev&quot;: 188.6937554169012,
+        &quot;spread&quot;: 0.006735957052302198,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 54899.833333333336,
+        &quot;mean&quot;: 54899.833333333336,
+        &quot;maximum&quot;: 55264.0,
+        &quot;minimum&quot;: 54331.0,
+        &quot;variance&quot;: 249038.58333333334,
+        &quot;stddev&quot;: 499.0376572297258,
+        &quot;spread&quot;: 0.016994587111679147,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 55998.5,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 2,
+      &quot;outstanding&quot;: 512
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      55622.5,
+      55998.5
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;s2opc&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 92141.0,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 53179.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 36479.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 39831.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 50202.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 53480.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 44299.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 48946.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 74025.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 88414.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 55238.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 65279.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 78071.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 92141.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 63255.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 73930.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 78770.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 92141.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 88414.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 8,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 64430.666666666664,
+        &quot;mean&quot;: 64430.666666666664,
+        &quot;maximum&quot;: 65161.0,
+        &quot;minimum&quot;: 63748.5,
+        &quot;variance&quot;: 500529.0833333333,
+        &quot;stddev&quot;: 707.4808006817806,
+        &quot;spread&quot;: 0.021922790389669516,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 4,
+        &quot;outstanding&quot;: 8,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 58666.666666666664,
+        &quot;mean&quot;: 58666.666666666664,
+        &quot;maximum&quot;: 58904.0,
+        &quot;minimum&quot;: 58445.5,
+        &quot;variance&quot;: 52751.583333333336,
+        &quot;stddev&quot;: 229.67712845064338,
+        &quot;spread&quot;: 0.007815340909090909,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 65161.0,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 8,
+      &quot;outstanding&quot;: 8
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      63748.5,
+      65161.0
+    ],
+    &quot;new_probes&quot;: 22
+  },
+  &quot;gopcua&quot;: {
+    &quot;highest_observed_requests_per_second&quot;: 24456.5,
+    &quot;selection&quot;: {
+      &quot;percentile&quot;: 90,
+      &quot;discoveries&quot;: [
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21192.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21352.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21476.0
+        },
+        {
+          &quot;clients&quot;: 1,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21285.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 22902.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 21829.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 22596.0
+        },
+        {
+          &quot;clients&quot;: 2,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 22559.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23075.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 22983.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 22718.0
+        },
+        {
+          &quot;clients&quot;: 4,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23061.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 8,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23712.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 32,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23575.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23764.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 24347.0
+        }
+      ],
+      &quot;candidates&quot;: [
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 512,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 24347.0
+        },
+        {
+          &quot;clients&quot;: 8,
+          &quot;outstanding&quot;: 128,
+          &quot;healthy&quot;: true,
+          &quot;requests_per_second&quot;: 23764.0
+        }
+      ],
+      &quot;discovery_stop&quot;: &quot;grid_complete&quot;
+    },
+    &quot;confirmation&quot;: [
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 512,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 23864.833333333332,
+        &quot;mean&quot;: 23864.833333333332,
+        &quot;maximum&quot;: 24456.5,
+        &quot;minimum&quot;: 23504.0,
+        &quot;variance&quot;: 266777.0833333333,
+        &quot;stddev&quot;: 516.5046789074938,
+        &quot;spread&quot;: 0.03991228376481434,
+        &quot;generator_headroom&quot;: true
+      },
+      {
+        &quot;clients&quot;: 8,
+        &quot;outstanding&quot;: 128,
+        &quot;healthy&quot;: true,
+        &quot;count&quot;: 3,
+        &quot;successful_count&quot;: 3,
+        &quot;rate&quot;: 24032.166666666668,
+        &quot;mean&quot;: 24032.166666666668,
+        &quot;maximum&quot;: 24184.5,
+        &quot;minimum&quot;: 23923.0,
+        &quot;variance&quot;: 18493.083333333332,
+        &quot;stddev&quot;: 135.98927653801726,
+        &quot;spread&quot;: 0.01088124943651911,
+        &quot;generator_headroom&quot;: true
+      }
+    ],
+    &quot;capacity_requests_per_second&quot;: 24456.5,
+    &quot;saturation_proven&quot;: false,
+    &quot;status&quot;: &quot;confirmed&quot;,
+    &quot;reason&quot;: &quot;Top-decile candidate completed 3 successful confirmation measurements; saturation is not proven&quot;,
+    &quot;winning_configuration&quot;: {
+      &quot;clients&quot;: 8,
+      &quot;outstanding&quot;: 512
+    },
+    &quot;observed_range_requests_per_second&quot;: [
+      23504.0,
+      24456.5
+    ],
+    &quot;new_probes&quot;: 22
+  }
+}</pre></details>
+<h2>Failed measurements</h2><ul></ul></body></html>

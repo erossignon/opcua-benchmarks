@@ -1,0 +1,93 @@
+{
+ "id": "2026-10-09-37905325339",
+ "date": "2026-10-09T08:41:22Z",
+ "profile": "quick",
+ "trigger": "workflow_dispatch",
+ "ref": "main",
+ "commit": "3cdea9f649cc634acf4d18b34d634bfe105558a0",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/37905325339",
+ "runner": {
+  "label": "ubuntu-24.04",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "cores": 4,
+  "memory_gb": 15.6
+ },
+ "versions": {
+  "node-opcua": "2.186.0",
+  "asyncua": "2.0.1",
+  "o6-python": "2.0.1",
+  "milo": "1.1.8",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176"
+ },
+ "failures": 0,
+ "metrics": [
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "asyncua",
+   "value": 9337.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "gopcua",
+   "value": 24456.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "milo",
+   "value": 55998.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua",
+   "value": 15882.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "o6-python",
+   "value": 101209.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "open62541",
+   "value": 233269.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "s2opc",
+   "value": 65161.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "ua-dotnet",
+   "value": 69768.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}
