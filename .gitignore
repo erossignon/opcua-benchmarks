@@ -42,3 +42,4 @@ results/
 /deps/s2opc-build/
 /deps/sdk-state/
 target/
+!bench/ci_site/*.html

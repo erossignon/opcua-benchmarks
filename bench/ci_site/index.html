@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPC UA benchmark history</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<style>
+  :root {
+    --bg: #fbfbfa; --fg: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc; --card: #ffffff;
+    --up: #1a7f37; --down: #c4321b; --accent: #2457c5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --fg: #ecebe6; --muted: #9c9b94; --line: #2f2f2c; --card: #1e1e1c;
+      --up: #4ac26b; --down: #f0735a; --accent: #7aa2f7; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; max-width: 75ch; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; margin-bottom: 12px; }
+  label { display: flex; flex-direction: column; font-size: .8rem; color: var(--muted); gap: 4px; }
+  label.check { flex-direction: row; align-items: center; color: var(--fg); font-size: .9rem; }
+  select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--card); color: var(--fg); max-width: 100%; }
+  #chart { background: var(--card); border: 1px solid var(--line); border-radius: 8px; min-height: 420px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: .8rem; color: var(--muted); font-weight: 600; }
+  td.num { text-align: right; }
+  .up { color: var(--up); font-weight: 600; }
+  .down { color: var(--down); font-weight: 600; }
+  .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--muted); }
+  a { color: var(--accent); }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>OPC UA benchmark history</h1>
+  <p class="lede">Every published CI run of the benchmark suites, one point per run. Runs on shared
+  GitHub-hosted machines change from one run to the next: compare against the
+  <em>relative to open62541</em> view, which divides by the open62541 server measured in the same run,
+  before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
+
+  <div class="controls">
+    <label>Profile <select id="profile"></select></label>
+    <label>Suite <select id="suite"></select></label>
+    <label>Case <select id="case"></select></label>
+    <label class="check"><input type="checkbox" id="relative"> relative to open62541</label>
+  </div>
+  <div id="chart"></div>
+
+  <h2>Latest run against the previous one</h2>
+  <div class="scroll"><table id="latest"></table></div>
+
+  <h2>Runs</h2>
+  <div class="scroll"><table id="runs"></table></div>
+</main>
+<script>
+const REFERENCE = "open62541";
+const THRESHOLD = 0.10;
+const $ = (id) => document.getElementById(id);
+const fmt = (v) => v == null ? "–" : (Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : v.toPrecision(3));
+const escape = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+let history = [];
+
+function options(select, values, keep) {
+  const previous = keep ?? select.value;
+  select.innerHTML = values.map((v) => `<option>${escape(v)}</option>`).join("");
+  if (values.includes(previous)) select.value = previous;
+}
+
+function runsOfProfile() {
+  return history.filter((run) => run.profile === $("profile").value);
+}
+
+function value(run, suite, kase, server) {
+  const m = run.metrics.find((x) => x.suite === suite && x.case === kase && x.server === server);
+  if (!m) return null;
+  if (!$("relative").checked) return m.value;
+  const ref = run.metrics.find((x) => x.suite === suite && x.case === kase && x.server === REFERENCE);
+  return ref && ref.value ? m.value / ref.value : null;
+}
+
+function refreshSelectors() {
+  const runs = runsOfProfile();
+  const suites = [...new Set(runs.flatMap((r) => r.metrics.map((m) => m.suite)))].sort();
+  options($("suite"), suites);
+  const cases = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === $("suite").value).map((m) => m.case)))].sort();
+  options($("case"), cases);
+}
+
+function draw() {
+  const runs = runsOfProfile();
+  const suite = $("suite").value, kase = $("case").value;
+  const metric = runs.flatMap((r) => r.metrics).find((m) => m.suite === suite && m.case === kase);
+  const servers = [...new Set(runs.flatMap((r) => r.metrics.filter((m) => m.suite === suite && m.case === kase).map((m) => m.server)))].sort();
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const traces = servers.map((server) => {
+    let lastVersion;
+    const points = runs.map((run) => {
+      const version = run.versions?.[server];
+      const changed = lastVersion !== undefined && version !== lastVersion;
+      lastVersion = version;
+      return { x: run.date, y: value(run, suite, kase, server), version, changed, id: run.id };
+    });
+    return {
+      name: server, mode: "lines+markers", type: "scatter", connectgaps: false,
+      x: points.map((p) => p.x), y: points.map((p) => p.y),
+      marker: { size: points.map((p) => (p.changed ? 12 : 6)), symbol: points.map((p) => (p.changed ? "diamond" : "circle")) },
+      text: points.map((p) => `${server} ${p.version ?? ""}<br>${p.id}`),
+      hovertemplate: "%{text}<br>%{y:.4~s}<extra></extra>",
+    };
+  });
+  const unit = $("relative").checked ? `× ${REFERENCE}` : (metric?.unit ?? "");
+  const fg = dark ? "#ecebe6" : "#1d1d1b", grid = dark ? "#2f2f2c" : "#e2e1dc";
+  Plotly.react("chart", traces, {
+    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: fg },
+    margin: { l: 64, r: 16, t: 16, b: 48 }, legend: { orientation: "h", y: -0.18 },
+    xaxis: { gridcolor: grid }, yaxis: { title: unit, gridcolor: grid, rangemode: "tozero" },
+  }, { responsive: true, displaylogo: false });
+  drawLatest(runs, suite, kase, servers, metric);
+}
+
+function drawLatest(runs, suite, kase, servers, metric) {
+  const table = $("latest");
+  if (runs.length < 1) { table.innerHTML = ""; return; }
+  const last = runs[runs.length - 1], prev = runs[runs.length - 2];
+  const higherIsBetter = metric?.higher_is_better !== false;
+  const rows = servers.map((server) => {
+    const now = value(last, suite, kase, server), before = prev ? value(prev, suite, kase, server) : null;
+    const delta = now != null && before ? now / before - 1 : null;
+    const good = delta != null && (higherIsBetter ? delta : -delta) > THRESHOLD;
+    const bad = delta != null && (higherIsBetter ? -delta : delta) > THRESHOLD;
+    const version = last.versions?.[server], oldVersion = prev?.versions?.[server];
+    const versionCell = version && oldVersion && version !== oldVersion
+      ? `${escape(oldVersion)} → <strong>${escape(version)}</strong>` : escape(version ?? "");
+    return `<tr><td>${escape(server)}</td><td>${versionCell}</td><td class="num">${fmt(before)}</td>
+      <td class="num">${fmt(now)}</td><td class="num ${good ? "up" : bad ? "down" : ""}">${delta == null ? "–" : (delta * 100).toFixed(1) + "%"}</td></tr>`;
+  });
+  table.innerHTML = `<tr><th>Server</th><th>Version</th><th>Previous</th><th>Latest</th><th>Change</th></tr>${rows.join("")}`;
+}
+
+function drawRuns() {
+  const rows = [...history].reverse().map((run, index, all) => {
+    const older = all.slice(index + 1).find((r) => r.profile === run.profile);
+    const changed = Object.entries(run.versions ?? {})
+      .filter(([sdk, v]) => older && older.versions?.[sdk] !== v)
+      .map(([sdk, v]) => `${escape(sdk)} ${escape(v)}`).join(", ");
+    return `<tr><td>${escape(run.date.slice(0, 16).replace("T", " "))}</td><td><span class="tag">${escape(run.profile)}</span></td>
+      <td>${escape(run.trigger ?? "")}</td><td>${escape(run.runner?.cpu ?? "")}</td><td>${changed || "–"}</td>
+      <td>${run.failures ? `<span class="down">${run.failures}</span>` : "0"}</td>
+      <td><a href="${escape(run.report)}">report</a> · <a href="${escape(run.url ?? "#")}">log</a></td></tr>`;
+  });
+  $("runs").innerHTML = `<tr><th>Date (UTC)</th><th>Profile</th><th>Trigger</th><th>Machine</th><th>Versions changed</th><th>Failures</th><th></th></tr>${rows.join("")}`;
+}
+
+async function main() {
+  try {
+    history = await (await fetch("data/history.json", { cache: "no-store" })).json();
+  } catch {
+    history = [];
+  }
+  history.sort((a, b) => a.date.localeCompare(b.date));
+  if (!history.length) {
+    $("chart").innerHTML = '<div class="empty">No published run yet.</div>';
+    return;
+  }
+  options($("profile"), [...new Set(history.map((r) => r.profile))].sort(), history[history.length - 1].profile);
+  refreshSelectors();
+  $("profile").onchange = () => { refreshSelectors(); draw(); };
+  $("suite").onchange = () => { refreshSelectors(); draw(); };
+  $("case").onchange = draw;
+  $("relative").onchange = draw;
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+  draw();
+  drawRuns();
+}
+main();
+</script>
+</body>
+</html>
