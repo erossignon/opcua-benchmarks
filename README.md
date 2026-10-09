@@ -85,7 +85,9 @@ Use Bash, not `sh`. Override `SAMPLES`, `ITERATIONS`, `WARMUP`, or
 Workers rebuilt since a saved run can change its fingerprint; start a new
 named run instead of amending incompatible measurements.
 
-## Copyright
+## License
 
-[Copyright (c) 2026 o6 Automation GmbH. All rights reserved.](LICENSE)
-Third-party dependencies retain their own licenses.
+Copyright (c) 2026 o6 Automation GmbH (Author: Daniel Opitz)
+
+Licensed under the [GNU Affero General Public License, version 3 or later](LICENSE)
+(`AGPL-3.0-or-later`). Third-party dependencies retain their own licenses.
