@@ -32,6 +32,10 @@ def workload_note(sources):
         "periodically sample read callbacks. It retains the application loop that writes every item at the "
         "configured sampling period. Its reported sampling interval equals the publishing interval. "
         "Its results therefore include application-update work and measure a different generation path.</p>"
+        "<p><strong>node-opcua-fronts exception:</strong> with FrontThreadEngine the monitored items live in a "
+        "session worker that samples the shared store; a read callback of the engine thread would cost a "
+        "round trip per sample. The engine thread therefore writes every item at the configured sampling "
+        "period, as for asyncua, and server observations count those writes.</p>"
         + history
         + "</aside>"
     )

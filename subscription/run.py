@@ -130,6 +130,11 @@ def commands(case, port):
 
         server = [str(node_workers.NODE), str(ROOT / "subscription/node_server.mjs")]
         env = node_workers.environment()
+    elif implementation.startswith("node-opcua-fronts"):
+        from common import node_workers, sdk_workers
+
+        server = [str(node_workers.NODE), str(ROOT / "subscription/node_fronts_server.mjs")]
+        env = sdk_workers.environment(implementation)
     else:
         from common import dotnet_workers
 

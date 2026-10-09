@@ -5,6 +5,8 @@ from common.suites import ConfigOption, one_of, uniform, varying
 MAX_ITEMS = 1_048_576
 
 SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet")
+# node-opcua through FrontThreadEngine (common/node-fronts): opt-in, application-update counters.
+FRONTS = ("node-opcua-fronts", "node-opcua-fronts-2")
 
 
 def bounded(minimum, maximum):
@@ -26,7 +28,11 @@ OPTIONS = {
         "Separate searches for each selected observer; never measure both in one run.",
     ),
     "implementation": ConfigOption(
-        "varying", list(SERVERS), varying(one_of(*SERVERS)), "Server SDKs; every case uses the same native setup/client worker."
+        "varying",
+        list(SERVERS),
+        varying(one_of(*SERVERS, *FRONTS)),
+        "Server SDKs; every case uses the same native setup/client worker. "
+        "node-opcua-fronts and node-opcua-fronts-2 are opt-in.",
     ),
     "items_start": ConfigOption(
         "uniform", 128, uniform(bounded(1, MAX_ITEMS)), "Initial monitored-item count for each adaptive search."
