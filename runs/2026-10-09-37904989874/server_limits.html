@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>server_limits — how hard can you push it?</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+.viz-root {
+  color-scheme: light;
+  --surface: #fcfcfb; --plane: #f9f9f7; --primary: #0b0b0b; --secondary: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --open62541: #2a78d6; --o6-python: #eb6834; --asyncua: #1baf7a; --ua-dotnet: #663399; --node-opcua: #007f86;
+  --milo: #e87ba4; --s2opc: #eda100; --gopcua: #4a3aa7;
+  --good: #0ca30c; --critical: #d03b3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .viz-root {
+    color-scheme: dark;
+    --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --open62541: #3987e5; --o6-python: #d95926; --asyncua: #199e70; --ua-dotnet: #bb88ee; --node-opcua: #44bbbb;
+    --milo: #d55181; --s2opc: #c98500; --gopcua: #9085e9;
+    --good: #0ca30c; --critical: #d03b3b;
+  }
+}
+:root[data-theme="dark"] .viz-root {
+  color-scheme: dark;
+  --surface: #1a1a19; --plane: #0d0d0d; --primary: #ffffff; --secondary: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --open62541: #3987e5; --o6-python: #d95926; --asyncua: #199e70; --ua-dotnet: #bb88ee; --node-opcua: #44bbbb;
+  --milo: #d55181; --s2opc: #c98500; --gopcua: #9085e9;
+  --good: #0ca30c; --critical: #d03b3b;
+}
+html, body { margin: 0; padding: 0; }
+body { background: var(--plane); }
+.viz-root {
+  background: var(--plane); color: var(--primary);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+.wrap { max-width: 1220px; margin: 0 auto; padding: 32px 24px 64px; }
+header.page { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 26px; }
+header.page .spacer { flex: 1; }
+h1 { font-size: 25px; line-height: 1.25; margin: 0 0 8px; letter-spacing: -0.01em; }
+header.page p { margin: 0; color: var(--secondary); max-width: 72ch; }
+h2 { font-size: 16px; margin: 0; }
+button, select {
+  font: inherit; font-size: 13px; color: var(--primary); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--axis); }
+button[aria-pressed="true"] { background: var(--primary); color: var(--surface); border-color: var(--primary); }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.legendbar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  margin: 0 4px 10px; font-size: 13px; color: var(--secondary); }
+.chip { display: inline-flex; align-items: center; gap: 7px; }
+.chip i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.chip i.ring { background: transparent; border: 2px solid var(--secondary); border-radius: 50%; width: 9px; height: 9px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+  padding: 18px 18px 10px; margin-bottom: 22px; }
+.card > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.card .q { color: var(--secondary); font-size: 13px; flex: 1; min-width: 16ch; }
+.plot { width: 100%; height: 380px; }
+.plot.tall { height: 460px; }
+/* One bar per implementation and nothing else, so the card wants the height of
+   its bars rather than a chart-shaped box. */
+.plot.short { height: 240px; }
+/* The lead card answers the question in the page title on its own; the numbered
+   cards below it are the working. A heavier heading and a plainer body are what
+   say so to a reader who is not going to read the rest. */
+.card.lead { border-color: var(--axis); }
+.card.lead > header h2 { font-size: 19px; }
+.card.lead .q { font-size: 14px; color: var(--primary); }
+.frontiergrid { display: flex; flex-wrap: wrap; gap: 18px; }
+.frontiergrid .cell { flex: 1 1 260px; min-width: 220px; }
+.frontiergrid .cell h3 { font-size: 13px; font-weight: 600; margin: 0 0 2px; color: var(--secondary); }
+.frontiergrid .cell .edge { font-size: 12px; margin: 0 0 4px; color: var(--muted); min-height: 2.6em; }
+.frontiergrid .plot { height: 260px; }
+.hidden { display: none; }
+.caption { color: var(--muted); font-size: 12.5px; margin: 6px 2px 10px; }
+.tablewrap { max-height: 420px; overflow: auto; margin: 6px 0 12px; }
+.tablewrap.tall { max-height: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+td code { background: var(--plane); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--surface); color: var(--secondary); font-weight: 600; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.name { white-space: normal; word-break: break-word; max-width: 52ch; }
+.warning { background: var(--surface); border: 1px solid var(--border); border-radius: 11px;
+  padding: 10px 16px; margin-bottom: 18px; color: var(--secondary); font-size: 13px; }
+.warning summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+.warning ul { margin: 8px 0 0; padding-left: 20px; }
+.warning code { font-size: 12px; }
+footer.page { color: var(--muted); font-size: 12.5px; margin-top: 30px; }
+footer.page p { max-width: 96ch; }
+footer.page code { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+<header class="page">
+  <div>
+    <h1>How hard can you push each server before it gives up?</h1>
+    <p>One fixed open62541 C client, escalating load (client processes x async pipeline
+    depth) against each server implementation's default configuration until it errors,
+    its tail latency blows up, its throughput collapses, or it dies. See
+    <code>server_limits/README.md</code> for exactly what each of those means.</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="presets"><button type="button" id="themetoggle">Dark theme</button></div>
+</header>
+
+
+
+<section class="card lead">
+  <header><h2>The short version</h2>
+    <span class="q">Every server was given more and more work until it could not keep up.
+    Each bar is the most work that server got through while still answering everything
+    on time.</span>
+  </header>
+  <div class="plot short" id="plot-headline"></div>
+  <p class="caption" id="cap-headline"></p>
+</section>
+
+<section class="card">
+  <header><h2>1. How does completed work scale with load?</h2>
+    <span class="q">Each point is one measured load level. A hollow marker is a level that
+    beat the server.</span>
+    <div class="tools">
+      <button type="button" class="metricbtn" data-metric="ops" aria-pressed="true">Throughput</button>
+      <button type="button" class="metricbtn" data-metric="latency" aria-pressed="false">Latency</button>
+      <button type="button" data-table="scale" aria-pressed="false">Table</button>
+    </div>
+  </header>
+  <div class="legendbar" id="legend-scale"></div>
+  <div class="plot tall" id="plot-scale"></div>
+  <div class="tablewrap hidden" id="table-scale"></div>
+  <p class="caption" id="cap-scale"></p>
+</section>
+
+<section class="card">
+  <header><h2>2. Where does each implementation's edge sit?</h2>
+    <span class="q">Every load level tried, laid out by client-process count and per-client
+    pipeline depth.</span>
+    <div class="tools"><button type="button" data-table="frontier" aria-pressed="false">Table</button></div>
+  </header>
+  <div class="legendbar" id="legend-frontier"></div>
+  <div class="frontiergrid" id="plot-frontier"></div>
+  <div class="tablewrap hidden" id="table-frontier"></div>
+  <p class="caption" id="cap-frontier"></p>
+</section>
+
+<section class="card">
+  <header><h2>3. Which implementation went furthest?</h2>
+    <span class="q">Concurrent requests in flight (clients x outstanding) at the heaviest
+    load level that still held. The table adds the capacity reading: peak throughput, and
+    the cheapest load that already reaches it.</span>
+    <div class="tools"><button type="button" data-table="summary" aria-pressed="false">Table</button></div>
+  </header>
+  <div class="plot" id="plot-summary"></div>
+  <div class="tablewrap hidden" id="table-summary"></div>
+  <p class="caption" id="cap-summary"></p>
+</section>
+
+<section class="card">
+  <header><h2>What each verdict means</h2>
+    <span class="q">The five criteria a load level is judged against, and the thresholds
+    this particular run used. A level trips as many of them as apply.</span>
+  </header>
+  <div class="tablewrap tall"><table><thead><tr><th>Code</th><th>Verdict</th><th>What it measures</th><th>Tripped in this run when…</th></tr></thead><tbody><tr><td><code>err</code></td><td>error/timeout rate</td><td class="name">The share of this level's calls that timed out, came back an error, or were never answered at all. A client that could not even connect counts as one failed call rather than dropping out of the totals, so a server that has stopped accepting sessions shows up here rather than as missing data — which also means a level nothing could reach at all lands here at 100%. The 'how it failed' column separates the two.</td><td class="name">more than 1% of calls failed</td></tr><tr><td><code>p99</code></td><td>p99 latency blow-up</td><td class="name">This level's 99th-percentile latency measured against the p99 at the lightest load this implementation was run at (1 client, 1 outstanding). It catches the server that is still answering every single call, and correctly, but has stopped answering promptly — which no error count would ever show. Read it together with the throughput: a level that tripped this while its calls/second sat at the implementation's peak, with no errors, is a server at capacity and queueing normally — latency rising in proportion to the requests in flight is arithmetic, not a fault — rather than one in trouble. The lightest-load p99 it is compared against is named under each frontier above, and is measured rather than configured, so a noisy server wants 'samples' raised before it is trusted.</td><td class="name">p99 grew past 10x that implementation's own lightest-load p99</td></tr><tr><td><code>thr</code></td><td>throughput collapse</td><td class="name">Successful calls per second against the previous pipeline depth at the same client count. It catches the point where offering the server more work makes it complete less — the queue is now costing more than it buys. Compared within one client count only, since a new row restarts at depth 1 and is genuinely less concurrent than the row before it.</td><td class="name">completed work fell below 50% of the previous depth</td></tr><tr><td><code>net</code></td><td>connection broken</td><td class="name">A connection that was already established died in the middle of the level — the secure channel closed, or the socket dropped — rather than any individual call coming back bad. It does not mean the server never ran: a server that failed to start never produces a load level at all (it is listed in the banner at the top of this page), and one that refused the connection outright is counted as a failed call, so it reads as err. A call the load generator itself declined to send is not a verdict at all — it is recorded as a harness failure in the banner above. Read a net at the very top of a ramp with some suspicion even so: the machine running out of sockets or file descriptors looks the same from the client side as the server hanging up.</td><td class="name">any client lost a connection it had already made</td></tr><tr><td><code>dead</code></td><td>server process died</td><td class="name">The server process did not survive the level. Unlike the four above, which infer distress from what the client saw, this is the server observably gone, so it ends that implementation's ramp on the spot instead of only ending the row. Not always a capacity limit: an o6\Python server on an evaluation licence exits by itself after ten minutes, which looks identical from here, so check the run's wall-clock before reading it as one.</td><td class="name">the server process exited</td></tr></tbody></table></div>
+  <p class="caption">Each load level was measured for 5 s after a 1 s untimed warm-up, with a per-call timeout of 2000 ms and 2 s of grace for calls still in flight when the window closed — anything still unanswered by then is counted as failed, not waited for. Each level was measured 7x, and the median of those decides the verdict.</p>
+  <p class="caption">Where a level tripped more than one criterion, the heatmap cell above
+  shows the most severe and marks it with a <code>+</code>; severity runs in the order
+  listed here read upwards — the server being gone outright outranks a dropped connection,
+  which outranks failing calls, which outranks work going down, which outranks merely
+  having become slow. The full list is always in the hover and in the tables.</p>
+</section>
+
+<footer class="page">
+  <p>Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz · Linux-6.17.0-1022-azure-x86_64-with-glibc2.39 · 2026-10-09T10:14:33.148638+00:00</p>
+  <p>Generated from <code>server_limits/run.py sample</code> by <code>server_limits/show.py</code>.
+  Every card has a table view.</p>
+</footer>
+
+</div>
+</div>
+<script id="payload" type="application/json">{"points":[{"implementation":"asyncua","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":6373.798,"errorRate":0.0,"p99Ms":0.304,"failed":false,"reasons":[],"attempted":223672,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":9256.713,"errorRate":0.0,"p99Ms":2.176,"failed":false,"reasons":[],"attempted":324216,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":7977.737,"errorRate":0.0,"p99Ms":0.416,"failed":false,"reasons":[],"attempted":280723,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":9381.299,"errorRate":0.0,"p99Ms":4.352,"failed":true,"reasons":["latency_blowup"],"attempted":328700,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":8603.495,"errorRate":0.0,"p99Ms":0.8,"failed":false,"reasons":[],"attempted":301369,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":9111.775,"errorRate":0.0,"p99Ms":1.344,"failed":false,"reasons":[],"attempted":318034,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":9212.856,"errorRate":0.0,"p99Ms":0.704,"failed":false,"reasons":[],"attempted":322344,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":15327.257,"errorRate":0.0,"p99Ms":2.56,"failed":false,"reasons":[],"attempted":539156,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":14858.633,"errorRate":0.0,"p99Ms":0.832,"failed":false,"reasons":[],"attempted":521626,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":15516.193,"errorRate":0.0,"p99Ms":4.352,"failed":false,"reasons":[],"attempted":546419,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":15565.785,"errorRate":0.0,"p99Ms":1.088,"failed":false,"reasons":[],"attempted":540940,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":64,"concurrency":64,"opsPerSecond":15920.874,"errorRate":0.0,"p99Ms":7.68,"failed":true,"reasons":["latency_blowup"],"attempted":556735,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":15411.834,"errorRate":0.0,"p99Ms":1.536,"failed":false,"reasons":[],"attempted":542790,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":11376.008,"errorRate":0.0,"p99Ms":0.144,"failed":false,"reasons":[],"attempted":393612,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":45310.812,"errorRate":0.0,"p99Ms":0.928,"failed":false,"reasons":[],"attempted":1588209,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":20821.999,"errorRate":0.0,"p99Ms":0.168,"failed":false,"reasons":[],"attempted":725397,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":45752.992,"errorRate":0.0,"p99Ms":1.792,"failed":true,"reasons":["latency_blowup"],"attempted":1600162,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":39203.213,"errorRate":0.0,"p99Ms":0.2,"failed":false,"reasons":[],"attempted":1383582,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":46089.49,"errorRate":0.0,"p99Ms":0.368,"failed":false,"reasons":[],"attempted":1612503,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":6970.687,"errorRate":0.0,"p99Ms":0.672,"failed":false,"reasons":[],"attempted":243991,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":11831.903,"errorRate":0.0,"p99Ms":8.704,"failed":true,"reasons":["latency_blowup"],"attempted":411814,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":9230.279,"errorRate":0.0,"p99Ms":0.992,"failed":false,"reasons":[],"attempted":324283,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":10522.875,"errorRate":0.0,"p99Ms":3.84,"failed":false,"reasons":[],"attempted":370275,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":11198.739,"errorRate":0.0,"p99Ms":5.12,"failed":false,"reasons":[],"attempted":392051,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":20672.777,"errorRate":0.0,"p99Ms":0.076,"failed":false,"reasons":[],"attempted":729625,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":70135.475,"errorRate":0.0,"p99Ms":0.272,"failed":false,"reasons":[],"attempted":2460457,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":44681.292,"errorRate":0.0,"p99Ms":0.072,"failed":false,"reasons":[],"attempted":1566024,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":72141.426,"errorRate":0.0,"p99Ms":0.512,"failed":false,"reasons":[],"attempted":2524571,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":59392.186,"errorRate":0.0,"p99Ms":0.1,"failed":false,"reasons":[],"attempted":2074951,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":64,"concurrency":64,"opsPerSecond":72288.629,"errorRate":0.0,"p99Ms":0.96,"failed":true,"reasons":["latency_blowup"],"attempted":2533533,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":67039.244,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":2347823,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":29457.442,"errorRate":0.0,"p99Ms":0.05,"failed":false,"reasons":[],"attempted":1041317,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":195136.927,"errorRate":0.0,"p99Ms":0.096,"failed":false,"reasons":[],"attempted":6839551,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":51735.816,"errorRate":0.0,"p99Ms":0.056,"failed":false,"reasons":[],"attempted":1808304,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":198168.323,"errorRate":0.0,"p99Ms":0.176,"failed":false,"reasons":[],"attempted":6912339,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":160558.616,"errorRate":0.0,"p99Ms":0.048,"failed":false,"reasons":[],"attempted":5608021,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":64,"concurrency":64,"opsPerSecond":200583.205,"errorRate":0.0,"p99Ms":0.336,"failed":false,"reasons":[],"attempted":7054378,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":183438.743,"errorRate":0.0,"p99Ms":0.056,"failed":false,"reasons":[],"attempted":6433039,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":10084.734,"errorRate":0.0,"p99Ms":0.152,"failed":false,"reasons":[],"attempted":348868,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":33422.56,"errorRate":0.0,"p99Ms":0.8,"failed":false,"reasons":[],"attempted":1172324,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":18149.039,"errorRate":0.0,"p99Ms":0.184,"failed":false,"reasons":[],"attempted":634490,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":31977.834,"errorRate":0.0,"p99Ms":1.856,"failed":true,"reasons":["latency_blowup"],"attempted":1115963,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":34391.729,"errorRate":0.0,"p99Ms":0.176,"failed":false,"reasons":[],"attempted":1210371,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":40885.107,"errorRate":0.0,"p99Ms":0.336,"failed":false,"reasons":[],"attempted":1425387,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":1,"outstanding":1,"concurrency":1,"opsPerSecond":18441.137,"errorRate":0.0,"p99Ms":0.096,"failed":false,"reasons":[],"attempted":642039,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":29693.849,"errorRate":0.0,"p99Ms":1.792,"failed":true,"reasons":["latency_blowup"],"attempted":1038411,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":1,"outstanding":2,"concurrency":2,"opsPerSecond":29544.576,"errorRate":0.0,"p99Ms":0.104,"failed":false,"reasons":[],"attempted":1031531,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":1,"outstanding":4,"concurrency":4,"opsPerSecond":25880.566,"errorRate":0.0,"p99Ms":0.416,"failed":false,"reasons":[],"attempted":904605,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":27343.811,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":958140,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":8465.364,"errorRate":0.0,"p99Ms":2.56,"failed":false,"reasons":[],"attempted":296232,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":8944.983,"errorRate":0.0,"p99Ms":4.608,"failed":true,"reasons":["latency_blowup"],"attempted":313598,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":19033.874,"errorRate":0.0,"p99Ms":3.968,"failed":false,"reasons":[],"attempted":665468,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":19344.435,"errorRate":0.0,"p99Ms":7.68,"failed":true,"reasons":["latency_blowup"],"attempted":676044,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":43180.469,"errorRate":0.0,"p99Ms":0.864,"failed":false,"reasons":[],"attempted":1513365,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":46439.131,"errorRate":0.0,"p99Ms":4.352,"failed":true,"reasons":["latency_blowup"],"attempted":1622836,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":8950.406,"errorRate":0.000133,"p99Ms":7.68,"failed":true,"reasons":["latency_blowup"],"attempted":313763,"timeouts":0,"connectionLost":42,"otherErrors":0,"connectFailures":42},{"implementation":"o6-python","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":51618.232,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":1807954,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":59295.135,"errorRate":0.0,"p99Ms":1.088,"failed":true,"reasons":["latency_blowup"],"attempted":2073556,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":124250.821,"errorRate":0.0,"p99Ms":0.24,"failed":false,"reasons":[],"attempted":4305267,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":148853.244,"errorRate":0.0,"p99Ms":0.4,"failed":false,"reasons":[],"attempted":5209760,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":16,"outstanding":4,"concurrency":64,"opsPerSecond":178722.314,"errorRate":0.0,"p99Ms":0.704,"failed":true,"reasons":["latency_blowup"],"attempted":6274215,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":42035.397,"errorRate":0.0,"p99Ms":0.704,"failed":false,"reasons":[],"attempted":1474059,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":47357.636,"errorRate":0.0,"p99Ms":1.408,"failed":false,"reasons":[],"attempted":1675899,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":16,"outstanding":4,"concurrency":64,"opsPerSecond":52691.655,"errorRate":0.0,"p99Ms":2.176,"failed":true,"reasons":["latency_blowup"],"attempted":1847944,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":7852.832,"errorRate":0.0,"p99Ms":0.432,"failed":false,"reasons":[],"attempted":274066,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":2,"outstanding":16,"concurrency":32,"opsPerSecond":9409.589,"errorRate":0.0,"p99Ms":5.12,"failed":true,"reasons":["latency_blowup"],"attempted":329129,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":8636.992,"errorRate":0.0,"p99Ms":0.672,"failed":false,"reasons":[],"attempted":302655,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":9047.225,"errorRate":0.0,"p99Ms":1.28,"failed":false,"reasons":[],"attempted":315499,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":9214.862,"errorRate":0.0,"p99Ms":2.304,"failed":false,"reasons":[],"attempted":321402,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":15734.59,"errorRate":0.0,"p99Ms":0.64,"failed":false,"reasons":[],"attempted":556921,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":16989.985,"errorRate":0.0,"p99Ms":1.664,"failed":false,"reasons":[],"attempted":588568,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":16568.615,"errorRate":0.0,"p99Ms":7.168,"failed":true,"reasons":["latency_blowup"],"attempted":582781,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":20783.666,"errorRate":0.0,"p99Ms":0.152,"failed":false,"reasons":[],"attempted":732125,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":32752.218,"errorRate":0.0,"p99Ms":0.216,"failed":false,"reasons":[],"attempted":1150595,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":43965.669,"errorRate":0.0,"p99Ms":0.48,"failed":false,"reasons":[],"attempted":1526542,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":48074.611,"errorRate":0.0,"p99Ms":2.432,"failed":true,"reasons":["latency_blowup"],"attempted":1684142,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":8864.86,"errorRate":0.0,"p99Ms":1.216,"failed":false,"reasons":[],"attempted":309026,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":9894.393,"errorRate":0.0,"p99Ms":4.352,"failed":false,"reasons":[],"attempted":347681,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":10774.592,"errorRate":0.0,"p99Ms":5.376,"failed":false,"reasons":[],"attempted":377606,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":11992.443,"errorRate":0.0,"p99Ms":8.704,"failed":true,"reasons":["latency_blowup"],"attempted":419550,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":40165.078,"errorRate":0.0,"p99Ms":0.08,"failed":false,"reasons":[],"attempted":1409517,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":16,"concurrency":32,"opsPerSecond":72759.796,"errorRate":0.0,"p99Ms":0.512,"failed":false,"reasons":[],"attempted":2544483,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":53437.382,"errorRate":0.0,"p99Ms":0.12,"failed":false,"reasons":[],"attempted":1873220,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":32,"concurrency":64,"opsPerSecond":73902.822,"errorRate":0.0,"p99Ms":0.96,"failed":true,"reasons":["latency_blowup"],"attempted":2595286,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":64287.035,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":2249698,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":69094.357,"errorRate":0.0,"p99Ms":0.288,"failed":false,"reasons":[],"attempted":2416479,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":51588.591,"errorRate":0.0,"p99Ms":0.056,"failed":false,"reasons":[],"attempted":1796827,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":16,"concurrency":32,"opsPerSecond":201713.749,"errorRate":0.0,"p99Ms":0.184,"failed":false,"reasons":[],"attempted":7046276,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":100194.961,"errorRate":0.0,"p99Ms":0.064,"failed":false,"reasons":[],"attempted":3585666,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":32,"concurrency":64,"opsPerSecond":197598.114,"errorRate":0.0,"p99Ms":0.368,"failed":false,"reasons":[],"attempted":6918040,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":167127.013,"errorRate":0.0,"p99Ms":0.08,"failed":false,"reasons":[],"attempted":5838871,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":64,"concurrency":128,"opsPerSecond":197801.502,"errorRate":0.0,"p99Ms":0.704,"failed":true,"reasons":["latency_blowup"],"attempted":6954074,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":189864.628,"errorRate":0.0,"p99Ms":0.116,"failed":false,"reasons":[],"attempted":6686651,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":18661.143,"errorRate":0.0,"p99Ms":0.144,"failed":false,"reasons":[],"attempted":653363,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":16,"concurrency":32,"opsPerSecond":42016.155,"errorRate":0.0,"p99Ms":1.28,"failed":false,"reasons":[],"attempted":1475356,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":34669.117,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":1215152,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":32,"concurrency":64,"opsPerSecond":39383.625,"errorRate":0.0,"p99Ms":2.816,"failed":true,"reasons":["latency_blowup"],"attempted":1381263,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":36823.856,"errorRate":0.0,"p99Ms":0.32,"failed":false,"reasons":[],"attempted":1292507,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":40325.322,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":1400433,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":2,"outstanding":1,"concurrency":2,"opsPerSecond":30355.099,"errorRate":0.0,"p99Ms":0.108,"failed":false,"reasons":[],"attempted":1068161,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":2,"outstanding":2,"concurrency":4,"opsPerSecond":42634.52,"errorRate":0.0,"p99Ms":0.208,"failed":false,"reasons":[],"attempted":1501211,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":43454.218,"errorRate":0.0,"p99Ms":0.704,"failed":false,"reasons":[],"attempted":1520610,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":43639.671,"errorRate":0.0,"p99Ms":1.6,"failed":true,"reasons":["latency_blowup"],"attempted":1528217,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":8541.643,"errorRate":0.0,"p99Ms":3.968,"failed":true,"reasons":["latency_blowup"],"attempted":299671,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":18686.291,"errorRate":0.0,"p99Ms":7.68,"failed":true,"reasons":["latency_blowup"],"attempted":654226,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":44542.604,"errorRate":0.0,"p99Ms":5.12,"failed":true,"reasons":["latency_blowup"],"attempted":1556250,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":51534.397,"errorRate":0.0,"p99Ms":1.216,"failed":true,"reasons":["latency_blowup"],"attempted":1801033,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":113396.874,"errorRate":0.0,"p99Ms":0.496,"failed":false,"reasons":[],"attempted":3974191,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":32,"outstanding":2,"concurrency":64,"opsPerSecond":143661.748,"errorRate":0.0,"p99Ms":0.992,"failed":true,"reasons":["latency_blowup"],"attempted":5078508,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":32,"outstanding":1,"concurrency":32,"opsPerSecond":44728.447,"errorRate":0.0,"p99Ms":1.408,"failed":false,"reasons":[],"attempted":1574191,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":32,"outstanding":2,"concurrency":64,"opsPerSecond":48475.472,"errorRate":0.0,"p99Ms":2.56,"failed":true,"reasons":["latency_blowup"],"attempted":1693596,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":8228.505,"errorRate":0.0,"p99Ms":0.736,"failed":false,"reasons":[],"attempted":288167,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":8754.802,"errorRate":0.0,"p99Ms":1.344,"failed":false,"reasons":[],"attempted":306251,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":9036.168,"errorRate":0.0,"p99Ms":2.432,"failed":false,"reasons":[],"attempted":316098,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":9255.933,"errorRate":0.0,"p99Ms":4.352,"failed":true,"reasons":["latency_blowup"],"attempted":324154,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":17219.938,"errorRate":0.0,"p99Ms":1.152,"failed":false,"reasons":[],"attempted":602463,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":17930.357,"errorRate":0.0,"p99Ms":6.4,"failed":false,"reasons":[],"attempted":627982,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":18135.147,"errorRate":0.0,"p99Ms":10.24,"failed":true,"reasons":["latency_blowup"],"attempted":635655,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":30925.28,"errorRate":0.0,"p99Ms":0.224,"failed":false,"reasons":[],"attempted":1085047,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":38499.955,"errorRate":0.0,"p99Ms":0.4,"failed":false,"reasons":[],"attempted":1341528,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":44197.925,"errorRate":0.0,"p99Ms":0.832,"failed":false,"reasons":[],"attempted":1550533,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":48491.028,"errorRate":0.0,"p99Ms":3.712,"failed":true,"reasons":["latency_blowup"],"attempted":1690886,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":9408.358,"errorRate":0.0,"p99Ms":3.968,"failed":false,"reasons":[],"attempted":326787,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":10399.184,"errorRate":0.0,"p99Ms":5.376,"failed":false,"reasons":[],"attempted":363436,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":11274.183,"errorRate":0.0,"p99Ms":8.704,"failed":true,"reasons":["latency_blowup"],"attempted":394496,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":48981.75,"errorRate":0.0,"p99Ms":0.152,"failed":false,"reasons":[],"attempted":1712112,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":4,"outstanding":16,"concurrency":64,"opsPerSecond":73425.967,"errorRate":0.0,"p99Ms":0.96,"failed":true,"reasons":["latency_blowup"],"attempted":2572113,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":57015.933,"errorRate":0.0,"p99Ms":0.256,"failed":false,"reasons":[],"attempted":1990377,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":67337.494,"errorRate":0.0,"p99Ms":0.288,"failed":false,"reasons":[],"attempted":2357939,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":70889.588,"errorRate":0.0,"p99Ms":0.544,"failed":false,"reasons":[],"attempted":2473087,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":124620.85,"errorRate":0.0,"p99Ms":0.064,"failed":false,"reasons":[],"attempted":4346606,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":16,"concurrency":64,"opsPerSecond":203903.229,"errorRate":0.0,"p99Ms":0.352,"failed":false,"reasons":[],"attempted":7129019,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":130393.436,"errorRate":0.0,"p99Ms":0.136,"failed":false,"reasons":[],"attempted":4603299,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":32,"concurrency":128,"opsPerSecond":200400.884,"errorRate":0.0,"p99Ms":0.704,"failed":true,"reasons":["latency_blowup"],"attempted":6993928,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":173633.322,"errorRate":0.0,"p99Ms":0.168,"failed":false,"reasons":[],"attempted":6056144,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":194590.765,"errorRate":0.0,"p99Ms":0.2,"failed":false,"reasons":[],"attempted":6814834,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":35922.984,"errorRate":0.0,"p99Ms":0.168,"failed":false,"reasons":[],"attempted":1258515,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":4,"outstanding":16,"concurrency":64,"opsPerSecond":48362.07,"errorRate":0.0,"p99Ms":2.176,"failed":true,"reasons":["latency_blowup"],"attempted":1693465,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":46318.308,"errorRate":0.0,"p99Ms":0.304,"failed":false,"reasons":[],"attempted":1616714,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":4,"outstanding":4,"concurrency":16,"opsPerSecond":44706.215,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":1558091,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":49805.165,"errorRate":0.0,"p99Ms":1.216,"failed":false,"reasons":[],"attempted":1745881,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":45356.154,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":1591156,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":44552.228,"errorRate":0.0,"p99Ms":1.28,"failed":true,"reasons":["latency_blowup"],"attempted":1558376,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":8451.376,"errorRate":0.0,"p99Ms":1.408,"failed":false,"reasons":[],"attempted":295150,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":8889.62,"errorRate":0.0,"p99Ms":2.688,"failed":false,"reasons":[],"attempted":310913,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"asyncua","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":9159.462,"errorRate":0.0,"p99Ms":5.12,"failed":true,"reasons":["latency_blowup"],"attempted":320808,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":18641.582,"errorRate":0.0,"p99Ms":2.176,"failed":false,"reasons":[],"attempted":653949,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":18784.885,"errorRate":0.0,"p99Ms":5.632,"failed":false,"reasons":[],"attempted":659941,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"gopcua","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":18582.277,"errorRate":0.0,"p99Ms":9.728,"failed":true,"reasons":["latency_blowup"],"attempted":659561,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":38723.751,"errorRate":0.0,"p99Ms":0.384,"failed":false,"reasons":[],"attempted":1355442,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":43661.86,"errorRate":0.0,"p99Ms":0.832,"failed":false,"reasons":[],"attempted":1522425,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"milo","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":47326.141,"errorRate":0.0,"p99Ms":4.352,"failed":true,"reasons":["latency_blowup"],"attempted":1662116,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":9422.131,"errorRate":0.0,"p99Ms":5.888,"failed":false,"reasons":[],"attempted":328927,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"node-opcua","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":10091.616,"errorRate":0.0,"p99Ms":9.728,"failed":true,"reasons":["latency_blowup"],"attempted":352338,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":50698.2,"errorRate":0.0,"p99Ms":0.304,"failed":false,"reasons":[],"attempted":1774423,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":57653.034,"errorRate":0.0,"p99Ms":0.544,"failed":false,"reasons":[],"attempted":2017535,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":68053.832,"errorRate":0.0,"p99Ms":0.576,"failed":false,"reasons":[],"attempted":2380106,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"o6-python","clients":8,"outstanding":8,"concurrency":64,"opsPerSecond":71162.834,"errorRate":0.0,"p99Ms":0.992,"failed":true,"reasons":["latency_blowup"],"attempted":2487706,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":135530.143,"errorRate":0.0,"p99Ms":0.108,"failed":false,"reasons":[],"attempted":4729297,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":144926.985,"errorRate":0.0,"p99Ms":0.2,"failed":false,"reasons":[],"attempted":5075276,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":177260.723,"errorRate":0.0,"p99Ms":0.336,"failed":false,"reasons":[],"attempted":6207422,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"open62541","clients":8,"outstanding":8,"concurrency":64,"opsPerSecond":199971.372,"errorRate":0.0,"p99Ms":0.576,"failed":true,"reasons":["latency_blowup"],"attempted":6970074,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":40325.868,"errorRate":0.0,"p99Ms":0.336,"failed":false,"reasons":[],"attempted":1445540,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":8,"outstanding":2,"concurrency":16,"opsPerSecond":47474.473,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":1665709,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":50747.601,"errorRate":0.0,"p99Ms":1.216,"failed":false,"reasons":[],"attempted":1778203,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"s2opc","clients":8,"outstanding":8,"concurrency":64,"opsPerSecond":53967.53,"errorRate":0.0,"p99Ms":2.048,"failed":true,"reasons":["latency_blowup"],"attempted":1890306,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},{"implementation":"ua-dotnet","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":45417.033,"errorRate":0.0,"p99Ms":1.664,"failed":true,"reasons":["latency_blowup"],"attempted":1592393,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0}],"summary":[{"implementation":"open62541","sustained":{"implementation":"open62541","clients":1,"outstanding":64,"concurrency":64,"opsPerSecond":200583.205,"errorRate":0.0,"p99Ms":0.336,"failed":false,"reasons":[],"attempted":7054378,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"open62541","clients":16,"outstanding":4,"concurrency":64,"opsPerSecond":178722.314,"errorRate":0.0,"p99Ms":0.704,"failed":true,"reasons":["latency_blowup"],"attempted":6274215,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.05,"peakOpsPerSecond":203903.229,"peak":{"implementation":"open62541","clients":4,"outstanding":16,"concurrency":64,"opsPerSecond":203903.229,"errorRate":0.0,"p99Ms":0.352,"failed":false,"reasons":[],"attempted":7129019,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"open62541","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":195136.927,"errorRate":0.0,"p99Ms":0.096,"failed":false,"reasons":[],"attempted":6839551,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"o6-python","sustained":{"implementation":"o6-python","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":72141.426,"errorRate":0.0,"p99Ms":0.512,"failed":false,"reasons":[],"attempted":2524571,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"o6-python","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":59295.135,"errorRate":0.0,"p99Ms":1.088,"failed":true,"reasons":["latency_blowup"],"attempted":2073556,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.076,"peakOpsPerSecond":72759.796,"peak":{"implementation":"o6-python","clients":2,"outstanding":16,"concurrency":32,"opsPerSecond":72759.796,"errorRate":0.0,"p99Ms":0.512,"failed":false,"reasons":[],"attempted":2544483,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"o6-python","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":70135.475,"errorRate":0.0,"p99Ms":0.272,"failed":false,"reasons":[],"attempted":2460457,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"asyncua","sustained":{"implementation":"asyncua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":9256.713,"errorRate":0.0,"p99Ms":2.176,"failed":false,"reasons":[],"attempted":324216,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"asyncua","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":9381.299,"errorRate":0.0,"p99Ms":4.352,"failed":true,"reasons":["latency_blowup"],"attempted":328700,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.304,"peakOpsPerSecond":9256.713,"peak":{"implementation":"asyncua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":9256.713,"errorRate":0.0,"p99Ms":2.176,"failed":false,"reasons":[],"attempted":324216,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"asyncua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":9111.775,"errorRate":0.0,"p99Ms":1.344,"failed":false,"reasons":[],"attempted":318034,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"ua-dotnet","sustained":{"implementation":"ua-dotnet","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":27343.811,"errorRate":0.0,"p99Ms":0.608,"failed":false,"reasons":[],"attempted":958140,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"ua-dotnet","clients":4,"outstanding":2,"concurrency":8,"opsPerSecond":44552.228,"errorRate":0.0,"p99Ms":1.28,"failed":true,"reasons":["latency_blowup"],"attempted":1558376,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.096,"peakOpsPerSecond":45356.154,"peak":{"implementation":"ua-dotnet","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":45356.154,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":1591156,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"ua-dotnet","clients":4,"outstanding":1,"concurrency":4,"opsPerSecond":45356.154,"errorRate":0.0,"p99Ms":0.16,"failed":false,"reasons":[],"attempted":1591156,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"node-opcua","sustained":{"implementation":"node-opcua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":11198.739,"errorRate":0.0,"p99Ms":5.12,"failed":false,"reasons":[],"attempted":392051,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"node-opcua","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":11831.903,"errorRate":0.0,"p99Ms":8.704,"failed":true,"reasons":["latency_blowup"],"attempted":411814,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.672,"peakOpsPerSecond":11198.739,"peak":{"implementation":"node-opcua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":11198.739,"errorRate":0.0,"p99Ms":5.12,"failed":false,"reasons":[],"attempted":392051,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"node-opcua","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":11198.739,"errorRate":0.0,"p99Ms":5.12,"failed":false,"reasons":[],"attempted":392051,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"milo","sustained":{"implementation":"milo","clients":1,"outstanding":16,"concurrency":16,"opsPerSecond":45310.812,"errorRate":0.0,"p99Ms":0.928,"failed":false,"reasons":[],"attempted":1588209,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"milo","clients":2,"outstanding":8,"concurrency":16,"opsPerSecond":48074.611,"errorRate":0.0,"p99Ms":2.432,"failed":true,"reasons":["latency_blowup"],"attempted":1684142,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.144,"peakOpsPerSecond":46089.49,"peak":{"implementation":"milo","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":46089.49,"errorRate":0.0,"p99Ms":0.368,"failed":false,"reasons":[],"attempted":1612503,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"milo","clients":1,"outstanding":8,"concurrency":8,"opsPerSecond":46089.49,"errorRate":0.0,"p99Ms":0.368,"failed":false,"reasons":[],"attempted":1612503,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"s2opc","sustained":{"implementation":"s2opc","clients":16,"outstanding":2,"concurrency":32,"opsPerSecond":47357.636,"errorRate":0.0,"p99Ms":1.408,"failed":false,"reasons":[],"attempted":1675899,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"s2opc","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":31977.834,"errorRate":0.0,"p99Ms":1.856,"failed":true,"reasons":["latency_blowup"],"attempted":1115963,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.152,"peakOpsPerSecond":50747.601,"peak":{"implementation":"s2opc","clients":8,"outstanding":4,"concurrency":32,"opsPerSecond":50747.601,"errorRate":0.0,"p99Ms":1.216,"failed":false,"reasons":[],"attempted":1778203,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"s2opc","clients":4,"outstanding":8,"concurrency":32,"opsPerSecond":49805.165,"errorRate":0.0,"p99Ms":1.216,"failed":false,"reasons":[],"attempted":1745881,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":false},{"implementation":"gopcua","sustained":{"implementation":"gopcua","clients":1,"outstanding":32,"concurrency":32,"opsPerSecond":15516.193,"errorRate":0.0,"p99Ms":4.352,"failed":false,"reasons":[],"attempted":546419,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"edge":{"implementation":"gopcua","clients":2,"outstanding":4,"concurrency":8,"opsPerSecond":16568.615,"errorRate":0.0,"p99Ms":7.168,"failed":true,"reasons":["latency_blowup"],"attempted":582781,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"baselineP99Ms":0.704,"peakOpsPerSecond":19033.874,"peak":{"implementation":"gopcua","clients":16,"outstanding":1,"concurrency":16,"opsPerSecond":19033.874,"errorRate":0.0,"p99Ms":3.968,"failed":false,"reasons":[],"attempted":665468,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"knee":{"implementation":"gopcua","clients":8,"outstanding":1,"concurrency":8,"opsPerSecond":18641.582,"errorRate":0.0,"p99Ms":2.176,"failed":false,"reasons":[],"attempted":653949,"timeouts":0,"connectionLost":0,"otherErrors":0,"connectFailures":0},"nonMonotone":true}],"implementations":["open62541","o6-python","asyncua","ua-dotnet","node-opcua","milo","s2opc","gopcua"],"labels":{"open62541":"open62541 (C)","o6-python":"o6\\Python","asyncua":"asyncua","ua-dotnet":"OPC Foundation (.NET)","node-opcua":"node-opcua (Node.js)","milo":"Eclipse Milo (Java)","s2opc":"S2OPC (C)","gopcua":"gopcua (Go)"},"outstandingAxis":[1,2,4,8,16,32,64],"clientsAxis":[1,2,4,8,16,32],"failures":[],"reasonLabels":{"error_rate":"error/timeout rate","latency_blowup":"p99 latency blow-up","throughput_collapse":"throughput collapse","connection_broken":"connection broken","process_death":"server process died"},"reasonCodes":{"error_rate":"err","latency_blowup":"p99","throughput_collapse":"thr","connection_broken":"net","process_death":"dead"},"reasonSeverity":["process_death","connection_broken","error_rate","throughput_collapse","latency_blowup"],"themes":{"light":{"surface":"#fcfcfb","plane":"#f9f9f7","primary":"#0b0b0b","secondary":"#52514e","muted":"#898781","grid":"#e1e0d9","axis":"#c3c2b7","border":"rgba(11,11,11,0.10)","hover":"#ffffff","open62541":"#2a78d6","o6-python":"#eb6834","asyncua":"#1baf7a","ua-dotnet":"#663399","node-opcua":"#007f86","good":"#0ca30c","critical":"#d03b3b","milo":"#e87ba4","s2opc":"#eda100","gopcua":"#4a3aa7"},"dark":{"surface":"#1a1a19","plane":"#0d0d0d","primary":"#ffffff","secondary":"#c3c2b7","muted":"#898781","grid":"#2c2c2a","axis":"#383835","border":"rgba(255,255,255,0.10)","hover":"#242422","open62541":"#3987e5","o6-python":"#d95926","asyncua":"#199e70","ua-dotnet":"#bb88ee","node-opcua":"#44bbbb","good":"#0ca30c","critical":"#d03b3b","milo":"#d55181","s2opc":"#c98500","gopcua":"#9085e9"}},"font":"system-ui, -apple-system, \"Segoe UI\", sans-serif"}</script>
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById("payload").textContent);
+  const POINTS = DATA.points;
+  const $ = (id) => document.getElementById(id);
+
+  const themeName = () => {
+    const stamped = document.documentElement.getAttribute("data-theme");
+    if (stamped) return stamped;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+  const theme = () => DATA.themes[themeName()];
+  const implColor = (name) => theme()[name] || theme().muted;
+
+  const compact = (v) => {
+    const a = Math.abs(v);
+    if (a >= 1e9) return (v / 1e9).toFixed(a >= 1e10 ? 0 : 1) + "G";
+    if (a >= 1e6) return (v / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "M";
+    if (a >= 1e3) return (v / 1e3).toFixed(a >= 1e4 ? 0 : 1) + "k";
+    return v.toFixed(v < 10 ? 2 : 0);
+  };
+  const commas = (v) => Math.round(v).toLocaleString("en-US");
+  // Three significant figures, comma-grouped: "281,000" rather than "280,805".
+  // For a figure a reader is meant to hold in their head, and whose repeats
+  // disagree by more than the digits being dropped.
+  const roughly = (v) => {
+    if (!v) return "0";
+    const scale = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(v))) - 2));
+    return commas(Math.round(v / scale) * scale);
+  };
+  const pct = (v) => (100 * v).toFixed(v * 100 < 1 && v > 0 ? 2 : 1) + "%";
+  const reasonText = (reasons) => reasons.map((r) => DATA.reasonLabels[r] || r).join(", ");
+  // The most severe reason a level tripped, as the short code a heatmap cell
+  // has room for; a trailing + says the hover has more.
+  const worstReason = (reasons) =>
+    DATA.reasonSeverity.find((r) => reasons.indexOf(r) >= 0) || reasons[0];
+  const reasonCode = (reasons) => {
+    if (!reasons || !reasons.length) return "";
+    const worst = worstReason(reasons);
+    return (DATA.reasonCodes[worst] || worst) + (reasons.length > 1 ? "+" : "");
+  };
+  // How a level's calls failed, which the verdict alone does not say. The
+  // connect count leads when there is one: a level nothing could dial into is
+  // a different animal from one whose calls timed out, and both otherwise
+  // surface only as an error rate.
+  const failureBreakdown = (p) => {
+    const parts = [];
+    if (p.connectFailures) parts.push(p.connectFailures + " could not connect");
+    if (p.timeouts) parts.push(commas(p.timeouts) + " timed out");
+    if (p.connectionLost) parts.push(commas(p.connectionLost) + " lost the connection");
+    if (p.otherErrors) parts.push(commas(p.otherErrors) + " other error" + (p.otherErrors === 1 ? "" : "s"));
+    // No calls at all is the loudest thing this can say, so it is said first
+    // and on its own: the level's error rate is 100% because nothing got
+    // through to count, not because that many calls came back bad.
+    if (!p.attempted) {
+      return "no calls issued in the timed window" + (parts.length ? " — " + parts.join(" · ") : "");
+    }
+    return parts.join(" · ");
+  };
+  const levelText = (p) => p.clients + "c x " + p.outstanding + "o";
+
+  const base = () => {
+    const t = theme();
+    return {
+      paper_bgcolor: t.surface, plot_bgcolor: t.surface,
+      font: { family: DATA.font, size: 12, color: t.secondary },
+      margin: { l: 12, r: 20, t: 10, b: 36 },
+      hoverlabel: { bgcolor: t.hover, bordercolor: t.border,
+                    font: { family: DATA.font, size: 12, color: t.primary } },
+      showlegend: false,
+    };
+  };
+  const axis = (extra) => Object.assign({
+    gridcolor: theme().grid, zerolinecolor: theme().axis, linecolor: theme().axis,
+    tickfont: { color: theme().muted, size: 11 }, automargin: true,
+  }, extra || {});
+  const CONFIG = { displayModeBar: false, responsive: true };
+
+  // --- lead card: the whole benchmark as one number per implementation -----
+  //
+  // Everything below this card answers "where is the limit" in the units the
+  // limit is actually expressed in — concurrency, tail latency, error rate —
+  // and every one of those needs a paragraph before it means anything. This
+  // card answers "who got more done" instead, which needs none: a bar twice as
+  // long is twice as much work.
+  //
+  // Deliberately one encoded quantity and a linear axis. The log axes further
+  // down are there because a frontier spans three orders of magnitude and the
+  // shape matters; here the ratio between the bars *is* the finding, and a log
+  // axis would flatten a 24x difference into "a bit longer". The cost is that
+  // the smallest implementation's bar is very short — which is the honest
+  // picture, and the direct labels carry its number regardless.
+  function headlineFigure() {
+    const t = theme();
+    // Ascending: Plotly stacks horizontal categories bottom-up, so this puts
+    // the biggest bar at the top where a reader starts.
+    const rows = DATA.summary.filter((s) => s.peakOpsPerSecond > 0)
+      .slice().sort((a, b) => a.peakOpsPerSecond - b.peakOpsPerSecond);
+    return {
+      data: [{
+        type: "bar", orientation: "h",
+        x: rows.map((r) => r.peakOpsPerSecond),
+        y: rows.map((r) => DATA.labels[r.implementation]),
+        marker: { color: rows.map((r) => t[r.implementation] || t.muted), cornerradius: 4,
+                  line: { color: t.surface, width: 2 } },
+        // Direct-labelled because the bar lengths span 24x: the short bars are
+        // unreadable against the axis, and this is also the relief the light
+        // theme's green owes for sitting under 3:1 against the surface.
+        //
+        // Rounded, unlike everywhere else in this report. Repeats of one
+        // unchanged load level on a busy machine have come back up to 1.9x
+        // apart, so "280,805" claims five digits of precision the measurement
+        // does not have; three is already generous. The hover keeps the figure
+        // the rest of the report uses.
+        text: rows.map((r) => roughly(r.peakOpsPerSecond)),
+        textposition: "outside", cliponaxis: false,
+        outsidetextfont: { color: t.primary, size: 15 },
+        customdata: rows.map((r) => [
+          r.peak ? levelText(r.peak) : "—",
+          r.edge ? commas(r.edge.concurrency) : null,
+        ]),
+        hovertemplate: "<b>%{y}</b><br>%{x:,} requests finished every second"
+          + "<br>its best load level was %{customdata[0]}"
+          + "<extra></extra>",
+      }],
+      layout: Object.assign(base(), {
+        margin: { l: 12, r: 120, t: 6, b: 46 },
+        // tozero so the bars start at nothing and their lengths can be compared
+        // by eye, which is the entire job of this card.
+        xaxis: axis({ rangemode: "tozero", tickformat: ",",
+                      title: { text: "requests finished every second", font: { size: 11 } } }),
+        // The one card where the implementation name is the reader's entry
+        // point rather than a series key, so it gets body-text weight instead
+        // of the muted tick styling the detail charts use.
+        yaxis: axis({ automargin: true, tickfont: { color: t.primary, size: 14 } }),
+        bargap: 0.45,
+      }),
+    };
+  }
+
+  // --- card 1: throughput / latency vs concurrency -----------------------
+  let metric = "ops";
+
+  // Both axes are quantised, so marks collide exactly rather than merely
+  // crowding: x is a product of powers of two, and a p99 read off a
+  // log-bucketed histogram lands on one of a fixed ladder of microsecond
+  // edges — 16 sub-buckets inside each octave means the gap between
+  // adjacent bucket edges is about 7%, well below the gap between
+  // adjacent x values. Two implementations that measured the same
+  // bucket at the same load would land on the identical pixel and the
+  // later trace would paint the earlier one out of existence — a dot
+  // that is in the table and not on the chart. Nudging each
+  // implementation off the true x by a few percent keeps every mark
+  // visible; the gap between adjacent x values is 100%, so the dodge
+  // stays far inside it, and the tooltip reports the true concurrency.
+  const dodgeFactor = (index, count) => (count > 1 ? 1 + 0.11 * (index - (count - 1) / 2) : 1);
+
+  function scaleFigure() {
+    const t = theme();
+    const count = DATA.implementations.length;
+    const data = DATA.implementations.map((impl, index) => {
+      const rows = POINTS.filter((p) => p.implementation === impl && (metric === "ops" ? p.opsPerSecond > 0 : p.p99Ms != null));
+      const y = rows.map((p) => (metric === "ops" ? p.opsPerSecond : p.p99Ms));
+      const nudge = dodgeFactor(index, count);
+      return {
+        type: "scatter", mode: "markers", name: DATA.labels[impl],
+        x: rows.map((p) => p.concurrency * nudge), y,
+        marker: {
+          size: 10, color: t[impl] || t.muted, opacity: 0.85,
+          symbol: rows.map((p) => (p.failed ? "circle-open" : "circle")),
+          // A held mark gets the 2px surface ring, so levels of one
+          // implementation that measured the same bucket read as a stack
+          // rather than as one dot; a mark past the limit is hollow already
+          // and outlines itself in the implementation's own colour.
+          line: {
+            color: rows.map((p) => (p.failed ? t[impl] || t.muted : t.surface)),
+            width: 2,
+          },
+        },
+        // The breakdown carries its own line break, because a hovertemplate
+        // has no way to omit one for a value that turned out to be empty.
+        customdata: rows.map((p) => {
+          const breakdown = failureBreakdown(p);
+          return [levelText(p), p.opsPerSecond, p.p99Ms == null ? null : p.p99Ms,
+                  pct(p.errorRate), p.failed ? reasonText(p.reasons) : "held", p.concurrency,
+                  breakdown ? "<br>" + breakdown : ""];
+        }),
+        hovertemplate: "<b>" + esc(DATA.labels[impl]) + "</b> " + "%{customdata[0]}"
+          + "<br>%{customdata[5]:,} concurrent requests"
+          + "<br>%{customdata[1]:,.0f} ops/s · err %{customdata[3]}"
+          + (metric === "latency" ? "<br>p99 %{customdata[2]:.2f} ms" : "")
+          + "<br>%{customdata[4]}"
+          + "%{customdata[6]}<extra></extra>",
+      };
+    }).filter((trace) => trace.x.length);
+    return {
+      data,
+      layout: Object.assign(base(), {
+        margin: { l: 14, r: 16, t: 6, b: 40 },
+        xaxis: axis({ type: "log", title: { text: "concurrent requests in flight (clients x outstanding)", font: { size: 11 } } }),
+        yaxis: axis({ type: "log", title: { text: metric === "ops" ? "successful calls/second" : "p99 latency (ms)", font: { size: 11 } } }),
+      }),
+    };
+  }
+
+  // --- card 2: per-implementation frontier heatmaps -----------------------
+  function frontierFigure(impl) {
+    const t = theme();
+    const xs = DATA.outstandingAxis, ys = DATA.clientsAxis;
+    const rows = POINTS.filter((p) => p.implementation === impl);
+    const byCell = new Map(rows.map((p) => [p.outstanding + ":" + p.clients, p]));
+    const z = ys.map((clients) => xs.map((outstanding) => {
+      const p = byCell.get(outstanding + ":" + clients);
+      return p ? (p.failed ? 0 : 1) : null;
+    }));
+    // Colour carries the state (held / gave up) and the label inside a failed
+    // cell carries why, so the reason does not need five more hues — and a
+    // level that tripped several criteria is not forced to pick one colour.
+    const label = ys.map((clients) => xs.map((outstanding) => {
+      const p = byCell.get(outstanding + ":" + clients);
+      return p && p.failed ? reasonCode(p.reasons) : "";
+    }));
+    const detail = ys.map((clients) => xs.map((outstanding) => {
+      const p = byCell.get(outstanding + ":" + clients);
+      if (!p) return "not tested";
+      const breakdown = failureBreakdown(p);
+      return commas(p.opsPerSecond) + " ops/s"
+        + (p.failed ? " — gave up: " + reasonText(p.reasons) : " — held")
+        + (breakdown ? "<br>" + breakdown : "");
+    }));
+    return {
+      data: [{
+        type: "heatmap", x: xs.map(String), y: ys.map(String), z,
+        text: label, texttemplate: "%{text}", customdata: detail,
+        // White on the critical red; the held cells carry no label at all, so
+        // one ink colour is enough and never lands on the green.
+        textfont: { size: 9, color: "#ffffff", family: DATA.font },
+        hovertemplate: impl + " · %{y}c x %{x}o<br>%{customdata}<extra></extra>",
+        colorscale: [[0, t.critical], [0.5, t.critical], [0.5, t.good], [1, t.good]],
+        zmin: 0, zmax: 1, showscale: false, xgap: 2, ygap: 2,
+      }],
+      layout: Object.assign(base(), {
+        margin: { l: 32, r: 8, t: 4, b: 30 },
+        xaxis: axis({ type: "category", title: { text: "outstanding", font: { size: 10 } } }),
+        yaxis: axis({ type: "category", title: { text: "clients", font: { size: 10 } }, autorange: "reversed" }),
+      }),
+    };
+  }
+
+  // --- card 3: headline comparison -----------------------------------------
+  function summaryFigure() {
+    const t = theme();
+    const rows = DATA.summary.filter((s) => s.sustained).slice().sort((a, b) => a.sustained.concurrency - b.sustained.concurrency);
+    return {
+      data: [{
+        type: "bar", orientation: "h",
+        x: rows.map((r) => r.sustained.concurrency),
+        y: rows.map((r) => DATA.labels[r.implementation]),
+        marker: { color: rows.map((r) => t[r.implementation] || t.muted), cornerradius: 4,
+                  line: { color: t.surface, width: 2 } },
+        text: rows.map((r) => levelText(r.sustained) + " = " + commas(r.sustained.concurrency)),
+        textposition: "outside", cliponaxis: false,
+        outsidetextfont: { color: t.primary, size: 12 },
+        customdata: rows.map((r) => [
+          commas(r.sustained.opsPerSecond),
+          r.edge ? levelText(r.edge) + " (" + reasonText(r.edge.reasons) + ")" : "ramp cap reached — no limit found",
+        ]),
+        hovertemplate: "<b>%{y}</b><br>sustained %{x:,} concurrent requests, %{customdata[0]} ops/s"
+          + "<br>gave up at %{customdata[1]}<extra></extra>",
+      }],
+      layout: Object.assign(base(), {
+        margin: { l: 12, r: 150, t: 6, b: 40 },
+        xaxis: axis({ type: "log", title: { text: "sustained concurrent requests (log scale)", font: { size: 11 } } }),
+        yaxis: axis({ automargin: true }),
+        bargap: 0.4,
+      }),
+    };
+  }
+
+  // --- tables --------------------------------------------------------------
+  const table = (head, rows) =>
+    "<table><thead><tr>" + head.map((h) => "<th>" + h + "</th>").join("") + "</tr></thead><tbody>"
+    + rows.map((r) => "<tr>" + r.join("") + "</tr>").join("") + "</tbody></table>";
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const cell = (v) => "<td>" + esc(v) + "</td>";
+  const name = (v) => '<td class="name">' + esc(v) + "</td>";
+  const num = (v) => '<td class="num">' + esc(v) + "</td>";
+
+  function renderTables() {
+    $("table-scale").innerHTML = table(
+      ["Implementation", "Level", "Concurrency", "ops/s", "Error rate", "p99 ms", "Verdict", "How it failed"],
+      POINTS.slice().sort((a, b) => a.concurrency - b.concurrency || a.implementation.localeCompare(b.implementation)).map((p) => [
+        cell(DATA.labels[p.implementation]), cell(levelText(p)), num(commas(p.concurrency)),
+        num(commas(p.opsPerSecond)), num(pct(p.errorRate)),
+        num(p.p99Ms == null ? "—" : p.p99Ms.toFixed(2)),
+        cell(p.failed ? reasonText(p.reasons) : "held"),
+        name(failureBreakdown(p) || "—"),
+      ]));
+
+    $("table-frontier").innerHTML = table(
+      ["Implementation", "Clients", "Outstanding", "ops/s", "Verdict"],
+      POINTS.slice().sort((a, b) => a.implementation.localeCompare(b.implementation) || a.clients - b.clients || a.outstanding - b.outstanding)
+        .map((p) => [cell(DATA.labels[p.implementation]), num(p.clients), num(p.outstanding),
+                     num(commas(p.opsPerSecond)), cell(p.failed ? reasonText(p.reasons) : "held")]));
+
+    $("table-summary").innerHTML = table(
+      ["Implementation", "Peak ops/s", "Knee (cheapest load at peak)", "Sustained level",
+       "Sustained concurrency", "Gave up at"],
+      DATA.summary.map((s) => [
+        cell(DATA.labels[s.implementation]),
+        num(s.peak ? commas(s.peak.opsPerSecond) : "—"),
+        cell(s.knee ? levelText(s.knee) + " (" + s.knee.concurrency + " concurrent)" : "—"),
+        cell(s.sustained ? levelText(s.sustained) : "—"),
+        num(s.sustained ? commas(s.sustained.concurrency) : "—"),
+        cell(s.edge ? levelText(s.edge) + " — " + reasonText(s.edge.reasons) : "ramp cap reached, no limit found"),
+      ]));
+  }
+
+  // --- legends and captions -------------------------------------------------
+  function renderLegends() {
+    const t = theme();
+    $("legend-scale").innerHTML = DATA.implementations.map((impl) =>
+      '<span class="chip"><i style="background:' + t[impl] + '"></i>' + esc(DATA.labels[impl]) + "</span>").join("")
+      + '<span class="chip"><i class="ring"></i>past its limit</span>';
+    // Only the codes actually written on a cell — which is not the same as the
+    // reasons the document contains. A reason that always loses the severity
+    // tie-break (an error rate beside a broken connection, say) never appears
+    // as a label, and keying a code the reader cannot find is worse than
+    // leaving it to the hover, which spells every reason out in full anyway.
+    const failed = POINTS.filter((p) => p.failed && p.reasons.length);
+    const present = DATA.reasonSeverity.filter((reason) =>
+      failed.some((p) => worstReason(p.reasons) === reason));
+    $("legend-frontier").innerHTML =
+      '<span class="chip"><i style="background:' + t.good + '"></i>held</span>'
+      + '<span class="chip"><i style="background:' + t.critical + '"></i>gave up</span>'
+      + '<span class="chip"><i style="background:transparent;border:1px dashed ' + t.axis + '"></i>not tested</span>'
+      + present.map((reason) =>
+          '<span class="chip"><b>' + esc(DATA.reasonCodes[reason] || reason) + "</b> "
+          + esc(DATA.reasonLabels[reason] || reason) + "</span>").join("")
+      + (failed.some((p) => p.reasons.length > 1)
+          ? '<span class="chip"><b>+</b> also tripped others (hover)</span>' : "");
+  }
+
+  function renderCaptions() {
+    // Written for someone who will read this card and nothing else, so it
+    // spends its words on what the number means rather than on how it was
+    // measured: no criterion names, no units beyond "requests a second", and
+    // the ratio spelled out because "281,000 vs 12,000" is a division most
+    // readers will not do.
+    const lead = DATA.summary.filter((s) => s.peakOpsPerSecond > 0)
+      .slice().sort((a, b) => b.peakOpsPerSecond - a.peakOpsPerSecond);
+    if (lead.length) {
+      const best = lead[0], worst = lead[lead.length - 1];
+      const ratio = worst.peakOpsPerSecond > 0 ? best.peakOpsPerSecond / worst.peakOpsPerSecond : null;
+      const edges = lead.filter((s) => s.edge);
+      $("cap-headline").textContent =
+        "Each server was asked to do more and more at once until it started dropping "
+        + "requests or taking too long to answer. The bars show how much it was getting "
+        + "through just before that happened."
+        + (lead.length > 1 && ratio && ratio >= 1.5
+            ? " " + DATA.labels[best.implementation] + " gets through about "
+              + (ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1))
+              + " times as much work as " + DATA.labels[worst.implementation] + "."
+            : "")
+        + (edges.length
+            ? " Past its own limit each one keeps accepting work but stops finishing it, "
+              + "which is what the charts below measure."
+            : "");
+    } else {
+      $("cap-headline").textContent = "";
+    }
+    const withOps = POINTS.filter((p) => p.opsPerSecond > 0);
+    const peak = withOps.length ? withOps.reduce((a, b) => (b.opsPerSecond > a.opsPerSecond ? b : a)) : null;
+    $("cap-scale").textContent = peak
+      ? "Highest completed throughput recorded: " + DATA.labels[peak.implementation] + " at "
+        + commas(peak.opsPerSecond) + " ops/s (" + levelText(peak) + "). Hollow markers are load "
+        + "levels that already beat that implementation. Several load levels share a "
+        + "concurrency — 1c x 4o and 4c x 1o both offer four — so implementations are nudged "
+        + "a few percent apart horizontally to keep coincident marks visible; hover for the "
+        + "true figure. Latency comes from a 16-subbucket log histogram, so a p99 is the bucket's upper "
+        + "edge rather than an exact measurement — bucket edges inside one octave are about 7% apart, "
+        + "and levels in the same bucket stack. The table lists every level."
+      : "";
+    const tested = DATA.implementations.length;
+    const cappedCount = DATA.summary.filter((s) => !s.edge).length;
+    $("cap-frontier").textContent = tested + " implementation(s) traced. "
+      + (cappedCount ? cappedCount + " reached the ramp cap without a limit being found; " : "")
+      + "A red cell is labelled with the criterion it tripped, and a trailing + means it "
+      + "tripped more than one; hover any cell for its throughput and the full list. Blank "
+      + "cells past a row's red one were never run — the ramp stops a row at its edge.";
+    const ranked = DATA.summary.filter((s) => s.sustained).slice().sort((a, b) => b.sustained.concurrency - a.sustained.concurrency);
+    $("cap-summary").textContent = ranked.length
+      ? "Went furthest: " + DATA.labels[ranked[0].implementation] + ", sustaining "
+        + levelText(ranked[0].sustained) + " (" + commas(ranked[0].sustained.concurrency) + " concurrent requests)"
+        + (ranked.length > 1 ? " — " + (ranked[0].sustained.concurrency / ranked[ranked.length - 1].sustained.concurrency).toFixed(1)
+            + "x further than " + DATA.labels[ranked[ranked.length - 1].implementation] + "." : ".")
+      : "";
+  }
+
+  // --- wiring ----------------------------------------------------------------
+  function draw() {
+    const f0 = headlineFigure(), f1 = scaleFigure(), f3 = summaryFigure();
+    Plotly.react("plot-headline", f0.data, f0.layout, CONFIG);
+    Plotly.react("plot-scale", f1.data, f1.layout, CONFIG);
+    Plotly.react("plot-summary", f3.data, f3.layout, CONFIG);
+
+    const grid = $("plot-frontier");
+    if (!grid.children.length) {
+      DATA.implementations.forEach((impl) => {
+        // The headline "why" for this implementation, spelled out rather than
+        // coded: the cells answer it per load level, this answers it for the
+        // frontier as a whole, which is the question the card is asking.
+        const found = DATA.summary.find((s) => s.implementation === impl);
+        const edge = found && found.edge;
+        // Naming the baseline beside the verdict, because every p99 verdict in
+        // this column is a multiple of it and it is measured, not configured.
+        const baseline = found && found.baselineP99Ms != null
+          ? " · lightest-load p99 " + found.baselineP99Ms.toFixed(2) + " ms" : "";
+        // The capacity number, which the edge above is not: where the work
+        // stops growing rather than where the server stops coping.
+        const knee = found && found.knee
+          ? " · peak " + compact(found.peakOpsPerSecond) + " ops/s, reached by "
+            + levelText(found.knee) + " (" + found.knee.concurrency + " concurrent)"
+          : "";
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const noisy = found && found.nonMonotone
+          ? " ⚠ a lighter level failed while a heavier one held — this run did not"
+            + " separate the limit from its own noise; raise samples or step_seconds"
+          : "";
+        cell.innerHTML = "<h3>" + esc(DATA.labels[impl]) + "</h3>"
+          + '<p class="edge">' + (edge
+              ? "gave up at " + esc(levelText(edge)) + " — " + esc(reasonText(edge.reasons))
+              : "ramp cap reached, no limit found") + esc(knee) + esc(baseline) + esc(noisy) + "</p>"
+          + '<div class="plot" id="plot-frontier-' + impl + '"></div>';
+        grid.appendChild(cell);
+      });
+    }
+    DATA.implementations.forEach((impl) => {
+      const f = frontierFigure(impl);
+      Plotly.react("plot-frontier-" + impl, f.data, f.layout, CONFIG);
+    });
+
+    renderLegends();
+    renderCaptions();
+    renderTables();
+  }
+
+  document.querySelectorAll(".metricbtn").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".metricbtn").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      metric = button.dataset.metric === "latency" ? "latency" : "ops";
+      draw();
+    });
+  });
+
+  document.querySelectorAll("[data-table]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const on = button.getAttribute("aria-pressed") === "true";
+      button.setAttribute("aria-pressed", String(!on));
+      $("table-" + button.dataset.table).classList.toggle("hidden", on);
+    });
+  });
+
+  $("themetoggle").addEventListener("click", () => {
+    const next = themeName() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    $("themetoggle").textContent = next === "dark" ? "Light theme" : "Dark theme";
+    draw();
+  });
+  $("themetoggle").textContent = themeName() === "dark" ? "Light theme" : "Dark theme";
+
+  draw();
+  window.addEventListener("resize", () => {
+    document.querySelectorAll(".plot").forEach((el) => { if (el.id) Plotly.Plots.resize(el); });
+  });
+})();
+</script>
+</body>
+</html>

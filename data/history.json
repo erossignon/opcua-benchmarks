@@ -7925,5 +7925,4290 @@
     "report": "throughput/throughput.html"
    }
   }
+ },
+ {
+  "id": "2026-10-09-37904989874",
+  "date": "2026-10-09T14:12:28Z",
+  "profile": "standard",
+  "trigger": "workflow_dispatch",
+  "ref": "main",
+  "commit": "f657d6a1dd0ec4e8f0e9005bb8e34e80431ff5a2",
+  "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/37904989874",
+  "runner": {
+   "label": "ubuntu-24.04",
+   "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+   "cores": 4,
+   "memory_gb": 15.6
+  },
+  "versions": {
+   "node-opcua": "2.186.0",
+   "asyncua": "2.0.1",
+   "o6-python": "2.0.1",
+   "milo": "1.1.8",
+   "gopcua": "v0.9.1",
+   "s2opc": "1.7.3",
+   "open62541": "ac0d4746388a",
+   "ua-dotnet": "1.5.378.176"
+  },
+  "failures": 0,
+  "metrics": [
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "asyncua",
+    "value": 9244.0,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "gopcua",
+    "value": 18358.5,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "milo",
+    "value": 50913.5,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "node-opcua",
+    "value": 12626.0,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "o6-python",
+    "value": 80955.5,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "open62541",
+    "value": 217989.5,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "s2opc",
+    "value": 86653.0,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_capacity",
+    "case": "scalar Read capacity",
+    "server": "ua-dotnet",
+    "value": 55065.0,
+    "unit": "requests/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "asyncua",
+    "value": 9256.713,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "gopcua",
+    "value": 19033.874,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "milo",
+    "value": 46089.49,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "node-opcua",
+    "value": 11198.739,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "o6-python",
+    "value": 72759.796,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "open62541",
+    "value": 203903.229,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "s2opc",
+    "value": 50747.601,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "server_limits",
+    "case": "peak before failure",
+    "server": "ua-dotnet",
+    "value": 45356.154,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "subscription",
+    "case": "server sampling 100 ms, publishing 1000 ms",
+    "server": "asyncua",
+    "value": 1216.0,
+    "unit": "monitored items",
+    "higher_is_better": true
+   },
+   {
+    "suite": "subscription",
+    "case": "server sampling 100 ms, publishing 1000 ms",
+    "server": "o6-python",
+    "value": 7168.0,
+    "unit": "monitored items",
+    "higher_is_better": true
+   },
+   {
+    "suite": "subscription",
+    "case": "server sampling 100 ms, publishing 1000 ms",
+    "server": "open62541",
+    "value": 57344.0,
+    "unit": "monitored items",
+    "higher_is_better": true
+   },
+   {
+    "suite": "subscription",
+    "case": "server sampling 100 ms, publishing 1000 ms",
+    "server": "ua-dotnet",
+    "value": 1792.0,
+    "unit": "monitored items",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5740.635,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 7030.186,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 28561.717,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 3712.825,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 37425.247,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 50003.12,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 18417.118,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 10721.176,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "asyncua",
+    "value": 7908.754,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "gopcua",
+    "value": 7698.227,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "milo",
+    "value": 32347.366,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "node-opcua",
+    "value": 10832.898,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "o6-python",
+    "value": 64365.841,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "open62541",
+    "value": 168488.562,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "s2opc",
+    "value": 45447.991,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 12779.289,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5764.273,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 7323.536,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 30601.245,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 4021.935,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 38008.562,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 48169.342,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 18365.318,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 12441.402,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "asyncua",
+    "value": 7980.449,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "gopcua",
+    "value": 8324.425,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "milo",
+    "value": 35611.258,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "node-opcua",
+    "value": 11855.679,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "o6-python",
+    "value": 67615.58,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "open62541",
+    "value": 168306.628,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "s2opc",
+    "value": 54375.873,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async array:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 14118.863,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 776.6,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 2929.756,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "milo",
+    "value": 2501.257,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 983.653,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 7198.099,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 25628.321,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 12970.022,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 5145.843,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "asyncua",
+    "value": 808.799,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "gopcua",
+    "value": 3110.782,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "milo",
+    "value": 2613.217,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "node-opcua",
+    "value": 1164.361,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "o6-python",
+    "value": 7876.943,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "open62541",
+    "value": 37179.893,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "s2opc",
+    "value": 14224.375,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 1c None",
+    "server": "ua-dotnet",
+    "value": 5341.679,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 778.184,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 3208.371,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "milo",
+    "value": 2641.325,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 940.536,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 7140.251,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 25502.537,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 13597.346,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 4836.837,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "asyncua",
+    "value": 809.372,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "gopcua",
+    "value": 3355.063,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "milo",
+    "value": 2677.032,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "node-opcua",
+    "value": 1122.996,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "o6-python",
+    "value": 7729.036,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "open62541",
+    "value": 37801.641,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "s2opc",
+    "value": 14892.85,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:100 3c None",
+    "server": "ua-dotnet",
+    "value": 5183.507,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 82.963,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 388.174,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 678.822,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 131.611,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 828.042,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 3954.62,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 1785.979,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 531.819,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "asyncua",
+    "value": 83.465,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "gopcua",
+    "value": 405.491,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "milo",
+    "value": 688.115,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "node-opcua",
+    "value": 135.25,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "o6-python",
+    "value": 872.235,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "open62541",
+    "value": 5198.921,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "s2opc",
+    "value": 2503.348,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 517.548,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 82.804,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 403.362,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 653.433,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 132.265,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 825.261,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 3963.328,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 1790.122,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 445.752,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "asyncua",
+    "value": 83.447,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "gopcua",
+    "value": 411.221,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "milo",
+    "value": 654.419,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "node-opcua",
+    "value": 138.095,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "o6-python",
+    "value": 879.73,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "open62541",
+    "value": 5080.598,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "s2opc",
+    "value": 2499.754,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async batch:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 479.113,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 6753.093,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 14176.262,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "milo",
+    "value": 23637.823,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 4317.086,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 55935.292,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 85430.598,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 60021.332,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 20986.078,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "asyncua",
+    "value": 9254.783,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "gopcua",
+    "value": 15645.16,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "milo",
+    "value": 19626.552,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "node-opcua",
+    "value": 10642.382,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "o6-python",
+    "value": 73375.354,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "open62541",
+    "value": 192445.72,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "s2opc",
+    "value": 48128.14,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 1c None",
+    "server": "ua-dotnet",
+    "value": 28168.453,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 6720.356,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 16249.187,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "milo",
+    "value": 41551.83,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 4464.43,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 56919.2,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 88314.939,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 54023.216,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 28699.85,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "asyncua",
+    "value": 9206.751,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "gopcua",
+    "value": 17563.007,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "milo",
+    "value": 35553.847,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "node-opcua",
+    "value": 12045.082,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "o6-python",
+    "value": 74404.681,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "open62541",
+    "value": 193300.92,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "s2opc",
+    "value": 53584.613,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read async scalar 3c None",
+    "server": "ua-dotnet",
+    "value": 38489.169,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 3756.378,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 4671.934,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 7809.855,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2413.956,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 11790.297,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 14741.303,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 5939.848,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 5474.588,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "asyncua",
+    "value": 5879.142,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "gopcua",
+    "value": 5824.865,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "milo",
+    "value": 9979.416,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "node-opcua",
+    "value": 5604.274,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "o6-python",
+    "value": 18344.485,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "open62541",
+    "value": 29611.427,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "s2opc",
+    "value": 9492.549,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 7212.864,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5005.792,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 7126.565,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 17564.754,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2986.575,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 26868.009,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 28486.411,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 14089.711,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 10215.995,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "asyncua",
+    "value": 6883.817,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "gopcua",
+    "value": 8321.789,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "milo",
+    "value": 22631.177,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "node-opcua",
+    "value": 7399.188,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "o6-python",
+    "value": 42285.396,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "open62541",
+    "value": 77003.279,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "s2opc",
+    "value": 27467.057,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync array:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 12571.214,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 704.643,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 2465.85,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "milo",
+    "value": 1499.117,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 839.835,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 4692.549,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 10418.557,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 5355.181,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 2897.628,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "asyncua",
+    "value": 758.346,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "gopcua",
+    "value": 2749.924,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "milo",
+    "value": 1508.913,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "node-opcua",
+    "value": 1041.891,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "o6-python",
+    "value": 5728.396,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "open62541",
+    "value": 17220.224,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "s2opc",
+    "value": 6233.883,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 1c None",
+    "server": "ua-dotnet",
+    "value": 3227.608,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 748.182,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 3244.88,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "milo",
+    "value": 2289.841,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 884.76,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 6563.616,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 23186.062,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 11385.765,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 5000.285,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "asyncua",
+    "value": 804.389,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "gopcua",
+    "value": 3341.628,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "milo",
+    "value": 2570.88,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "node-opcua",
+    "value": 1094.907,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "o6-python",
+    "value": 7261.67,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "open62541",
+    "value": 32345.211,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "s2opc",
+    "value": 14650.074,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:100 3c None",
+    "server": "ua-dotnet",
+    "value": 5235.54,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 78.633,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 364.371,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 501.602,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 122.654,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 702.016,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 2543.849,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 1231.476,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 627.448,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "asyncua",
+    "value": 83.702,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "gopcua",
+    "value": 385.619,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "milo",
+    "value": 552.713,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "node-opcua",
+    "value": 132.472,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "o6-python",
+    "value": 786.889,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "open62541",
+    "value": 3768.707,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "s2opc",
+    "value": 1795.57,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 682.532,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 80.754,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 400.152,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 637.507,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 127.137,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 809.86,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 3855.127,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 1787.314,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 730.376,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "asyncua",
+    "value": 83.882,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "gopcua",
+    "value": 416.425,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "milo",
+    "value": 676.478,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "node-opcua",
+    "value": 141.055,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "o6-python",
+    "value": 858.141,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "open62541",
+    "value": 5078.419,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "s2opc",
+    "value": 2526.109,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync batch:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 755.613,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 4466.464,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 7960.944,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "milo",
+    "value": 4219.966,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2517.043,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 16096.465,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 19108.784,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 8903.492,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 4533.711,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "asyncua",
+    "value": 6104.236,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "gopcua",
+    "value": 9136.795,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "milo",
+    "value": 5171.797,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "node-opcua",
+    "value": 4600.718,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "o6-python",
+    "value": 20579.969,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "open62541",
+    "value": 29997.583,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "s2opc",
+    "value": 10082.25,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 1c None",
+    "server": "ua-dotnet",
+    "value": 5837.098,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5539.535,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 13966.178,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "milo",
+    "value": 20534.649,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 3513.613,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 36004.349,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 45210.548,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 20859.51,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 26652.092,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "asyncua",
+    "value": 7959.342,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "gopcua",
+    "value": 16133.562,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "milo",
+    "value": 23793.452,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "node-opcua",
+    "value": 8038.979,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "o6-python",
+    "value": 45670.104,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "open62541",
+    "value": 86217.198,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "s2opc",
+    "value": 29690.156,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "read sync scalar 3c None",
+    "server": "ua-dotnet",
+    "value": 34901.872,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5343.506,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 8498.165,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 27410.291,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 3996.383,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 45817.862,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 53743.226,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 16901.914,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 15306.309,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "asyncua",
+    "value": 7050.624,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "gopcua",
+    "value": 9729.015,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "milo",
+    "value": 31742.603,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "node-opcua",
+    "value": 9484.979,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "o6-python",
+    "value": 65838.805,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "open62541",
+    "value": 168691.741,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "s2opc",
+    "value": 31835.819,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 22381.346,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5201.241,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 9527.594,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 27404.345,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 3880.492,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 44905.033,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 59905.876,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 17685.213,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 24019.102,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "asyncua",
+    "value": 6621.902,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "gopcua",
+    "value": 11301.058,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "milo",
+    "value": 29847.54,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "node-opcua",
+    "value": 9163.809,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "o6-python",
+    "value": 67618.252,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "open62541",
+    "value": 170283.676,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "s2opc",
+    "value": 30664.046,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async array:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 26729.739,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 678.403,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 3074.136,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "milo",
+    "value": 2188.806,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 661.154,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 5202.897,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 21976.667,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 4744.079,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 4864.203,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "asyncua",
+    "value": 711.67,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "gopcua",
+    "value": 3079.503,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "milo",
+    "value": 2227.055,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "node-opcua",
+    "value": 730.549,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "o6-python",
+    "value": 5607.912,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "open62541",
+    "value": 29297.293,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "s2opc",
+    "value": 4711.621,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 1c None",
+    "server": "ua-dotnet",
+    "value": 5420.252,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 681.957,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 3268.349,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "milo",
+    "value": 2060.01,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 663.134,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 5190.138,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 22014.941,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 4383.227,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 4425.629,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "asyncua",
+    "value": 715.047,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "gopcua",
+    "value": 3410.612,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "milo",
+    "value": 2189.233,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "node-opcua",
+    "value": 739.389,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "o6-python",
+    "value": 5561.04,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "open62541",
+    "value": 29613.808,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "s2opc",
+    "value": 4217.886,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:100 3c None",
+    "server": "ua-dotnet",
+    "value": 4883.257,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 65.731,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 402.639,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 429.962,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 71.594,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 582.49,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 3290.908,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 469.097,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 401.801,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "asyncua",
+    "value": 65.686,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "gopcua",
+    "value": 414.048,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "milo",
+    "value": 443.854,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "node-opcua",
+    "value": 76.47,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "o6-python",
+    "value": 602.828,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "open62541",
+    "value": 3800.721,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "s2opc",
+    "value": 498.823,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 437.044,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 64.429,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 410.307,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 393.926,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 70.932,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 589.868,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 3307.985,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 468.839,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 376.628,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "asyncua",
+    "value": 66.135,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "gopcua",
+    "value": 421.214,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "milo",
+    "value": 411.513,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "node-opcua",
+    "value": 76.23,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "o6-python",
+    "value": 626.307,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "open62541",
+    "value": 3746.535,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "s2opc",
+    "value": 497.334,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async batch:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 412.508,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 6457.459,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 15312.962,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "milo",
+    "value": 31858.391,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 4340.134,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 52218.584,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 84062.65,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 47875.624,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 19753.127,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "asyncua",
+    "value": 8722.321,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "gopcua",
+    "value": 15759.657,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "milo",
+    "value": 37440.614,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "node-opcua",
+    "value": 10073.691,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "o6-python",
+    "value": 68309.682,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "open62541",
+    "value": 190194.984,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "s2opc",
+    "value": 41911.886,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 1c None",
+    "server": "ua-dotnet",
+    "value": 30680.976,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 6567.966,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 15758.761,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "milo",
+    "value": 39257.918,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 4131.649,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 52452.116,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 87042.041,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 48875.48,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 35790.238,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "asyncua",
+    "value": 8870.352,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "gopcua",
+    "value": 17746.909,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "milo",
+    "value": 41176.263,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "node-opcua",
+    "value": 10834.554,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "o6-python",
+    "value": 70540.473,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "open62541",
+    "value": 194935.47,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "s2opc",
+    "value": 45927.712,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write async scalar 3c None",
+    "server": "ua-dotnet",
+    "value": 50850.08,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 3755.576,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 5497.313,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 6305.544,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2318.272,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 13389.168,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 15726.468,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 4823.74,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 8321.463,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "asyncua",
+    "value": 5226.029,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "gopcua",
+    "value": 6442.198,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "milo",
+    "value": 8741.588,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "node-opcua",
+    "value": 4837.234,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "o6-python",
+    "value": 20439.024,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "open62541",
+    "value": 27037.508,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "s2opc",
+    "value": 8677.397,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 12411.301,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 4836.376,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 10042.281,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 15429.043,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2974.174,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 29277.512,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 36084.809,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 11366.5,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 20798.761,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "asyncua",
+    "value": 6513.162,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "gopcua",
+    "value": 11486.247,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "milo",
+    "value": 20088.485,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "node-opcua",
+    "value": 5828.805,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "o6-python",
+    "value": 42606.245,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "open62541",
+    "value": 84423.707,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "s2opc",
+    "value": 18052.314,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync array:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 28158.668,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 647.438,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 2472.525,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "milo",
+    "value": 1649.113,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 581.827,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 3982.499,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 11052.67,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 2864.12,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 2938.093,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "asyncua",
+    "value": 678.198,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "gopcua",
+    "value": 2645.743,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "milo",
+    "value": 1885.834,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "node-opcua",
+    "value": 640.122,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "o6-python",
+    "value": 4235.456,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "open62541",
+    "value": 14789.987,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "s2opc",
+    "value": 3336.486,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 1c None",
+    "server": "ua-dotnet",
+    "value": 3323.336,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 658.044,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 3410.12,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "milo",
+    "value": 1923.688,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 564.968,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 4799.611,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 21383.193,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 4705.827,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 4890.706,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "asyncua",
+    "value": 707.261,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "gopcua",
+    "value": 3525.882,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "milo",
+    "value": 2136.719,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "node-opcua",
+    "value": 655.747,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "o6-python",
+    "value": 5094.754,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "open62541",
+    "value": 27616.943,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "s2opc",
+    "value": 4424.309,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:100 3c None",
+    "server": "ua-dotnet",
+    "value": 5347.848,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 64.632,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 393.0,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "milo",
+    "value": 378.152,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 71.552,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 543.718,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 2363.443,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 449.139,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 600.085,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "asyncua",
+    "value": 62.681,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "gopcua",
+    "value": 411.038,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "milo",
+    "value": 428.537,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "node-opcua",
+    "value": 74.231,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "o6-python",
+    "value": 579.175,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "open62541",
+    "value": 3155.464,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "s2opc",
+    "value": 500.011,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 1c None",
+    "server": "ua-dotnet",
+    "value": 648.382,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 64.522,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 417.407,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "milo",
+    "value": 422.991,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 70.42,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 574.121,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 3270.087,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 499.874,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 674.95,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "asyncua",
+    "value": 65.27,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "gopcua",
+    "value": 421.392,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "milo",
+    "value": 457.206,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "node-opcua",
+    "value": 73.068,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "o6-python",
+    "value": 597.061,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "open62541",
+    "value": 3702.677,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "s2opc",
+    "value": 519.504,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync batch:1000 3c None",
+    "server": "ua-dotnet",
+    "value": 675.605,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "asyncua",
+    "value": 4625.92,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "gopcua",
+    "value": 7863.613,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "milo",
+    "value": 7455.458,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 2678.861,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "o6-python",
+    "value": 15873.927,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "open62541",
+    "value": 17764.489,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "s2opc",
+    "value": 7556.918,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 12843.556,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "asyncua",
+    "value": 5860.282,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "gopcua",
+    "value": 9228.756,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "milo",
+    "value": 8779.919,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "node-opcua",
+    "value": 5004.438,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "o6-python",
+    "value": 20960.382,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "open62541",
+    "value": 29686.097,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "s2opc",
+    "value": 9898.445,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 1c None",
+    "server": "ua-dotnet",
+    "value": 17688.845,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "asyncua",
+    "value": 5261.909,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "gopcua",
+    "value": 15500.142,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "milo",
+    "value": 21263.668,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "node-opcua",
+    "value": 3026.663,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "o6-python",
+    "value": 34101.584,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "open62541",
+    "value": 47602.575,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "s2opc",
+    "value": 19521.643,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c Basic256Sha256",
+    "server": "ua-dotnet",
+    "value": 27063.671,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "asyncua",
+    "value": 7789.274,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "gopcua",
+    "value": 16719.619,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "milo",
+    "value": 22747.804,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "node-opcua",
+    "value": 6837.248,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "o6-python",
+    "value": 42803.921,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "open62541",
+    "value": 82862.967,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "s2opc",
+    "value": 27043.259,
+    "unit": "calls/s",
+    "higher_is_better": true
+   },
+   {
+    "suite": "throughput",
+    "case": "write sync scalar 3c None",
+    "server": "ua-dotnet",
+    "value": 40205.345,
+    "unit": "calls/s",
+    "higher_is_better": true
+   }
+  ],
+  "report": "runs/2026-10-09-37904989874/index.html"
  }
 ]
