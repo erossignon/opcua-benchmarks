@@ -27,8 +27,10 @@ ALL_SERVERS = (
 )
 # Flavours of one SDK: same package, so same version as the SDK they run.
 FLAVOURS = {"node-opcua-fronts": "node-opcua", "node-opcua-fronts-2": "node-opcua"}
-# The subscription suite needs a client in the SDK, which the server-only workers lack.
-SUBSCRIPTION_SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet")
+# The subscription suite needs a counter server per SDK; Milo, S2OPC and gopcua have none.
+SUBSCRIPTION_SERVERS = (
+    "open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet", "node-opcua-fronts", "node-opcua-fronts-2"
+)
 
 # Each profile: suite -> (option settings, sample command arguments).
 # JIT servers (node-opcua, .NET, Java) need thousands of calls to reach a steady
@@ -355,6 +357,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     run_parser.add_argument("--suite", action="append", help="run only this suite of the profile (repeatable)")
     plan_parser = commands.add_parser("plan", help="Print the profile's suites as a JSON list (the CI matrix)")
     plan_parser.add_argument("--profile", choices=sorted(PROFILES), default="quick")
+    plan_parser.add_argument("--only", default="", help="comma-separated suites to keep (default: all of the profile)")
     merge_parser = commands.add_parser("merge", help="Combine per-suite summaries into one history entry")
     merge_parser.add_argument("summaries", type=Path, nargs="+")
     merge_parser.add_argument("--id", required=True, help="the run's id, as its folder under runs/")
@@ -378,7 +381,12 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_arguments(argv)
     if args.command == "plan":
-        print(json.dumps(list(PROFILES[args.profile])))
+        only = {suite.strip() for suite in args.only.split(",") if suite.strip()}
+        suites = [suite for suite in PROFILES[args.profile] if not only or suite in only]
+        if not suites:
+            print(f"profile {args.profile} has none of the suites {sorted(only)}", file=sys.stderr)
+            return 2
+        print(json.dumps(suites))
         return 0
     if args.command == "merge":
         # Each summary sits in its suite's folder: <site>/<suite>/summary.json.

@@ -44,7 +44,7 @@
 <body>
 <main>
   <h1>OPC UA benchmark history</h1>
-  <p class="lede">Every published CI run of the benchmark suites, one point per run, per machine.
+  <p class="lede">Every published CI run of the benchmark suites, one evenly spaced point per run, per machine.
   Hosted runners change hardware from run to run, which moves every SDK at once: compare SDKs within a
   run (the standing table: rank, share of the fastest, ×slower) or with <em>Relative to</em> an SDK of the same run
   before calling a change a regression. A ◆ marks a run where that SDK's version changed.</p>
@@ -124,7 +124,7 @@ function draw() {
       const version = run.versions?.[server];
       const changed = lastVersion !== undefined && version !== lastVersion;
       lastVersion = version;
-      return { x: run.date, y: value(run, suite, kase, server), version, changed, id: run.id };
+      return { x: run.id, y: value(run, suite, kase, server), version, changed, id: run.id };
     });
     return {
       name: server, mode: "lines+markers", type: "scatter", connectgaps: false,
@@ -139,7 +139,12 @@ function draw() {
   const layout = {
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: fg },
     margin: { l: 64, r: 16, t: 16, b: 48 }, legend: { orientation: "h", y: -0.18 },
-    xaxis: { gridcolor: grid }, yaxis: { title: unit, gridcolor: grid, rangemode: "tozero" },
+    // One even step per run, labelled with its date: runs are occasional, so a time scale would be mostly empty.
+    xaxis: { gridcolor: grid, type: "category", categoryorder: "array", categoryarray: runs.map((r) => r.id),
+      tickvals: runs.filter((_, i) => i % Math.max(1, Math.ceil(runs.length / 12)) === 0).map((r) => r.id),
+      ticktext: runs.filter((_, i) => i % Math.max(1, Math.ceil(runs.length / 12)) === 0)
+        .map((r) => `${r.date.slice(0, 10)}<br>${r.date.slice(11, 16)}`) },
+    yaxis: { title: unit, gridcolor: grid, rangemode: "tozero" },
   };
   if (reference) {
     // Log scale: ×2 and 1/2 sit at the same distance from the reference line.
