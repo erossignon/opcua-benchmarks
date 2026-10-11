@@ -1,0 +1,111 @@
+{
+ "id": "2026-10-11-38127102208",
+ "date": "2026-10-11T15:39:28Z",
+ "profile": "standard",
+ "trigger": "schedule",
+ "ref": "main",
+ "commit": "d03b5069ce421217f4684e029a1ac8d829797122",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/38127102208",
+ "runner": {
+  "label": "bench-minipc",
+  "cpu": "Intel(R) Celeron(R) J4125 CPU @ 2.00GHz",
+  "cores": 4,
+  "memory_gb": 3.7
+ },
+ "versions": {
+  "node-opcua": "2.187.1",
+  "asyncua": "2.1.0",
+  "o6-python": "2.0.1",
+  "milo": "1.1.8",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176",
+  "node-opcua-fronts": "2.187.1",
+  "node-opcua-fronts-2": "2.187.1"
+ },
+ "failures": 0,
+ "metrics": [
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "asyncua",
+   "value": 3898.218,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "gopcua",
+   "value": 11934.143,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "milo",
+   "value": 23477.494,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "node-opcua",
+   "value": 27169.002,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "node-opcua-fronts",
+   "value": 37234.184,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "node-opcua-fronts-2",
+   "value": 36689.312,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "o6-python",
+   "value": 21005.101,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "open62541",
+   "value": 54401.372,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "s2opc",
+   "value": 27154.639,
+   "unit": "calls/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_limits",
+   "case": "peak before failure",
+   "server": "ua-dotnet",
+   "value": 20231.397,
+   "unit": "calls/s",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}
