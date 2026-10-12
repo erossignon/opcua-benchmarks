@@ -38,19 +38,18 @@ def workload_note(sources):
             "they have not been converted into callback measurements.</p>"
         )
     return (
-        '<aside class="workload-note"><p><strong>Counter generation and SDK exception</strong></p>'
+        '<aside class="workload-note"><p><strong>Counter generation and SDK exceptions</strong></p>'
         "<p>New open62541, o6-python, node-opcua, UA-.NETStandard and Milo runs increment each item's UInt64 "
         "counter in its SDK read callback. The SDK's subscription sampling drives these reads; "
         "there is no application loop updating all items. Counters advance only during the armed run. "
         "Server observations count callback increments in the retained window; client observations "
         "use delivered counter differences. SDK timer drift and scheduling overhead can reduce callback "
         "counts even at small loads; counts are not rescaled to remove these deficits.</p>"
-        "<p><strong>asyncua exception:</strong> asyncua 2.0.1 uses write-triggered notifications and does not "
-        "periodically sample read callbacks. It retains the application loop that writes every item at the "
-        "configured sampling period. Its reported sampling interval equals the publishing interval. "
-        "Its results therefore include application-update work and measure a different generation path.</p>"
-        + history
-        + "</aside>"
+        "<p><strong>Application updates:</strong> asyncua and gopcua notify on changes rather than "
+        "periodically sampling read callbacks. Their application loops update every item at the configured "
+        "sampling period and skip missed slots. asyncua and gopcua report the publishing interval as their "
+        "revised sampling interval. Their results include "
+        "application-update work and measure a different counter generation path.</p>" + history + "</aside>"
     )
 
 

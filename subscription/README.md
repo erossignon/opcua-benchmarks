@@ -4,8 +4,8 @@ Measures application counter progress while varying monitored-item count.
 open62541, o6-python, node-opcua, .NET and Milo increment UInt64 counters in SDK read
 callbacks during the armed workload window. Subscription sampling drives these
 callbacks. One open62541 client provides the same setup and measurement behavior
-across server SDKs. asyncua retains periodic application writes because its
-notifications are write-triggered.
+across server SDKs. asyncua and gopcua use periodic application updates
+because their subscriptions notify on changes rather than sampling callbacks.
 
 ```sh
 python -m bench.subscription new bench.db
@@ -14,16 +14,16 @@ python -m bench.subscription sample 1 bench.db --name subscriptions-1
 python -m bench.subscription show bench.db --name subscriptions-1
 ```
 
-Defaults include Node, .NET and Milo; build their [optional workers](../README.md#setup)
+Defaults include all seven SDKs; build the [optional workers](../README.md#setup)
 or narrow the implementation list. Use `config bench.db --help` for all settings.
 
 ## Measurement
 
 The `client` observer measures the latest counter delivered to the client.
 The `server` observer counts read-callback increments (completed application
-updates for asyncua). These observers run as separate searches. Callback-driven
-SDKs advance on reads only; asyncua uses the requested sampling interval as its
-application update period.
+updates for asyncua and gopcua). These observers run as separate searches.
+Callback-driven SDKs advance on reads only; the others use the requested sampling
+interval as their application update period and skip missed update slots.
 Publishing intervals must be at least as long as sampling intervals.
 
 Each observation includes at least 1,000 expected increments and five publishing
@@ -37,9 +37,11 @@ progress to pass; passing the cap establishes only an "at least" bound.
 Execution errors leave the search incomplete.
 
 Subscriptions use reporting mode, queue size one, and discard-oldest. Intermediate
-values may be replaced. asyncua is write-triggered and reports the publishing
-interval as its revised sampling interval; its application update period still
-matches the requested workload.
+values may be replaced. asyncua and gopcua report the publishing interval as their
+revised sampling interval. Their application update period still matches the
+requested workload. These results
+include application-update work, so their counter generation differs from the
+callback-driven SDKs.
 
 Reports include approximate confidence intervals for mean progress based on a
 circular block bootstrap of publishing intervals. These are informational, not

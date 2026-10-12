@@ -44,7 +44,8 @@ def build_page(database):
         workload_note({row["observation"].get("server", {}).get("counter_source", "application_update") for row in rows}),
         "<p>One observer per measurement; client and server searches run separately. Scalar UInt64 counters, queue size 1, configurable publishing, "
         "one open62541 client. Server mode discards notifications without measuring them; client mode records no server measurements. "
-        "Counts describe callback increments (application updates for asyncua and historical runs) or delivered counter differences.</p>",
+        "Counts describe callback increments (application updates for asyncua, gopcua and historical runs) "
+        "or delivered counter differences.</p>",
         "<p>Measurements expect at least 1000 increments per item over whole publishing cycles. "
         "An additional 10% warm-up rounds up to whole publishing intervals; nothing is discarded at the end. "
         "Expected progress is the retained duration ÷ configured sampling period. "
@@ -152,8 +153,9 @@ def build_page(database):
         )
     parts.append("</tbody></table>")
     parts.append(
-        "<p>asyncua uses write-triggered notifications and revises the reported sampling interval to the publishing interval. "
-        "Its application update period equals the configured sampling period. Revised intervals and CPU allocation appear below.</p>"
+        "<p>asyncua and gopcua use application updates at the configured sampling period. "
+        "asyncua and gopcua report the publishing interval as their revised sampling interval. "
+        "Revised intervals and CPU allocation appear below.</p>"
     )
     for failure in failures:
         parts.append(f"<p><strong>Failed:</strong> {escape(failure['configuration'])}: {escape(failure['message'])}</p>")

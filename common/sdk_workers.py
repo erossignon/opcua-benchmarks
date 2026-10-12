@@ -122,6 +122,8 @@ def counter_command(name: str) -> list[str]:
     """Subscription worker, before port, item count, sampling and observer."""
     if name == "milo":
         return command(name)[:-1] + ["o6.benchmark.CounterServer"]
+    if name == "gopcua":
+        return command(name) + ["--counter"]
     raise ValueError(f"No subscription worker for {name}")
 
 

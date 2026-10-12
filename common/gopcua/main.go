@@ -38,8 +38,8 @@ import (
 	"github.com/gopcua/opcua/id"
 	"github.com/gopcua/opcua/server"
 	"github.com/gopcua/opcua/server/attrs"
-	"github.com/gopcua/opcua/uacp"
 	"github.com/gopcua/opcua/ua"
+	"github.com/gopcua/opcua/uacp"
 )
 
 const (
@@ -135,6 +135,9 @@ func variable(ns uint16, nodeID uint32, name string, initial any, dimensions []u
 }
 
 func run() error {
+	if len(os.Args) > 1 && os.Args[1] == "--counter" {
+		return runCounter(os.Args[2:])
+	}
 	port := flag.Int("port", 4840, "TCP port")
 	security := flag.String("security", "None", "None or Basic256Sha256")
 	certificate := flag.String("certificate", "", "DER server certificate")

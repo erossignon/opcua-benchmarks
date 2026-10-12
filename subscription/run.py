@@ -58,8 +58,11 @@ def evaluate(case, setup, result):
     if setup.get("publishing_enabled") is not True:
         raise ValueError("Wrong publishing mode")
     revisions = setup.get("sampling_ms", [])
-    # asyncua is write-triggered and reports the publishing interval as sampling.
-    expected_sampling = case["publishing_ms"] if case["implementation"] == "asyncua" else case["sampling_ms"]
+    # These SDKs notify on changes rather than periodically sampling callbacks.
+    if case["implementation"] in ("asyncua", "gopcua"):
+        expected_sampling = case["publishing_ms"]
+    else:
+        expected_sampling = case["sampling_ms"]
     if isinstance(revisions, list):
         if len(revisions) != case["items"]:
             raise ValueError("Missing revised sampling intervals")
