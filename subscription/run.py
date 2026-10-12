@@ -29,6 +29,7 @@ import tempfile
 import time
 
 from subscription.options import OPTIONS, MAX_ITEMS, bounded, measurement_window
+from common.extensions import project_root
 from subscription.confidence import estimate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -187,9 +188,20 @@ def fingerprint():
         ROOT / "common/dotnet/build/server/Opc.Ua.Server.dll",
         ROOT / "common/node/package-lock.json",
     ]
+    from importlib.util import find_spec
+
+    for module in ("subscription.o6_backend", "subscription.strategy"):
+        adapter = find_spec(module)
+        if adapter is not None and adapter.origin:
+            files.append(Path(adapter.origin))
+    # Editable SDK distributions need not list their inplace native extension.
+    package_spec = find_spec("o6")
+    if package_spec is not None and package_spec.origin:
+        files.extend(Path(package_spec.origin).parent.glob("_o6*.so"))
+        files.extend(Path(package_spec.origin).parent.glob("_o6*.pyd"))
     digest = hashlib.sha256()
     for path in sorted(files):
-        relative = str(path.relative_to(ROOT))
+        relative = os.path.relpath(path, ROOT)
         digest.update(relative.encode())
         digest.update(path.read_bytes() if path.exists() else b"missing")
     # Read distribution metadata without importing o6 into the long-lived runner.
@@ -219,7 +231,7 @@ class Worker:
         try:
             self.process = await asyncio.create_subprocess_exec(
                 *self.command,
-                cwd=ROOT,
+                cwd=project_root(),
                 env=self.env,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,

@@ -24,6 +24,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from common.extensions import c_projects, build_steps
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # (relative path to the suite's CMake project, its CMAKE_BUILD_TYPE,
@@ -34,7 +36,7 @@ C_PROJECTS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("subscription/native", "Release", ("server", "client")),
     ("server_capacity/native", "Release", ("server", "client")),
     ("server_limits/open62541", "Release", ("server", "hammer_client")),
-)
+) + c_projects()
 
 def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -147,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
         compile_c_project(relative_dir, build_type, executables, verbose=args.verbose, force=args.rebuild)
         for relative_dir, build_type, executables in C_PROJECTS
     ]
+    results.extend(step(verbose=args.verbose, force=args.rebuild) for step in build_steps())
     if args.dotnet:
         from bench.build_dotnet import build
 

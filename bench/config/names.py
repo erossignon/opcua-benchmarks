@@ -22,6 +22,9 @@ import json
 
 from bench.config import Entry, Schedule, SuiteConfig, SUITE_ORDER, db_ready
 from common.bench_db import BenchDB
+from common.extensions import suites
+
+_SUITE_SPECS = {suite.name: suite for suite in suites()}
 
 
 def benchmark_names(schedule: Schedule) -> set[str]:
@@ -77,6 +80,8 @@ def resume_schedule(schedule: Schedule, name: str) -> Schedule:
                 with closing(BenchDB(path, suite=suite, name=name)) as store:
                     metadata = store.stored_metadata
                     unfinished = bool(store.failures) or metadata.get("complete") is False or metadata.get("partial") is True
+                    if _SUITE_SPECS[suite].has_pending is not None:
+                        unfinished |= _SUITE_SPECS[suite].has_pending(path, store)
                     if suite == "subscription" and not unfinished:
                         from subscription.amend import amended_plan, saved_cases
 

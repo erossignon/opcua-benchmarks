@@ -26,12 +26,10 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Optional, Sequence
 
-SUITE_ORDER: tuple[str, ...] = (
-    "throughput",
-    "server_limits",
-    "server_capacity",
-    "subscription",
-)
+from common.extensions import suites
+
+SUITE_ORDER: tuple[str, ...] = tuple(suite.name for suite in suites())
+_DEFAULT_SAMPLES = {suite.name: suite.default_samples for suite in suites()}
 
 
 @dataclass(frozen=True)
@@ -43,7 +41,7 @@ class SuiteConfig:
 
 
 _DISABLED_SUITES: tuple[tuple[str, SuiteConfig], ...] = tuple(
-    (name, SuiteConfig(samples=1 if name == "subscription" else 3)) for name in SUITE_ORDER
+    (name, SuiteConfig(samples=_DEFAULT_SAMPLES[name])) for name in SUITE_ORDER
 )
 
 
@@ -116,7 +114,7 @@ def _suite_config_for_seed(db: Path, name: str, db_exists: bool) -> SuiteConfig:
         persisted = store.get_schedule_config(name)
         if persisted is not None:
             return SuiteConfig(**persisted)
-    return SuiteConfig(samples=1 if name == "subscription" else 3)
+    return SuiteConfig(samples=_DEFAULT_SAMPLES[name])
 
 
 def _seeded_entry(db: Path) -> Entry:
@@ -143,8 +141,7 @@ def parse_arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
         prog="python -m bench.config",
         description=(
             "Open a curses UI for scheduling benchmark runs across one or more "
-            "shared bench.db files. Suites (throughput, "
-            "server_limits, server_capacity, subscription) are toggled and run in-process in the "
+            f"shared bench.db files. Suites ({', '.join(SUITE_ORDER)}) are toggled and run in-process in the "
             "fixed order the top-level `python -m bench <db>` dispatcher seeds; "
             "the schedule lives in memory only and is discarded when the TUI exits."
         ),

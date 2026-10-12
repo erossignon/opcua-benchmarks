@@ -71,6 +71,7 @@ from throughput.benchmark_common import (
     service_calls,
 )
 from throughput.options import OPTIONS, _ALL_PAIRS
+from throughput.runtime import sample_timeout_seconds
 from common import dotnet_workers, node_workers, sdk_workers
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -449,6 +450,7 @@ def run_sample(
     so the two are shown together rather than one at a time.
     """
     is_dotnet = bool(client_command and Path(client_command[0]) == dotnet_workers.DOTNET)
+    sample_timeout = sample_timeout_seconds()
     is_node = bool(client_command and Path(client_command[0]) == node_workers.NODE)
     watches = []
     if is_node:
@@ -529,7 +531,7 @@ def run_sample(
         results = []
         for index, process in enumerate(processes):
             assert process.stdout is not None
-            remainder, _ = process.communicate(timeout=120)
+            remainder, _ = process.communicate(timeout=sample_timeout)
             return_code = process.returncode
             report(f"collecting {index + 1}/{clients}")
             output = "".join(prefixes[index]) + remainder
@@ -906,6 +908,11 @@ def cmd_new(args: argparse.Namespace) -> int:
 
 def cmd_sample(args: argparse.Namespace) -> int:
     """Walk the matrix stored in ``args.database``'s ``config`` table and (re)measure it."""
+    try:
+        sample_timeout = sample_timeout_seconds()
+    except RuntimeError as error:
+        print(error, file=sys.stderr)
+        return 1
     store = BenchDB(args.database, suite=SUITE_NAME)
     uniform, varying = store.get_config(SUITE_NAME)
     if not uniform and not varying:
@@ -1031,6 +1038,7 @@ def cmd_sample(args: argparse.Namespace) -> int:
         file=sys.stderr,
     )
 
+    print(f":: worker sample collection timeout: {sample_timeout}s", file=sys.stderr)
     c_binary_dir = Path(uniform["c_binary_dir"]).resolve()
     c_server_path = executable(c_binary_dir, "server")
     c_client_path = executable(c_binary_dir, "client")
@@ -1152,6 +1160,8 @@ def cmd_sample(args: argparse.Namespace) -> int:
                 material = certificate_material(Path(certificate_dir.name))
 
         for config_key in config_keys:
+            if len(prior_runs(config_key)) >= args.num_samples:
+                continue
             pair_value = config_key["pair"]
             client, server_impl = pair_to_tuple(pair_value)
             security = config_key["security"]

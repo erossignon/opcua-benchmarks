@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Literal
 
 from common.bench_db import BenchDB, benchmark_scope
+from common.extensions import suites
 
 # Result classes a document can be in for the page. ``complete`` means there is
 # at least one row the page can render; ``partial`` means there are rows but at
@@ -43,14 +44,8 @@ ResultClass = Literal["complete", "partial", "none"]
 
 # The shared SQLite database every suite's :class:`BenchDB` opens. Every
 # suite is classified by querying its slice of this database directly.
-_KNOWN_SUITES = frozenset(
-    {
-        "throughput",
-        "server_limits",
-        "server_capacity",
-        "subscription",
-    }
-)
+
+_SUITE_SPECS = {suite.name: suite for suite in suites()}
 
 
 def named_report(build):
@@ -78,7 +73,7 @@ def named_report(build):
 
 def classify_results(database: Path, suite: str) -> ResultClass:
     """Classify renderable results as complete, partial, or none; reject unknown suites."""
-    if suite not in _KNOWN_SUITES:
+    if suite not in _SUITE_SPECS:
         raise ValueError(f"unknown suite {suite!r}")
     if not database.exists():
         return "none"
@@ -92,17 +87,18 @@ def classify_results(database: Path, suite: str) -> ResultClass:
                 is not None
             )
 
+        if _SUITE_SPECS[suite].classify is not None:
+            return _SUITE_SPECS[suite].classify(store)
         if suite == "server_capacity":
             # This suite renders incomplete searches and their limitations.
             # Report availability must not hide valid SDK bars when another
             # SDK exhausts its search budget or encounters a worker failure.
             return "complete" if present("results") or present("failures") else "none"
-        if suite == "throughput":
-            return "complete" if present("results") else "partial" if present("failures") else "none"
         if suite == "subscription":
             return "complete" if present("results") or present("failures") or store.stored_metadata else "none"
         if suite == "server_limits":
             return "complete" if present("results") else "none"
+        return "complete" if present("results") else "partial" if present("failures") else "none"
 
 
 def short_circuit(

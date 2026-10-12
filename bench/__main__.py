@@ -22,16 +22,8 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from common.extensions import suites
 
-MODULES = (
-    "build",
-    "show",
-    "config",
-    "throughput",
-    "server_limits",
-    "server_capacity",
-    "subscription",
-)
 
 _DEFAULT_DB = Path("bench.db")
 
@@ -40,12 +32,9 @@ _DEFAULT_DB = Path("bench.db")
 # database has missing settings. Kept as a module-level constant so tests
 # can pin it against ``bench.config.SUITE_ORDER`` (a reordering bug is
 # the kind of regression a string-based check would miss).
-_SEED_ORDER: tuple[str, ...] = (
-    "throughput",
-    "server_limits",
-    "server_capacity",
-    "subscription",
-)
+
+_SEED_ORDER: tuple[str, ...] = tuple(suite.name for suite in suites())
+MODULES = ("build", "show", "config", *_SEED_ORDER)
 
 
 def build_parser() -> argparse.ArgumentParser:

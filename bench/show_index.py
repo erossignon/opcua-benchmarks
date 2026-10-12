@@ -23,18 +23,10 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 from common.report import ResultClass
+from common.extensions import suites
 
-# Tab order is fixed across runs so muscle memory works when a reader
-# bookmarks the URL. The same suites appear in :data:`bench.__main__._SEED_ORDER`, in
-# the README, and in ``python -m bench --help``; this module owns the
-# canonical list for the index page so a future suite lands in both places
-# at once.
-SHOW_SUITES: tuple[str, ...] = (
-    "throughput",
-    "server_limits",
-    "server_capacity",
-    "subscription",
-)
+# Use the same registration order as configuration, seeding, and scheduling.
+SHOW_SUITES: tuple[str, ...] = tuple(suite.name for suite in suites())
 
 # What the per-tab button says when its suite is incomplete. ``complete``
 # is the silent default; ``partial`` reads "incomplete" because the page

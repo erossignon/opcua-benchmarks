@@ -171,26 +171,11 @@ async def serve(args, emit, *, callback_driven=True):
             await node.write_value(ua.Variant(value, ua.VariantType.UInt64))
 
     else:
-        import o6
+        from subscription.o6_backend import prepare
 
-        server = o6.Server(port=args.port, loop=asyncio.get_running_loop())
-        # The public o6 package uses its built-in subscription limits.
         if callback_driven:
             counters = ReadCounters(args.items, args.measurement == "server")
-        nodes = []
-        for i in range(args.items):
-            node = server.addVariable("Counter", server.objectsNode, o6.UInt64(0), nodeId=f"ns=1;i={i + 1}")
-            node(value=o6.Double(1), attr="MinimumSamplingInterval")
-            nodes.append(node)
-            if counters is not None:
-
-                def read(node, index=i, **kwargs):
-                    return o6.StatusCode.GOOD, o6.UInt64(counters.read(index))
-
-                server.implement(node, read=read)
-
-        async def write(node, value):
-            node(value=o6.UInt64(value))
+        server, nodes, write = await prepare(args, counters)
 
     if counters is None:
         await control(server, nodes, write, args, emit)

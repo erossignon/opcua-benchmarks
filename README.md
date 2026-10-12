@@ -100,3 +100,9 @@ Copyright (c) 2026 o6 Automation GmbH (Author: Daniel Opitz)
 
 Licensed under the [GNU Affero General Public License, version 3 or later](LICENSE)
 (`AGPL-3.0-or-later`). Third-party dependencies retain their own licenses.
+
+## Extensions
+
+The harness supports additional benchmark suites and build steps through
+[common.extensions](common/extensions.py), with shared configuration, scheduling,
+result storage, and reporting.

@@ -16,7 +16,9 @@
 
 """The complete user-facing configuration of the counter workload."""
 
-from common.suites import ConfigOption, one_of, uniform, varying
+from common.options import ConfigOption, one_of, uniform, varying
+
+from subscription import strategy
 
 MAX_ITEMS = 1_048_576
 
@@ -44,6 +46,7 @@ OPTIONS = {
     "implementation": ConfigOption(
         "varying", list(SERVERS), varying(one_of(*SERVERS)), "Server SDKs; every case uses the same native setup/client worker."
     ),
+    **strategy.OPTIONS,
     "items_start": ConfigOption(
         "uniform", 128, uniform(bounded(1, MAX_ITEMS)), "Initial monitored-item count for each adaptive search."
     ),
@@ -80,7 +83,7 @@ def measurement_window(sampling_ms, publishing_ms, min_publishes=5):
 
 def cases(uniform_values, varying_values):
     """Cross SDKs, sampling intervals, publishing intervals and observers."""
-    settings = {**uniform_values, **varying_values}
+    settings = {**strategy.DEFAULTS, **uniform_values, **varying_values}
     if set(settings) != set(OPTIONS):
         raise ValueError("Configuration predates the current counter suite; start a new run after running 'new'")
     import json
@@ -91,8 +94,7 @@ def cases(uniform_values, varying_values):
             values = settings[name]
             if not values or len(values) != len(set(values)):
                 raise ValueError(f"{name} must contain distinct values and cannot be empty")
-    if settings["items_start"] > settings["items_max"]:
-        raise ValueError("items_start must not exceed items_max")
+    strategy.validate(settings)
     result = []
     for sdk in settings["implementation"]:
         for interval in settings["sampling_ms"]:

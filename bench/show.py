@@ -27,12 +27,9 @@ from pathlib import Path
 
 import tempfile
 
-from bench import (
-    server_limits,
-    server_capacity,
-    throughput,
-    subscription,
-)
+import importlib
+
+from common.extensions import suites
 from bench.show_index import SHOW_SUITES, SuiteTab, render_index_page
 from common.bench_db import BenchDB
 from common.report import named_report
@@ -62,35 +59,18 @@ class _SuiteSpec:
     sample_cli: str
 
 
-# Per-suite wiring, in the same fixed order as :data:`SHOW_SUITES`. A new
-# suite only has to land here (and in the renderer's ``SHOW_SUITES``); no
-# ``if``/``elif`` chain grows anywhere else.
-_SUITES: tuple[_SuiteSpec, ...] = (
-    _SuiteSpec(
-        module=throughput,
-        report_name=throughput.REPORT_NAME,
-        new_cli="python -m bench.throughput new",
-        sample_cli="python -m bench.throughput sample",
-    ),
-    _SuiteSpec(
-        module=server_limits,
-        report_name=server_limits.REPORT_NAME,
-        new_cli="python -m bench.server_limits new",
-        sample_cli="python -m bench.server_limits sample",
-    ),
-    _SuiteSpec(
-        module=server_capacity,
-        report_name=server_capacity.REPORT_NAME,
-        new_cli="python -m bench.server_capacity new",
-        sample_cli="python -m bench.server_capacity sample 3 --name limits",
-    ),
-    _SuiteSpec(
-        module=subscription,
-        report_name=subscription.REPORT_NAME,
-        new_cli="python -m bench.subscription new",
-        sample_cli="python -m bench.subscription sample 1",
-    ),
-)
+def _suite_spec(suite) -> _SuiteSpec:
+    """Resolve registered CLI modules in the renderer's order."""
+    module = importlib.import_module(f"bench.{suite.name}")
+    return _SuiteSpec(
+        module=module,
+        report_name=module.REPORT_NAME,
+        new_cli=f"python -m bench.{suite.name} new",
+        sample_cli=suite.sample_cli,
+    )
+
+
+_SUITES: tuple[_SuiteSpec, ...] = tuple(_suite_spec(suite) for suite in suites())
 
 
 def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
@@ -98,10 +78,9 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="python -m bench.show",
         description=(
-            "Build a tabbed index page that brings the suite reports together — "
-            "throughput, server_limits, server_capacity, subscription — into one "
+            f"Build a tabbed index page that brings the suite reports together — {', '.join(SHOW_SUITES)} — into one "
             "self-contained HTML page with one iframe per suite. By default, existing "
-            "per-suite .html files on disk are reused; missing ones are built. --force "
+            "per-suite reports in the database are reused; missing ones are built. --force "
             "always rebuilds. Serves on 127.0.0.1:<port> by default; --build-only skips "
             "the server."
         ),
@@ -125,12 +104,17 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
             "that are missing."
         ),
     )
+    for spec in _SUITES:
+        if hasattr(spec.module, "add_show_arguments"):
+            spec.module.add_show_arguments(parser)
     return parser.parse_args(argv)
 
 
 def _namespace_for(spec: _SuiteSpec, database: Path, args: argparse.Namespace) -> argparse.Namespace:
     """Build the arguments for a suite report without starting its HTTP server."""
     namespace = argparse.Namespace(db=database, cdn=args.cdn, port=args.port, build_only=True)
+    if hasattr(spec.module, "show_arguments"):
+        vars(namespace).update(spec.module.show_arguments(args))
     return namespace
 
 
@@ -391,7 +375,7 @@ def _show(args) -> int:
         print(
             (
                 f"{database} does not exist. Run 'python -m bench {database}' to seed "
-                "every suite's config there (or 'python -m bench.<throughput|server_limits|server_capacity|subscription> new "
+                "every suite's config there (or 'python -m bench.<suite> new "
                 f"{database}' for one at a time)."
             ),
             file=sys.stderr,

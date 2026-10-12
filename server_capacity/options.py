@@ -16,7 +16,7 @@
 
 """Runtime and evidence limits for an adaptive server-capacity estimate."""
 
-from common.suites import ConfigOption, one_of, uniform, varying, whole_number
+from common.options import ConfigOption, one_of, uniform, varying, whole_number
 
 DEFAULT_IMPLEMENTATIONS = ("open62541", "o6-python", "asyncua", "ua-dotnet", "node-opcua")
 # The optional server-only SDKs (common/sdk_workers.py) are opt-in.

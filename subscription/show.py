@@ -23,6 +23,7 @@ import json
 from common.bench_db import BenchDB
 from subscription.sample import SUITE
 from bench.counter_report import workload_note
+from subscription.strategy import describe as describe_search
 
 
 def build_page(database):
@@ -32,6 +33,7 @@ def build_page(database):
         name = store.name
         complete = store.stored_metadata.get("complete", False)
         capacities = store.stored_metadata.get("capacities", [])
+        uniform, _ = store.get_config(SUITE)
     parts = [
         "<!doctype html><meta charset='utf-8'><title>Subscription counter</title>",
         "<style>body{font:16px system-ui;max-width:1300px;margin:40px auto;padding:0 20px}"
@@ -46,8 +48,8 @@ def build_page(database):
         "<p>Measurements expect at least 1000 increments per item over whole publishing cycles. "
         "An additional 10% warm-up rounds up to whole publishing intervals; nothing is discarded at the end. "
         "Expected progress is the retained duration ÷ configured sampling period. "
-        "A candidate passes when every item's progress reaches 99%. Counts are tested once: double/halve to find a bracket, "
-        "then refine to 10% or one item. These are observed bounds, without repeated confirmation. "
+        "A candidate passes when every item's progress reaches 99%. Counts are tested once. "
+        f"{describe_search(uniform)} These are observed bounds, without repeated confirmation. "
         "Client progress uses the latest received counter at each window boundary; publishing phase and jitter can shift deltas. "
         "Historical rows retain their original duration and measurement semantics.</p>",
         "<p>Approximate 95% confidence intervals describe mean progress across items over time, not the worst item or the capacity bound. "

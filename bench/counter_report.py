@@ -22,9 +22,10 @@ import json
 from pathlib import Path
 
 from common.bench_db import BenchDB
+from subscription.strategy import describe as describe_search
 from plotly.offline import get_plotlyjs as plotly_script
 
-REPORT_MARKER = '<meta name="counter-dashboard" content="5">'
+REPORT_MARKER = '<meta name="counter-dashboard" content="6">'
 
 
 def workload_note(sources):
@@ -120,6 +121,7 @@ def build_page(database):
         metadata = store.stored_metadata
         payload = dashboard_data(store.results.values(), metadata.get("capacities", []), metadata.get("requested_cases", []))
         name, complete, failures = store.name, metadata.get("complete", False), store.failures
+        uniform, _ = store.get_config("subscription")
     # Escape script terminators even when a stored name/error contains HTML.
     encoded = json.dumps(payload, allow_nan=False).replace("<", "\\u003c").replace("&", "\\u0026")
     script = Path(__file__).with_name("counter_plots.js").read_text()
@@ -180,7 +182,7 @@ Short traces and traces without variation are explicitly qualified below; the 99
 <p>Scalar UInt64 counters, queue size 1, one open62541 client. Counter sources are saved with each new observation.
 Current measurements retain at least 1000 expected increments and
 at least the configured minimum publishing intervals, after 10% extra warm-up rounded up to whole publishing intervals.
-The search doubles or halves, then refines to a 10% bracket or one item. Historical observations retain their recorded semantics.</p>
+{describe_search(uniform)} Historical observations retain their recorded semantics.</p>
 <p>Expected progress is retained duration divided by the configured sampling period.
 New native open62541 workers explicitly use CLOCK_MONOTONIC for SDK timers and measurement;
 older observations without sdk_clock metadata used the SDK's CLOCK_MONOTONIC_RAW default,

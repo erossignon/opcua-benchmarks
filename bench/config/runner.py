@@ -38,6 +38,9 @@ from typing import Callable, Optional
 from bench.config.expand import expand_schedule
 from bench.config.names import benchmark_names, default_name, resume_schedule
 from common.bench_db import BenchDB, benchmark_scope
+from common.extensions import suites
+
+_SUITE_SPECS = {suite.name: suite for suite in suites()}
 
 
 def run_schedule(
@@ -104,6 +107,8 @@ def run_schedule(
         for invocation in plan.invocations:
             target = invocation.namespace.num_samples
             flag_parts = [f"sample {target}" if target is not None else "sample (saved per-case targets)"]
+            if not _SUITE_SPECS[invocation.suite_name].takes_sample_count:
+                flag_parts = []
             if invocation.namespace.amend:
                 flag_parts.append("--amend")
             if invocation.namespace.skip_failed:

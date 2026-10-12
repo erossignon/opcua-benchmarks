@@ -14,7 +14,7 @@
 #
 #    Copyright 2026 (c) o6 Automation GmbH (Author: Daniel Opitz)
 
-"""Adaptive searches and named-run persistence; each candidate is measured once."""
+"""Capacity searches and named-run persistence; each candidate is measured once."""
 
 import asyncio
 from contextlib import closing
@@ -25,7 +25,8 @@ from common.progress import Progress
 from subscription.options import OPTIONS, measurement_window
 from subscription.amend import amended_plan, saved_cases
 from subscription.run import fingerprint, measure, SetupTimeout, SETUP_TIMEOUT_SECONDS
-from subscription.search import capacity, MIN_PROGRESS
+from subscription.search import MIN_PROGRESS
+from subscription import strategy
 
 SUITE = "subscription"
 
@@ -63,7 +64,7 @@ def cmd_new(database):
 
 def cmd_sample(database, num_samples=1, amend=False, skip_failed=False):
     if type(num_samples) is not int or num_samples != 1:
-        raise ValueError("The adaptive counter suite measures each candidate once; samples must be 1")
+        raise ValueError("The counter suite measures each candidate once; samples must be 1")
     with closing(BenchDB(database, SUITE)) as store:
         uniform, varying = store.get_config(SUITE)
         identity = fingerprint()
@@ -135,7 +136,7 @@ def cmd_sample(database, num_samples=1, amend=False, skip_failed=False):
                         saved[key] = observation
                     summary = observation["summary"]
                     passed = summary["progress_fraction_min"] >= MIN_PROGRESS
-                    known[items] = passed
+                    known[items] = summary["progress_fraction_min"]
                     verdict = "pass" if passed else "below target"
                     progress.advance(
                         label,
@@ -143,7 +144,7 @@ def cmd_sample(database, num_samples=1, amend=False, skip_failed=False):
                         f"({summary['observed_min']}/{summary['expected_per_item']:g})",
                         steps=0,
                     )
-                    return passed
+                    return known[items]
 
                 try:
                     known = {}
@@ -151,7 +152,7 @@ def cmd_sample(database, num_samples=1, amend=False, skip_failed=False):
                         candidate = json.loads(encoded)
                         items = candidate.pop("items")
                         if candidate == case:
-                            known[items] = observation["summary"]["progress_fraction_min"] >= MIN_PROGRESS
+                            known[items] = observation["summary"]["progress_fraction_min"]
                     for failure in failures:
                         if failure.get("kind") != "setup_timeout":
                             continue
@@ -160,14 +161,16 @@ def cmd_sample(database, num_samples=1, amend=False, skip_failed=False):
                         if candidate == case:
                             # Setup timeouts are terminal for this configuration, also on amend.
                             raise SetupTimeout(items, failure["phase"])
-                    result = capacity(uniform["items_start"], uniform["items_max"], probe, known=known)
+                    result = strategy.search(uniform, probe, known)
                     store.metadata["capacities"].append(dict(case=case, **timing, **result))
                     bound = f"{'at least ' if result['at_least'] else ''}{result['passing_items']} passing items"
                     progress.advance(search_label, ("" if measured else "saved ") + bound)
                 except SetupTimeout as error:
                     complete = False
-                    lower = max((items for items, passed in known.items() if passed), default=0)
-                    upper = min((items for items, passed in known.items() if not passed and items > lower), default=None)
+                    lower = max((items for items, fraction in known.items() if fraction >= MIN_PROGRESS), default=0)
+                    upper = min(
+                        (items for items, fraction in known.items() if fraction < MIN_PROGRESS and items > lower), default=None
+                    )
                     note = (
                         f"Setup timed out at {error.items} items during {error.phase} "
                         f"({SETUP_TIMEOUT_SECONDS}s limit); "

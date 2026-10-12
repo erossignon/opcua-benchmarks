@@ -19,7 +19,7 @@
 
 from __future__ import annotations
 
-from common.suites import (
+from common.options import (
     ConfigOption,
     one_of,
     payload_token,

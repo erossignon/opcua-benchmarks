@@ -20,6 +20,7 @@ from contextlib import closing
 
 from common.bench_db import BenchDB, benchmark_scope
 from subscription.options import cases
+from subscription import strategy
 
 
 def saved_cases(store):
@@ -32,12 +33,14 @@ def saved_cases(store):
 
 def amended_plan(database, store):
     uniform, _ = store.get_config(store.suite)
+    uniform = {**strategy.DEFAULTS, **uniform}
     previous = saved_cases(store)
     with benchmark_scope(None), closing(BenchDB(database, store.suite)) as current:
         current_uniform, current_varying = current.get_config(store.suite)
+    current_uniform = {**strategy.DEFAULTS, **current_uniform}
     additions = [case for case in cases(uniform, current_varying) if case not in previous]
     maximum = max(uniform["items_max"], current_uniform["items_max"])
     if additions or maximum > uniform["items_max"]:
         if any(current_uniform[key] != value for key, value in uniform.items() if key != "items_max"):
-            raise ValueError("Amend keeps items_start and min_publishes; restore those settings or use a new run")
+            raise ValueError("Amend keeps uniform settings other than items_max; restore those settings or use a new run")
     return {**uniform, "items_max": maximum}, previous + additions

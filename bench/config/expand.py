@@ -27,6 +27,9 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from bench.config import SUITE_ORDER, Entry, Schedule, db_ready
+from common.extensions import suites
+
+_SUITE_SPECS = {suite.name: suite for suite in suites()}
 
 
 @dataclass(frozen=True)
@@ -50,6 +53,9 @@ def _module_for(suite_name: str):
 
 
 def _make_run(module, suite_name: str, db: Path, namespace: argparse.Namespace) -> Callable[[], int]:
+    if not _SUITE_SPECS[suite_name].takes_sample_count:
+        return lambda: module.cmd_sample(db, namespace.amend)
+
     def _run(db=db, namespace=namespace, module=module) -> int:
         return module.cmd_sample(
             db,
@@ -75,6 +81,9 @@ def expand_schedule(schedule: Schedule) -> list[EntryPlan]:
             amend = config.amend
             if not amend and config.skip_failed:
                 amend = True
+            if not _SUITE_SPECS[name].schedule_amend and amend and not schedule.amend:
+                pre_banners.append(f":: skipping --amend for {name} (not supported)")
+                amend = False
             namespace = argparse.Namespace(
                 database=entry.db,
                 num_samples=config.samples,

@@ -27,6 +27,7 @@ from bench.config.text_editor import edit_text
 from bench.config.options import OptionSnapshotRow, OptionsState
 from bench.config.tui_reducer import TuiState, handle_run_name
 from common.suites import SUITE_OPTIONS
+from common.extensions import suites
 
 
 def _option(suite_name: str, option_name: str):
@@ -34,12 +35,8 @@ def _option(suite_name: str, option_name: str):
 
 
 # Editable run parameters for each suite.
-RUN_PARAM_FIELDS: dict[str, tuple[str, ...]] = {
-    "subscription": ("enabled", "amend", "skip_failed"),
-    "throughput": ("enabled", "samples", "amend", "skip_failed"),
-    "server_capacity": ("enabled", "samples", "amend", "skip_failed"),
-    "server_limits": ("enabled", "samples", "amend", "skip_failed"),
-}
+
+RUN_PARAM_FIELDS = {suite.name: suite.run_parameters for suite in suites()}
 
 
 def run_param_fields(suite_name: str) -> tuple[str, ...]:
