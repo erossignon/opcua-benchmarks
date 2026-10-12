@@ -61,6 +61,8 @@ def evaluate(case, setup, result):
     # These SDKs notify on changes rather than periodically sampling callbacks.
     if case["implementation"] in ("asyncua", "gopcua"):
         expected_sampling = case["publishing_ms"]
+    elif case["implementation"] == "s2opc":
+        expected_sampling = 0  # Exception-based sampling.
     else:
         expected_sampling = case["sampling_ms"]
     if isinstance(revisions, list):

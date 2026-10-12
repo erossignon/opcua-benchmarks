@@ -166,6 +166,7 @@ def build_s2opc(verbose: bool) -> None:
         cwd=ROOT, env=os.environ.copy(), verbose=verbose)
     run(["cmake", "--build", str(cmake), "-j", str(os.cpu_count() or 1)], cwd=ROOT, env=os.environ.copy(), verbose=verbose)
     shutil.copy2(cmake / "server", output / "server")
+    shutil.copy2(cmake / "counter", output / "counter")
     nodeset = sources["s2opc"] / "samples/ClientServer/data/address_space/s2opc_base_nodeset_origin.xml"
     shutil.copy2(nodeset, output / "base_nodeset.xml")
     shutil.rmtree(cmake, ignore_errors=True)

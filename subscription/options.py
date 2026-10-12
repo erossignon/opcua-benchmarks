@@ -22,7 +22,7 @@ from subscription import strategy
 
 MAX_ITEMS = 1_048_576
 
-SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet", "milo", "gopcua")
+SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet", "milo", "gopcua", "s2opc")
 
 
 def bounded(minimum, maximum):
@@ -61,7 +61,7 @@ OPTIONS = {
         "varying",
         [10, 100],
         varying(sampling_interval),
-        "Requested sampling interval (application update period for asyncua and gopcua) in milliseconds.",
+        "Requested sampling interval (application update period for asyncua, gopcua and S2OPC) in milliseconds.",
     ),
     "publishing_ms": ConfigOption(
         "varying",

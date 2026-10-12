@@ -25,3 +25,6 @@ add_executable(server server.c)
 target_include_directories(server PRIVATE "${O6_REPOSITORY_ROOT}")
 # The expat NodeSet loader is compiled into s2opc_clientserver when expat is found.
 target_link_libraries(server PRIVATE s2opc_clientserver)
+
+add_executable(counter counter.c)
+target_link_libraries(counter PRIVATE s2opc_clientserver)

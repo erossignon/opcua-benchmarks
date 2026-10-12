@@ -4,7 +4,7 @@ Measures application counter progress while varying monitored-item count.
 open62541, o6-python, node-opcua, .NET and Milo increment UInt64 counters in SDK read
 callbacks during the armed workload window. Subscription sampling drives these
 callbacks. One open62541 client provides the same setup and measurement behavior
-across server SDKs. asyncua and gopcua use periodic application updates
+across server SDKs. asyncua, gopcua and S2OPC use periodic application updates
 because their subscriptions notify on changes rather than sampling callbacks.
 
 ```sh
@@ -14,14 +14,14 @@ python -m bench.subscription sample 1 bench.db --name subscriptions-1
 python -m bench.subscription show bench.db --name subscriptions-1
 ```
 
-Defaults include all seven SDKs; build the [optional workers](../README.md#setup)
+Defaults include all eight SDKs; build the [optional workers](../README.md#setup)
 or narrow the implementation list. Use `config bench.db --help` for all settings.
 
 ## Measurement
 
 The `client` observer measures the latest counter delivered to the client.
 The `server` observer counts read-callback increments (completed application
-updates for asyncua and gopcua). These observers run as separate searches.
+updates for asyncua, gopcua and S2OPC). These observers run as separate searches.
 Callback-driven SDKs advance on reads only; the others use the requested sampling
 interval as their application update period and skip missed update slots.
 Publishing intervals must be at least as long as sampling intervals.
@@ -38,8 +38,8 @@ Execution errors leave the search incomplete.
 
 Subscriptions use reporting mode, queue size one, and discard-oldest. Intermediate
 values may be replaced. asyncua and gopcua report the publishing interval as their
-revised sampling interval. Their application update period still matches the
-requested workload. These results
+revised sampling interval; S2OPC reports zero (change-triggered sampling). Their
+application update period still matches the requested workload. These results
 include application-update work, so their counter generation differs from the
 callback-driven SDKs.
 

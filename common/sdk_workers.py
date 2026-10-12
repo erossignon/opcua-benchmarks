@@ -122,9 +122,10 @@ def counter_command(name: str) -> list[str]:
     """Subscription worker, before port, item count, sampling and observer."""
     if name == "milo":
         return command(name)[:-1] + ["o6.benchmark.CounterServer"]
-    if name == "gopcua":
-        return command(name) + ["--counter"]
-    raise ValueError(f"No subscription worker for {name}")
+    if name == "s2opc":
+        output = SDKS[name].output
+        return [str(output / "counter"), str(output / "base_nodeset.xml")]
+    return command(name) + ["--counter"]
 
 
 def file_hash(path: Path) -> str:

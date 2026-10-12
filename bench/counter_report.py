@@ -45,10 +45,10 @@ def workload_note(sources):
         "Server observations count callback increments in the retained window; client observations "
         "use delivered counter differences. SDK timer drift and scheduling overhead can reduce callback "
         "counts even at small loads; counts are not rescaled to remove these deficits.</p>"
-        "<p><strong>Application updates:</strong> asyncua and gopcua notify on changes rather than "
+        "<p><strong>Application updates:</strong> asyncua, gopcua and S2OPC notify on changes rather than "
         "periodically sampling read callbacks. Their application loops update every item at the configured "
         "sampling period and skip missed slots. asyncua and gopcua report the publishing interval as their "
-        "revised sampling interval. Their results include "
+        "revised sampling interval; S2OPC reports zero (change-triggered sampling). Their results include "
         "application-update work and measure a different counter generation path.</p>" + history + "</aside>"
     )
 
