@@ -14,21 +14,31 @@
 #
 #    Copyright 2026 (c) o6 Automation GmbH (Author: Daniel Opitz)
 
-"""Adaptive counter-search policy, replaceable by an embedding checkout."""
+"""Counter-search policies, replaceable by an embedding checkout."""
 
-from subscription.search import capacity, MIN_PROGRESS
+from common.options import ConfigOption, one_of, uniform
+from subscription.search import capacity, linear_capacity, MIN_PROGRESS
 
-OPTIONS = {}
-DEFAULTS = {}
+OPTIONS = {
+    "search": ConfigOption(
+        "uniform",
+        "adaptive",
+        uniform(one_of("adaptive", "linear")),
+        "Adaptive brackets capacity; linear doubles from one until worst-item progress falls below 50%.",
+    ),
+}
+DEFAULTS = {"search": "adaptive"}
 
 
 def validate(settings):
-    if settings["items_start"] > settings["items_max"]:
+    if settings["search"] == "adaptive" and settings["items_start"] > settings["items_max"]:
         raise ValueError("items_start must not exceed items_max")
 
 
 def search(settings, probe, known):
     """Probe returns progress fractions; the search applies its pass threshold."""
+    if settings.get("search", "adaptive") == "linear":
+        return linear_capacity(settings["items_max"], probe, known=known)
     return capacity(
         settings["items_start"],
         settings["items_max"],
@@ -38,4 +48,10 @@ def search(settings, probe, known):
 
 
 def describe(settings):
+    if settings.get("search", "adaptive") == "linear":
+        return (
+            "Linear search starts at one item and doubles up to the configured maximum, including that maximum. "
+            "It stops when worst-item progress is below 50%; exactly 50% continues. "
+            "The capacity pass threshold remains 99%, with no bracket refinement."
+        )
     return "Adaptive search doubles or halves, then refines to a 10% bracket or one item."

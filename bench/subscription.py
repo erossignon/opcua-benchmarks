@@ -47,7 +47,7 @@ def cmd_show(args):
 def parse_arguments(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    new = commands.add_parser("new", help="Seed or migrate adaptive-search settings")
+    new = commands.add_parser("new", help="Seed or migrate search settings")
     new.add_argument("db", type=Path, nargs="?", default=Path("bench.db"))
     sample = commands.add_parser("sample", help="Search capacity once for each SDK, interval, and observer")
     sample.add_argument("num_samples", type=int, nargs="?", default=1, choices=(1,))

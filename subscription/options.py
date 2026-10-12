@@ -48,7 +48,7 @@ OPTIONS = {
     ),
     **strategy.OPTIONS,
     "items_start": ConfigOption(
-        "uniform", 128, uniform(bounded(1, MAX_ITEMS)), "Initial monitored-item count for each adaptive search."
+        "uniform", 128, uniform(bounded(1, MAX_ITEMS)), "Initial count for adaptive search; linear search starts at one."
     ),
     "items_max": ConfigOption("uniform", 65536, uniform(bounded(1, MAX_ITEMS)), "Upper bound for the monitored-item search."),
     "min_publishes": ConfigOption(

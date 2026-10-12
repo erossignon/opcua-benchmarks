@@ -17,6 +17,7 @@
 """A bounded search with one observation per count and no confirmation passes."""
 
 MIN_PROGRESS = 0.99
+LINEAR_STOP_PROGRESS = 0.5
 
 
 def capacity(start, maximum, probe, *, known=None):
@@ -61,6 +62,31 @@ def capacity(start, maximum, probe, *, known=None):
             lower = count
         else:
             upper = count
+    return dict(
+        passing_items=lower,
+        failing_items=upper,
+        at_least=lower == maximum,
+        tested_items=list(tested),
+        minimum_progress=MIN_PROGRESS,
+    )
+
+
+def linear_capacity(maximum, probe, *, known=None):
+    """Double from one to the maximum, stopping below 50% worst-item progress."""
+    if maximum < 1:
+        raise ValueError("Expected items_max >= 1")
+    tested = {count: progress for count, progress in (known or {}).items() if 1 <= count <= maximum}
+    # A saved stop at a previous, non-power-of-two maximum remains terminal.
+    ceiling = min([maximum] + [count for count, progress in tested.items() if progress < LINEAR_STOP_PROGRESS])
+    count = 1
+    while True:
+        if count not in tested:
+            tested[count] = probe(count)
+        if tested[count] < LINEAR_STOP_PROGRESS or count == ceiling:
+            break
+        count = min(count * 2, ceiling)
+    lower = max((count for count, progress in tested.items() if progress >= MIN_PROGRESS), default=0)
+    upper = min((count for count, progress in tested.items() if progress < MIN_PROGRESS and count > lower), default=None)
     return dict(
         passing_items=lower,
         failing_items=upper,
