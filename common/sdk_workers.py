@@ -118,6 +118,13 @@ def address_space_limit(name: str, memory_bytes: int) -> int:
     return 0 if SDKS[name].managed_heap else memory_bytes
 
 
+def counter_command(name: str) -> list[str]:
+    """Subscription worker, before port, item count, sampling and observer."""
+    if name == "milo":
+        return command(name)[:-1] + ["o6.benchmark.CounterServer"]
+    raise ValueError(f"No subscription worker for {name}")
+
+
 def file_hash(path: Path) -> str:
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()

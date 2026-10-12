@@ -292,17 +292,7 @@ public final class BenchmarkServer {
     ((java.util.concurrent.atomic.AtomicLong) field.get(server)).compareAndSet(0, 1);
   }
 
-  public static void main(String[] args) throws Exception {
-    Options options = Options.parse(args);
-    if (options.runtimeInfo) {
-      System.out.printf(
-          "{\"java\":\"%s\",\"vm\":\"%s\",\"sdk\":\"%s\"}%n",
-          System.getProperty("java.runtime.version"),
-          System.getProperty("java.vm.name"),
-          OpcUaServer.SDK_VERSION);
-      return;
-    }
-
+  static OpcUaServer createServer(Options options, OpcUaServerConfigLimits limits) throws Exception {
     X509Certificate[] chain = new X509Certificate[1];
     KeyPair keyPair = identity(options, chain);
     var store = new MemoryCertificateStore();
@@ -345,29 +335,6 @@ public final class BenchmarkServer {
             .addTokenPolicies(OpcUaServerConfig.USER_TOKEN_POLICY_ANONYMOUS)
             .build());
 
-    OpcUaServerConfigLimits limits =
-        new OpcUaServerConfigLimits() {
-          @Override
-          public UInteger getMaxSessions() {
-            return uint(1024);
-          }
-
-          @Override
-          public UInteger getMaxArrayLength() {
-            return uint(1 << 26);
-          }
-
-          @Override
-          public UInteger getMaxNodesPerRead() {
-            return uint(100_000);
-          }
-
-          @Override
-          public UInteger getMaxNodesPerWrite() {
-            return uint(100_000);
-          }
-        };
-
     OpcUaServerConfig config =
         OpcUaServerConfig.builder()
             .setApplicationUri(APPLICATION_URI)
@@ -393,6 +360,44 @@ public final class BenchmarkServer {
             config,
             profile -> new OpcTcpServerTransport(OpcTcpServerTransportConfig.newBuilder().build()));
     skipTokenIdZero(server);
+    return server;
+  }
+
+  public static void main(String[] args) throws Exception {
+    Options options = Options.parse(args);
+    if (options.runtimeInfo) {
+      System.out.printf(
+          "{\"java\":\"%s\",\"vm\":\"%s\",\"sdk\":\"%s\"}%n",
+          System.getProperty("java.runtime.version"),
+          System.getProperty("java.vm.name"),
+          OpcUaServer.SDK_VERSION);
+      return;
+    }
+
+    OpcUaServerConfigLimits limits =
+        new OpcUaServerConfigLimits() {
+          @Override
+          public UInteger getMaxSessions() {
+            return uint(1024);
+          }
+
+          @Override
+          public UInteger getMaxArrayLength() {
+            return uint(1 << 26);
+          }
+
+          @Override
+          public UInteger getMaxNodesPerRead() {
+            return uint(100_000);
+          }
+
+          @Override
+          public UInteger getMaxNodesPerWrite() {
+            return uint(100_000);
+          }
+        };
+
+    OpcUaServer server = createServer(options, limits);
     Values values = new Values(server, options.arraySizes);
     values.startup();
     server.startup().get();

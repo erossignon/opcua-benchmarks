@@ -147,11 +147,17 @@ def commands(case, port):
 
         server = [str(node_workers.NODE), str(ROOT / "subscription/node_server.mjs")]
         env = node_workers.environment()
-    else:
+    elif implementation == "ua-dotnet":
         from common import dotnet_workers
 
         server = [str(dotnet_workers.DOTNET), str(dotnet_workers.OUTPUT / "server/Benchmark.Server.dll"), "--counter"]
         env = dotnet_workers.environment()
+    else:
+        from common import sdk_workers
+
+        sdk_workers.preflight(implementation, "subscription")
+        server = sdk_workers.counter_command(implementation)
+        env = sdk_workers.environment(implementation)
     return server + args, [str(BUILD / "client")] + args + [str(case["publishing_ms"])], env
 
 
@@ -200,6 +206,11 @@ def fingerprint():
         files.extend(Path(package_spec.origin).parent.glob("_o6*.so"))
         files.extend(Path(package_spec.origin).parent.glob("_o6*.pyd"))
     digest = hashlib.sha256()
+    from common import sdk_workers
+
+    for name in sdk_workers.NAMES:
+        digest.update(sdk_workers.input_fingerprint(name).encode())
+        digest.update(json.dumps(sdk_workers.artifacts(name), sort_keys=True).encode())
     for path in sorted(files):
         relative = os.path.relpath(path, ROOT)
         digest.update(relative.encode())

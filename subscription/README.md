@@ -1,7 +1,7 @@
 # Subscription capacity
 
 Measures application counter progress while varying monitored-item count.
-open62541, o6-python, node-opcua and .NET increment UInt64 counters in SDK read
+open62541, o6-python, node-opcua, .NET and Milo increment UInt64 counters in SDK read
 callbacks during the armed workload window. Subscription sampling drives these
 callbacks. One open62541 client provides the same setup and measurement behavior
 across server SDKs. asyncua retains periodic application writes because its
@@ -14,7 +14,7 @@ python -m bench.subscription sample 1 bench.db --name subscriptions-1
 python -m bench.subscription show bench.db --name subscriptions-1
 ```
 
-Defaults include Node and .NET; build their [optional workers](../README.md#setup)
+Defaults include Node, .NET and Milo; build their [optional workers](../README.md#setup)
 or narrow the implementation list. Use `config bench.db --help` for all settings.
 
 ## Measurement

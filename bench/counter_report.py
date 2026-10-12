@@ -39,7 +39,7 @@ def workload_note(sources):
         )
     return (
         '<aside class="workload-note"><p><strong>Counter generation and SDK exception</strong></p>'
-        "<p>New open62541, o6-python, node-opcua and UA-.NETStandard runs increment each item's UInt64 "
+        "<p>New open62541, o6-python, node-opcua, UA-.NETStandard and Milo runs increment each item's UInt64 "
         "counter in its SDK read callback. The SDK's subscription sampling drives these reads; "
         "there is no application loop updating all items. Counters advance only during the armed run. "
         "Server observations count callback increments in the retained window; client observations "

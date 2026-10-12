@@ -19,7 +19,7 @@
   const data = JSON.parse(document.getElementById('counter-data').textContent);
   const byId = id => document.getElementById(id);
   const colors = {'open62541': '#2563eb', 'o6-python': '#ea580c', asyncua: '#059669',
-    'node-opcua': '#9333ea', 'ua-dotnet': '#db2777'};
+    'node-opcua': '#9333ea', 'ua-dotnet': '#db2777', milo: '#d55181'};
   const sdkOrder = Object.keys(colors);
   const label = c => `${c.implementation} / ${c.measurement}`;
   const sourceLabel = row => row.counter_source === 'read_callback' ? 'SDK read callback' : 'Application updates';

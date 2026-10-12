@@ -22,7 +22,7 @@ from subscription import strategy
 
 MAX_ITEMS = 1_048_576
 
-SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet")
+SERVERS = ("open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet", "milo")
 
 
 def bounded(minimum, maximum):
