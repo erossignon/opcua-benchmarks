@@ -36,6 +36,10 @@ candidate is measured once. Every item must achieve at least 99% of expected
 progress to pass; passing the cap establishes only an "at least" bound.
 Execution errors leave the search incomplete.
 
+Set `search` to `linear` for a sweep of 1, 2, 4, … items up to `items_max`,
+including that maximum. It stops below 50% worst-item progress without bracket
+refinement; exactly 50% continues. The capacity pass threshold remains 99%.
+
 Subscriptions use reporting mode, queue size one, and discard-oldest. Intermediate
 values may be replaced. asyncua and gopcua report the publishing interval as their
 revised sampling interval; S2OPC reports zero (change-triggered sampling). Their

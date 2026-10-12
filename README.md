@@ -68,28 +68,40 @@ The pip-installed o6 evaluation package enforces its own runtime limit per
 process. Longer cases may fail or remain incomplete. This repository does not
 extend that limit.
 
-## Fixed-load comparison
+## Singlecore Server Benchmark
 
-For a scalar Read comparison of all five server SDKs using the same native
-client, run:
+The script compares server SDKs in two scenarios:
+
+- **Reads:** Across all eight SDKs, ten native clients keep 100 scalar Read requests in flight each,
+  without encryption and with Basic256Sha256, to load the server and compare
+  throughput and encryption overhead.
+- **Subscriptions:** A linear sweep of monitored items uses 10 ms and 100 ms
+  sampling with 1,000 ms publishing. Client-side progress shows how capacity
+  changes with sampling frequency across all eight SDKs.
+
+Start a fresh run or continue the latest saved run:
 
 ```sh
-./run-fixed-load.sh
+python singlecore_server_bench.py
+python singlecore_server_bench.py --continue
 ```
 
-The script builds the workers, creates a new database under `results/`, and
-records three samples with 10 concurrent clients and 100 outstanding requests
-per client (1,000 total). Each client performs 100,000 measured calls after
-10,000 warmup calls. An editable configuration and HTML report are saved in the
-database. The script prints the command to view the report and exits nonzero
-if any SDK is short of the requested sample count.
+Edit the settings at the top of the script to adjust the preset. It builds the
+workers and saves results and reports to
+`results/bench-singlecore-server-<YYYY-MM-DD>.db`. A normal run clears the
+previous results; `--continue` keeps completed measurements and resumes with
+the saved settings, including across dates.
+An optional database path selects another file for running, continuing, or plotting.
 
-Use Bash, not `sh`. Override `SAMPLES`, `ITERATIONS`, `WARMUP`, or
-`MAX_OUTSTANDING` as needed; the last setting is per client. `WITH_SDKS=1`
-adds the Milo, S2OPC and gopcua servers (eight in all). The runner's
-120-second collection timeout can require fewer iterations on slower hosts.
-Workers rebuilt since a saved run can change its fingerprint; start a new
-named run instead of amending incompatible measurements.
+Create the throughput and 10 ms / 100 ms subscription plots from saved results:
+
+```sh
+python singlecore_server_bench.py --plot
+python singlecore_server_bench.py results/bench-singlecore-server-2026-10-12.db --plot
+```
+
+Without a database argument, `--plot` uses today's database. PNGs are saved in
+`<database-name>.plots/` beside it; plotting does not run benchmarks or clear results.
 
 ## Contributing
 
