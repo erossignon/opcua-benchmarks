@@ -21,7 +21,8 @@ address space of ``common/servers/open62541_server.c`` and takes the same
 flags (``--port``, ``--security``, the certificate triple, ``--array-sizes``).
 They are measured against the suites' existing clients; none of them is a
 client implementation. Toolchains are pinned in ``common/sdk_toolchains.json``
-and installed under ``deps/`` by ``python -m bench.build --sdks``.
+and installed under ``deps/`` by ``python -m bench.build`` with ``--milo``,
+``--s2opc`` or ``--gopcua``.
 """
 
 from __future__ import annotations
@@ -35,7 +36,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PINS = json.loads((ROOT / "common/sdk_toolchains.json").read_text())
-BUILD_INSTRUCTION = "Run python3 -m bench.build --sdks (or --milo, --s2opc, --gopcua)."
 
 JAVA = ROOT / "deps/jdk/bin/java"
 GO = ROOT / "deps/go/bin/go"
@@ -172,7 +172,7 @@ def preflight(name: str, profile: str) -> dict:
             raise ValueError(f"missing {executable}")
         return {**manifest, "profile": profile}
     except (OSError, ValueError, KeyError) as error:
-        raise RuntimeError(f"{sdk.label} server unavailable or stale: {error}. {BUILD_INSTRUCTION}") from error
+        raise RuntimeError(f"{sdk.label} server unavailable or stale: {error}. Run python3 -m bench.build --{name}.") from error
 
 
 def uses(config_key: dict, name: str) -> bool:

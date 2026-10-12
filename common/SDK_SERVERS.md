@@ -9,17 +9,17 @@ existing clients:
 | `s2opc` | S2OPC Toolkit 1.7.3 | C, mbedtls 3.6.7, expat 2.9.0 | `common/s2opc/` |
 | `gopcua` | gopcua v0.9.1 (`github.com/gopcua/opcua/server`) | Go 1.27.1 | `common/gopcua/` |
 
-From the repository root, run `python -m bench.build --sdks`, or pick one with
-`--milo`, `--s2opc`, `--gopcua`. The bootstrap supports Linux
+From the repository root, run `python -m bench.build` with `--milo`, `--s2opc`
+or `--gopcua`. Combine these flags to build multiple SDKs. The bootstrap supports Linux
 x86_64. Archives are checksum-pinned in `common/sdk_toolchains.json`; Go
 dependencies are pinned by `go.sum`. Toolchains, caches
 and the S2OPC libraries stay under ignored `deps/` directories, and sampling
 performs no downloads. Preflight compares sources, build steps, pins and the
 built artifacts; rebuild after changing any of them.
 
-Select the names as an `implementation` in server_limits and server_capacity,
-or as the server half of a throughput `client:server` pair. They have no
-client, and the subscription suite does not use them.
+Select the names as an `implementation` in server_limits, server_capacity and
+[subscription](../subscription/README.md), or as the server half of a throughput
+`client:server` pair. They have no client implementation.
 
 Each server exposes the address space of `common/servers/open62541_server.c`:
 100 writable Int32 scalars at `ns=1;i=1001..1100` and the requested Int32

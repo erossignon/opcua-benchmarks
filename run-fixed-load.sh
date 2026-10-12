@@ -67,7 +67,7 @@ build_flags=(--node --dotnet)
 if [[ $with_sdks == 1 ]]; then
     run_name=eight-sdks
     servers+=(milo s2opc gopcua)
-    build_flags+=(--sdks)
+    build_flags+=(--milo --s2opc --gopcua)
 fi
 printf 'Database: %s\n10 clients, %s outstanding per client, %s samples, %s calls/client/sample\n' \
     "$database" "$max_outstanding" "$samples" "$iterations"

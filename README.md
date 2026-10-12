@@ -30,7 +30,9 @@ Optional workers have local, pinned toolchains for Linux x64/arm64:
 ```sh
 python -m bench.build --node     # Node.js and node-opcua
 python -m bench.build --dotnet   # .NET and OPC Foundation workers
-python -m bench.build --sdks     # Milo, S2OPC and gopcua servers (x64 only)
+python -m bench.build --milo     # Eclipse Milo (x64 only)
+python -m bench.build --gopcua   # gopcua (x64 only)
+python -m bench.build --s2opc    # S2OPC (x64 only)
 ```
 
 The flags can be combined. Setup downloads dependencies; sampling uses the
