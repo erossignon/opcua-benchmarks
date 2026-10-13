@@ -58,7 +58,7 @@ import subprocess
 import sys
 
 SERVERS = [
-    "open62541", "o6-python", "asyncua", "node-opcua", "node-opcua-fronts", "ua-dotnet", "milo", "gopcua", "s2opc"
+    "open62541", "o6-python", "asyncua", "node-opcua", "ua-dotnet", "milo", "gopcua", "s2opc"
 ]
 SAMPLES = 3
 BUILD_FLAGS = ["--node", "--node-opcua-fronts", "--dotnet", "--milo", "--gopcua", "--s2opc"]
