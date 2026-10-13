@@ -5,7 +5,7 @@ existing clients:
 
 | Name | SDK | Language, toolchain | Source |
 | --- | --- | --- | --- |
-| `milo` | Eclipse Milo 1.1.8 (`milo-sdk-server`) | Java, Temurin JDK 21.0.12.1, Maven 3.9.16 | `common/milo/` |
+| `milo` | Eclipse Milo 1.2.0-RC1 (`milo-sdk-server`) | Java, Temurin JDK 21.0.12.1, Maven 3.9.16 | `common/milo/` |
 | `s2opc` | S2OPC Toolkit 1.7.3 | C, mbedtls 3.6.7, expat 2.9.0 | `common/s2opc/` |
 | `gopcua` | gopcua v0.9.1 (`github.com/gopcua/opcua/server`) | Go 1.27.1 | `common/gopcua/` |
 | `node-opcua-fronts` | node-opcua `FrontThreadEngine`, the package of `common/node` | Node.js of `common/node` (`--node` first) | `common/node-fronts/` |
