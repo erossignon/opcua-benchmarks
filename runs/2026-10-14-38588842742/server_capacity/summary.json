@@ -1,0 +1,87 @@
+{
+ "id": "2026-10-14-38588842742",
+ "date": "2026-10-14T15:59:23Z",
+ "profile": "quick",
+ "trigger": "push",
+ "ref": "main",
+ "commit": "3fa2988473108b955e2b7d3a45609bf7b6919b68",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/38588842742",
+ "runner": {
+  "label": "bench-minipc",
+  "cpu": "Intel(R) Celeron(R) J4125 CPU @ 2.00GHz",
+  "cores": 4,
+  "memory_gb": 3.7
+ },
+ "versions": {
+  "node-opcua": "2.187.7",
+  "asyncua": "2.1.0",
+  "o6-python": "2.0.1",
+  "milo": "1.2.0-RC1",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176",
+  "node-opcua-fronts": "2.187.7",
+  "node-opcua-fronts-2": "2.187.7"
+ },
+ "failures": 3,
+ "metrics": [
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "asyncua",
+   "value": 3985.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "gopcua",
+   "value": 12142.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "milo",
+   "value": 22901.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua",
+   "value": 27450.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua-fronts",
+   "value": 42457.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "node-opcua-fronts-2",
+   "value": 71301.5,
+   "unit": "requests/s",
+   "higher_is_better": true
+  },
+  {
+   "suite": "server_capacity",
+   "case": "scalar Read capacity",
+   "server": "ua-dotnet",
+   "value": 18299.0,
+   "unit": "requests/s",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}
