@@ -1,0 +1,87 @@
+{
+ "id": "2026-11-08-42466341568",
+ "date": "2026-11-08T09:18:57Z",
+ "profile": "standard",
+ "trigger": "schedule",
+ "ref": "main",
+ "commit": "3fa2988473108b955e2b7d3a45609bf7b6919b68",
+ "url": "https://github.com/erossignon/opcua-benchmarks/actions/runs/42466341568",
+ "runner": {
+  "label": "bench-minipc",
+  "cpu": "Intel(R) Celeron(R) J4125 CPU @ 2.00GHz",
+  "cores": 4,
+  "memory_gb": 3.7
+ },
+ "versions": {
+  "node-opcua": "2.187.7",
+  "asyncua": "2.1.0",
+  "o6-python": "2.0.1",
+  "milo": "1.2.0-RC1",
+  "gopcua": "v0.9.1",
+  "s2opc": "1.7.3",
+  "open62541": "ac0d4746388a",
+  "ua-dotnet": "1.5.378.176",
+  "node-opcua-fronts": "2.187.7",
+  "node-opcua-fronts-2": "2.187.7"
+ },
+ "failures": 0,
+ "metrics": [
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "asyncua",
+   "value": 544.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "node-opcua",
+   "value": 8704.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "node-opcua-fronts",
+   "value": 9216.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "node-opcua-fronts-2",
+   "value": 9216.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "o6-python",
+   "value": 2432.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "open62541",
+   "value": 40960.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  },
+  {
+   "suite": "subscription",
+   "case": "server sampling 100 ms, publishing 1000 ms",
+   "server": "ua-dotnet",
+   "value": 448.0,
+   "unit": "monitored items",
+   "higher_is_better": true
+  }
+ ],
+ "report": ""
+}
