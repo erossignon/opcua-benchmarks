@@ -16,7 +16,7 @@
     "runtime": "21.0.12.1+1"
   },
   "gopcua": {
-    "sdk": "github.com/gopcua/opcua v0.9.1",
+    "sdk": "github.com/gopcua/opcua v0.9.4",
     "archives": {
       "go": {
         "url": "https://go.dev/dl/go1.27.1.linux-amd64.tar.gz",
